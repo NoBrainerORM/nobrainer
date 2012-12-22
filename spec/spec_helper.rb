@@ -10,6 +10,7 @@ NoBrainer.connect "rethinkdb://localhost/#{database_name}"
 RSpec.configure do |config|
   config.color_enabled = true
   config.include ModelsHelper
+  config.include CallbacksHelper
 
   config.before(:each) do
     NoBrainer.purge!

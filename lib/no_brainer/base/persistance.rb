@@ -3,7 +3,7 @@ module NoBrainer::Base::Persistance
 
   included do
     extend ActiveModel::Callbacks
-    define_model_callbacks :create, :save
+    define_model_callbacks :create, :update, :save
   end
 
   def initialize(attrs={})
@@ -19,25 +19,23 @@ module NoBrainer::Base::Persistance
   end
 
   def save
-    run_callbacks :save do
-      if new_record?
-        result = NoBrainer.run { table.insert(attributes) }
-        @attributes['id'] = result['generated_keys'].first
-        @new_record = false
-      else
-        NoBrainer.run { selector.update { attributes } }
+    run_callbacks(new_record? ? :create : :update) do
+      run_callbacks :save do
+        if new_record?
+          result = NoBrainer.run { table.insert(attributes) }
+          @attributes['id'] = result['generated_keys'].first
+          @new_record = false
+        else
+          NoBrainer.run { selector.update { attributes } }
+        end
+        true
       end
     end
   end
 
   module ClassMethods
     def create(*args)
-      new(*args).instance_eval do
-        run_callbacks :create do
-          save
-        end
-        self
-      end
+      new(*args).tap { |model| model.save }
     end
   end
 end
