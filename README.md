@@ -13,6 +13,7 @@ gem 'nobrainer'
 Features
 ---------
 
+* creation of database and tables on demand
 * find/create
 * attributes accessors
 * create, update, save callbacks
