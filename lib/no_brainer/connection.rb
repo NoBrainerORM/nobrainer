@@ -13,16 +13,12 @@ class NoBrainer::Connection
   end
 
   alias_method :connect, :raw
-  delegate :reconnect, :close, :to => :raw
-
-  def run(options={})
-    raw.run(yield, options)
-  end
+  delegate :reconnect, :close, :run, :to => :raw
 
   [:db_create, :db_drop, :db_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{cmd}(*args)
-        run { RethinkDB::RQL.#{cmd}(*args) }
+        NoBrainer.run { RethinkDB::RQL.#{cmd}(*args) }
       end
     RUBY
   end
