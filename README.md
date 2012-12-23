@@ -14,9 +14,9 @@ Features
 ---------
 
 * creation of database and tables on demand
-* find/create
+* find/create/save/update_attributes/destroy
 * attributes accessors
-* create, update, save callbacks
+* create, update, save, destroy callbacks
 
 Usage
 ------
