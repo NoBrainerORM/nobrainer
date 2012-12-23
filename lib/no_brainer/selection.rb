@@ -6,6 +6,8 @@ class NoBrainer::Selection
     self.klass = klass
   end
 
+  delegate :inspect, :to => :query
+
   def chain(query)
     self.class.new(query, klass)
   end
@@ -20,7 +22,7 @@ class NoBrainer::Selection
 
   alias_method :where, :filter
 
-  # @rules can be {:field1 => :asc, :field2 => :desc}
+  # @rules is a hash with the format {:field1 => :asc, :field2 => :desc}
   # XXX This only make sense because we have ordered hashes since 1.9.3
   # But is it true for other interpreters?
   def order_by(rules)
@@ -37,6 +39,7 @@ class NoBrainer::Selection
   def first(order = :asc)
     klass.ensure_table! # needed as soon as we get a Query_Result
     # TODO FIXME are not sequential, how do we do that ?? :(
+    # TODO FIXME do not add an order_by if there is already one
     attrs = NoBrainer.run { order_by(:id => order).limit(1) }.first
     klass.from_attributes(attrs)
   end
@@ -49,7 +52,17 @@ class NoBrainer::Selection
     NoBrainer.run { chain query.count }
   end
 
-  def inspect
-    query.inspect.gsub(/^db\(:default_db\)./, '')
+  def each(&block)
+    return enum_for(:each) unless block
+
+    klass.ensure_table! # needed as soon as we get a Query_Result
+    NoBrainer.run { self }.each do |attrs|
+      yield klass.from_attributes(attrs)
+    end
+    self
+  end
+
+  def method_missing(name, *args, &block)
+    each.__send__(name, *args, &block)
   end
 end

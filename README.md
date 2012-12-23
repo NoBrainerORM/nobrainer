@@ -18,7 +18,7 @@ Features
 * attributes accessors
 * validatation, create, update, save, destroy callbacks
 * validation support, expected behavior with save!, save, etc.
-* where, order_by, skip, limit, first/last
+* where, order_by, skip, limit, first/last, each
 
 Usage
 ------
@@ -35,6 +35,7 @@ Model.create(:field1 => 'hello')
 Model.create(:field1 => 'ohai')
 
 Model.where(:field1 => 'ohai').count == 1
+Model.all.map(&:field1) == ['hello', 'ohai']
 Model.where(:field1 => 'hello').first.update_attributes(:field1 => 'ohai')
 Model.where(:field1 => 'ohai').count == 2
 ```
