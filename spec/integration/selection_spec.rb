@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "NoBrainer scope" do
+describe "NoBrainer selection" do
   before { load_models }
 
   context 'when the document does not exist' do

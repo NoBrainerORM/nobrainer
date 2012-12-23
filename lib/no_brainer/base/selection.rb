@@ -1,4 +1,4 @@
-module NoBrainer::Base::Scope
+module NoBrainer::Base::Selection
   extend ActiveSupport::Concern
 
   def selector
@@ -6,6 +6,12 @@ module NoBrainer::Base::Scope
   end
 
   module ClassMethods
+    def all
+      NoBrainer::Selection.new(table)
+    end
+
+    delegate :count, :to => :all
+
     def _find(id)
       # TODO Pass primary key if not default
       attrs = NoBrainer.run { table.get(id) }

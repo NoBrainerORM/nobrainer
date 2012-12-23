@@ -10,7 +10,7 @@ class NoBrainer::Base
 
   load_and_include :Persistance
   load_and_include :Fields
-  load_and_include :Scope
+  load_and_include :Selection
   load_and_include :Core
   load_and_include :Validation
 end

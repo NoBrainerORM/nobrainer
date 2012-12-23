@@ -6,6 +6,7 @@ module NoBrainer::Base::Persistance
     define_model_callbacks :create, :update, :save, :destroy
   end
 
+  # TODO after_initialize callback
   def initialize(attrs={})
     @new_record = true
   end

@@ -8,6 +8,7 @@ module NoBrainer
   autoload :Database
   autoload :Error
   autoload :QueryRunner
+  autoload :Selection
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,
