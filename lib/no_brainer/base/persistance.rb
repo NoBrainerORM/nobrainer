@@ -46,7 +46,7 @@ module NoBrainer::Base::Persistance
           @attributes['id'] ||= result['generated_keys'].first
           @new_record = false
         else
-          NoBrainer.run { selector.update { attributes } }
+          selector.update { attributes }
         end
         true
       end
@@ -55,7 +55,7 @@ module NoBrainer::Base::Persistance
 
   def destroy
     run_callbacks :destroy do
-      NoBrainer.run { selector.delete }
+      selector.delete
       true
     end
   end
