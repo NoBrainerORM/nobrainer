@@ -7,10 +7,10 @@ module NoBrainer::Base::Selection
 
   module ClassMethods
     def all
-      NoBrainer::Selection.new(table)
+      NoBrainer::Selection.new(table, self)
     end
 
-    delegate :count, :where, :to => :all
+    delegate :count, :where, :first, :last, :to => :all
 
     def _find(id)
       # TODO Pass primary key if not default
@@ -23,15 +23,7 @@ module NoBrainer::Base::Selection
     end
 
     def find(id)
-      _find(id) do |attrs|
-        self.new.instance_eval do
-          # TODO Does this block belongs in the Field module ?
-          # TODO Should we reject undeclared fields ?
-          @attributes = attrs
-          @new_record = false
-          self
-        end
-      end
+      _find(id) { |attrs| from_attributes(attrs) }
     end
   end
 end

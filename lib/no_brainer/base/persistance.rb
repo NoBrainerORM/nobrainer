@@ -11,6 +11,10 @@ module NoBrainer::Base::Persistance
     @new_record = true
   end
 
+  def raw_initialize(attrs={})
+    @new_record = false
+  end
+
   def new_record?
     @new_record
   end

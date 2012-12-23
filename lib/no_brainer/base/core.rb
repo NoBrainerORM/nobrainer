@@ -19,5 +19,12 @@ module NoBrainer::Base::Core
       # TODO FIXME Inherence: @ or @@ ?
       @table ||= RethinkDB::RQL.table(table_name)
     end
+
+    def ensure_table!
+      # this will trigger a table creation if needed
+      # TODO FIXME @ or @@ ?
+      self.count unless @table_created
+      @table_created = true
+    end
   end
 end

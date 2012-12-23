@@ -20,7 +20,20 @@ module NoBrainer::Base::Fields
     end
   end
 
+  # bypasses any attribute protection
+  # TODO find a better name because it sounds like
+  # initialize() doesn't get called
+  def raw_initialize(attrs)
+    super
+    # TODO Should we reject undeclared fields ?
+    @attributes = attrs
+  end
+
   module ClassMethods
+    def from_attributes(attrs)
+      self.new.tap { |model| model.raw_initialize(attrs) } if attrs
+    end
+
     def field(name, options={})
       fields << name
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
