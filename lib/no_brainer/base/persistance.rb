@@ -18,6 +18,10 @@ module NoBrainer::Base::Persistance
     !new_record?
   end
 
+  def reload
+    self.class._find(id) { |attrs| @attributes = attrs }
+  end
+
   def save
     run_callbacks(new_record? ? :create : :update) do
       run_callbacks :save do

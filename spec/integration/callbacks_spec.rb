@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'callbacks' do
+describe 'NoBrainer callbacks' do
   before { load_models }
   before { record_callbacks(BasicModel) }
 
