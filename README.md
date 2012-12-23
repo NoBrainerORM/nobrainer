@@ -18,6 +18,7 @@ Features
 * attributes accessors
 * validatation, create, update, save, destroy callbacks
 * validation support, expected behavior with save!, save, etc.
+* where, order_by, skip, limit, first/last
 
 Usage
 ------
@@ -28,14 +29,14 @@ NoBrainer.connect "rethinkdb://host:port/database"
 class Model < NoBrainer::Base
   field :field1
   field :field2
-  field :field3
 end
 
-doc = Model.create(:field1 => 'hello')
-doc = Model.find(doc.id)
+Model.create(:field1 => 'hello')
+Model.create(:field1 => 'ohai')
 
-doc.field1 = 'ohai'
-doc.save!
+Model.where(:field1 => 'ohai').count == 1
+Model.where(:field1 => 'hello').first.update_attributes(:field1 => 'ohai')
+Model.where(:field1 => 'ohai').count == 2
 ```
 
 License
