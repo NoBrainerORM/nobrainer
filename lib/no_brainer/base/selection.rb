@@ -10,7 +10,7 @@ module NoBrainer::Base::Selection
       NoBrainer::Selection.new(table)
     end
 
-    delegate :count, :to => :all
+    delegate :count, :where, :to => :all
 
     def _find(id)
       # TODO Pass primary key if not default
