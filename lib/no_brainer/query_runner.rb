@@ -6,11 +6,12 @@ module NoBrainer::QueryRunner
     extend const_get middleware
   end
 
-  use :Connection
-  use :DatabaseOnDemand
-  use :TableOnDemand
-
   def self.run(options={}, &block)
     super :query => yield, :options => options
   end
+
+  use :Connection
+  use :DatabaseOnDemand
+  use :TableOnDemand
+  use :WriteError
 end

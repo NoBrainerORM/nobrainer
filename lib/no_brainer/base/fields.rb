@@ -1,8 +1,8 @@
 module NoBrainer::Base::Fields
   extend ActiveSupport::Concern
 
-  # we want 'include ActiveModel::Serialization' eventually
-  # (to_json, and friends)
+  # TODO we want to 'include ActiveModel::Serialization'
+  # eventually to get to_json, and friends.
 
   included do
     attr_accessor :attributes

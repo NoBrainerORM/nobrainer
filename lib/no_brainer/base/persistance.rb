@@ -37,13 +37,11 @@ module NoBrainer::Base::Persistance
       run_callbacks :save do
         if new_record?
           result = NoBrainer.run { table.insert(attributes) }
-          # XXX self.id= or @attributes['id']= ?
-          @attributes['id'] = result['generated_keys'].first
+          # TODO self.id= or @attributes['id']= ?
+          @attributes['id'] ||= result['generated_keys'].first
           @new_record = false
         else
           NoBrainer.run { selector.update { attributes } }
-          # XXX Fail if result["updated"] != 1 ?
-          # but no good error message from driver
         end
         true
       end
@@ -53,7 +51,6 @@ module NoBrainer::Base::Persistance
   def destroy
     run_callbacks :destroy do
       NoBrainer.run { selector.delete }
-      # XXX Fail if result["deleted"] != 1 ?
       true
     end
   end

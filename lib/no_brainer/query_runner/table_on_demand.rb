@@ -3,7 +3,7 @@ module NoBrainer::QueryRunner::TableOnDemand
     super
   rescue RuntimeError => e
     if e.message =~ /`FIND_TABLE (.+)`: No entry with that name/
-      # TODO Lookup the Model, and get the options for the primary key
+      # TODO Lookup the Model, and get the primary key name
       NoBrainer.table_create $1
       retry
     end

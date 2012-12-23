@@ -37,4 +37,22 @@ describe 'NoBrainer persistance' do
     doc.destroy
     expect { BasicModel.find(doc.id) }.to raise_error(NoBrainer::Error::NotFound)
   end
+
+  context "when the document already exists" do
+    it 'raises an error when creating' do
+      expect { BasicModel.create(:id => doc.id) }.to raise_error(NoBrainer::Error::Write)
+    end
+  end
+
+  context "when the document doesn't exist" do
+    before { doc.destroy }
+
+    it 'raises an error when updating' do
+      expect { doc.update_attributes(:field1 => 'oops') }.to raise_error(NoBrainer::Error::Write)
+    end
+
+    it 'raises an error when destroying' do
+      expect { doc.destroy }.to raise_error(NoBrainer::Error::Write)
+    end
+  end
 end
