@@ -16,7 +16,8 @@ Features
 * creation of database and tables on demand
 * find/create/save/update_attributes/destroy
 * attributes accessors
-* create, update, save, destroy callbacks
+* validatation, create, update, save, destroy callbacks
+* validation support, expected behavior with save!, save, etc.
 
 Usage
 ------
@@ -34,7 +35,7 @@ doc = Model.create(:field1 => 'hello')
 doc = Model.find(doc.id)
 
 doc.field1 = 'ohai'
-doc.save
+doc.save!
 ```
 
 License

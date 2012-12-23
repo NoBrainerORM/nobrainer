@@ -1,9 +1,14 @@
 module NoBrainer::Base::Fields
   extend ActiveSupport::Concern
 
+  # we want 'include ActiveModel::Serialization' eventually
+  # (to_json, and friends)
+
   included do
-    include ActiveModel::Serialization
     attr_accessor :attributes
+    class_attribute :fields
+    self.fields = []
+
     field :id
   end
 
@@ -17,6 +22,7 @@ module NoBrainer::Base::Fields
 
   module ClassMethods
     def field(name, options={})
+      fields << name
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}=(value)
           @attributes['#{name}'] = value

@@ -19,6 +19,8 @@ module NoBrainer::Base::Scope
     def find(id)
       _find(id) do |attrs|
         self.new.instance_eval do
+          # Field module responsability ?
+          # filter out undeclared fields ?
           @attributes = attrs
           @new_record = false
           self

@@ -24,13 +24,11 @@ module NoBrainer::Base::Persistance
 
   def update_attribute(field, value)
     __send__("#{field}=", value)
-    # XXX save or save! ?
     save
   end
 
   def update_attributes(hash)
     hash.each { |field, value| __send__("#{field}=", value) }
-    # XXX save or save! ?
     save
   end
 
@@ -39,6 +37,7 @@ module NoBrainer::Base::Persistance
       run_callbacks :save do
         if new_record?
           result = NoBrainer.run { table.insert(attributes) }
+          # XXX self.id= or @attributes['id']= ?
           @attributes['id'] = result['generated_keys'].first
           @new_record = false
         else
