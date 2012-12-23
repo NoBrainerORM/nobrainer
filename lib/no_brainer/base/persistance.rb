@@ -22,6 +22,18 @@ module NoBrainer::Base::Persistance
     self.class._find(id) { |attrs| @attributes = attrs }
   end
 
+  def update_attribute(field, value)
+    __send__("#{field}=", value)
+    # XXX save or save! ?
+    save
+  end
+
+  def update_attributes(hash)
+    hash.each { |field, value| __send__("#{field}=", value) }
+    # XXX save or save! ?
+    save
+  end
+
   def save
     run_callbacks(new_record? ? :create : :update) do
       run_callbacks :save do

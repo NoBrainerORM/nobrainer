@@ -19,4 +19,17 @@ describe 'NoBrainer persistance' do
     doc.field1.should == 'ohai'
     doc.field2.should == ':)'
   end
+
+  it 'updates with update_attributes' do
+    doc.update_attributes(:field1 => 'please', :field2 => 'halp')
+    doc.reload
+    doc.field1.should == 'please'
+    doc.field2.should == 'halp'
+  end
+
+  it 'updates with update_attribute' do
+    doc.update_attribute(:field1, 'ohai')
+    doc.reload
+    doc.field1.should == 'ohai'
+  end
 end
