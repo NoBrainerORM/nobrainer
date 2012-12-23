@@ -6,10 +6,11 @@ module NoBrainer::QueryRunner
     extend const_get middleware
   end
 
-  use :Connection
+  use :Driver
   use :DatabaseOnDemand
   use :TableOnDemand
   use :WriteError
+  use :Connection
   use :Selection
 
   def self.run(options={}, &block)
