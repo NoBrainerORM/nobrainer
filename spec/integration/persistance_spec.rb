@@ -32,4 +32,9 @@ describe 'NoBrainer persistance' do
     doc.reload
     doc.field1.should == 'ohai'
   end
+
+  it 'destroys' do
+    doc.destroy
+    expect { BasicModel.find(doc.id) }.to raise_error(NoBrainer::Error::NotFound)
+  end
 end

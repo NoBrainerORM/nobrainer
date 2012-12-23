@@ -3,7 +3,7 @@ module NoBrainer::Base::Persistance
 
   included do
     extend ActiveModel::Callbacks
-    define_model_callbacks :create, :update, :save
+    define_model_callbacks :create, :update, :save, :destroy
   end
 
   def initialize(attrs={})
@@ -43,9 +43,19 @@ module NoBrainer::Base::Persistance
           @new_record = false
         else
           NoBrainer.run { selector.update { attributes } }
+          # XXX Fail if result["updated"] != 1 ?
+          # but no good error message from driver
         end
         true
       end
+    end
+  end
+
+  def destroy
+    run_callbacks :destroy do
+      NoBrainer.run { selector.delete }
+      # XXX Fail if result["deleted"] != 1 ?
+      true
     end
   end
 
