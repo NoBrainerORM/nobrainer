@@ -11,6 +11,7 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
   end
 
   def hook
+    # TODO yell when some options are not recognized
     parent_klass.inject_in_layer :relations, <<-RUBY, __FILE__, __LINE__ + 1
       def #{children_name}=(new_children)
         #{children_name}.destroy

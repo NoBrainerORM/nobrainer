@@ -8,6 +8,7 @@ class NoBrainer::Relation::BelongsTo < Struct.new(:children_klass, :parent_name,
   end
 
   def hook
+    # TODO yell when some options are not recognized
     children_klass.field foreign_key
 
     children_klass.inject_in_layer :relations, <<-RUBY, __FILE__, __LINE__ + 1

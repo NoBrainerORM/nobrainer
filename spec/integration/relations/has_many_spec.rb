@@ -2,7 +2,6 @@ require 'spec_helper'
 
 describe 'has_many' do
   before { load_blog_models }
-
   let!(:noise) { 2.times.map { |i| Comment.create(:body => i) } }
 
   let(:post) { Post.create }
@@ -46,6 +45,42 @@ describe 'has_many' do
       post.comments.count.should == 2
       post.reload
       post.comments.count.should == 2
+    end
+  end
+
+  context 'when calling create' do
+    it 'creates a child' do
+      comment = post.comments.create(:body => 'ohai')
+      Post.find(post.id).comments.first.should == comment
+      Post.find(post.id).comments.first.body.should == 'ohai'
+    end
+  end
+
+  context 'when calling create!' do
+    context 'when the child is valid' do
+      it 'creates a child' do
+        comment = post.comments.create!(:body => 'ohai')
+        Post.find(post.id).comments.first.should == comment
+        Post.find(post.id).comments.first.body.should == 'ohai'
+      end
+    end
+
+    context 'when the child is not valid' do
+      it 'raises an exception' do
+        Comment.validates :author, :presence => true
+        expect { post.comments.create!(:body => 'ohai') }.
+          to raise_error(NoBrainer::Error::Validations)
+      end
+    end
+  end
+
+  context 'when calling build' do
+    it 'build a child' do
+      comment = post.comments.build(:body => 'ohai')
+      Post.find(post.id).comments.first.should == nil
+      comment.save
+      Post.find(post.id).comments.first.should == comment
+      Post.find(post.id).comments.first.body.should == 'ohai'
     end
   end
 end

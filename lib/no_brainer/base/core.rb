@@ -11,6 +11,7 @@ module NoBrainer::Base::Core
   def ==(other)
     return super unless self.class == other.class
     return false if self.id.nil?
+    # TODO FIXME Should we check the attributes?
     self.id == other.id
   end
 

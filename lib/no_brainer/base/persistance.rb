@@ -66,5 +66,9 @@ module NoBrainer::Base::Persistance
     def create(*args)
       new(*args).tap { |model| model.save }
     end
+
+    def create!(*args)
+      new(*args).tap { |model| model.save! }
+    end
   end
 end

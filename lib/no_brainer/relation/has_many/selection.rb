@@ -12,4 +12,16 @@ class NoBrainer::Relation::HasMany::Selection < NoBrainer::Selection
     # TODO raise when child doesn't have the proper type
     child.update_attributes(foreign_key => parent_instance.id)
   end
+
+  def build(attrs={})
+    children_klass.new(attrs.merge(foreign_key => parent_instance.id))
+  end
+
+  def create(*args)
+    build(*args).tap { |model| model.save }
+  end
+
+  def create!(*args)
+    build(*args).tap { |model| model.save! }
+  end
 end
