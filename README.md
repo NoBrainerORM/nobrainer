@@ -10,36 +10,65 @@ Installation
 gem 'nobrainer'
 ```
 
+Usage Example
+--------------
+
+Here is a quick example of what NoBrainer can do:
+
+```ruby
+#!/usr/bin/env ruby
+require 'nobrainer'
+
+NoBrainer.connect 'rethinkdb://localhost/blog'
+
+class Post < NoBrainer::Base
+  field :title
+  field :body
+
+  has_many :comments
+
+  validates :title, :body, :presence => true
+end
+
+class Comment < NoBrainer::Base
+  field :author
+  field :body
+
+  belongs_to :post
+
+  validates :author, :body, :post, :presence => true
+
+  after_create do
+    puts "#{author} commented on #{post.title}"
+  end
+end
+
+NoBrainer.purge!
+
+post = Post.create!(:title => 'ohai', :body  => 'yummy')
+
+puts post.comments.create(:author => 'dude').
+  errors.full_messages == ["Body can't be blank"]
+
+post.comments.create(:author => 'dude', :body => 'burp')
+post.comments.create(:author => 'dude', :body => 'wut')
+post.comments.create(:author => 'joe',  :body => 'sir')
+Comment.all.each { |comment| puts comment.body }
+
+post.comments.where(:author => 'dude').destroy
+puts post.comments.count == 1
+```
+
 Features
 ---------
 
 * creation of database and tables on demand
-* find/create/save/update_attributes/destroy
+* find/create/save/update_attributes/destroy. XXX find vs find!
 * attributes accessors
+* validation support, expected behavior with save!, save, etc (todo: uniqueness validation)
 * validatation, create, update, save, destroy callbacks
-* validation support, expected behavior with save!, save, etc.
 * where, order_by, skip, limit, each
 * belongs_to, has_many
-
-Usage
-------
-
-```ruby
-NoBrainer.connect "rethinkdb://host:port/database"
-
-class Model < NoBrainer::Base
-  field :field1
-  field :field2
-end
-
-Model.create(:field1 => 'hello')
-Model.create(:field1 => 'ohai')
-
-Model.where(:field1 => 'ohai').count == 1
-Model.all.map(&:field1) == ['hello', 'ohai']
-Model.where(:field1 => 'hello').first.update_attributes(:field1 => 'ohai')
-Model.where(:field1 => 'ohai').count == 2
-```
 
 License
 --------
