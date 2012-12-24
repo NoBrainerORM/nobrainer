@@ -1,4 +1,4 @@
-module NoBrainer::Base::Fields
+module NoBrainer::Base::Attributes
   extend ActiveSupport::Concern
 
   # TODO we want to 'include ActiveModel::Serialization'
@@ -6,9 +6,6 @@ module NoBrainer::Base::Fields
 
   included do
     attr_accessor :attributes
-    class_attribute :fields
-    self.fields = []
-
     field :id
   end
 
@@ -18,7 +15,11 @@ module NoBrainer::Base::Fields
   end
 
   def assign_attributes(attrs, options={})
-    @attributes = {} if options[:prestine]
+    if options[:prestine]
+      @attributes = {}
+      clear_internal_cache
+    end
+
     attrs.each do |k,v|
       # TODO Should we reject undeclared fields ?
       __send__("#{k}=", v)
@@ -31,8 +32,7 @@ module NoBrainer::Base::Fields
     end
 
     def field(name, options={})
-      fields << name
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+      inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}=(value)
           @attributes['#{name}'] = value
         end

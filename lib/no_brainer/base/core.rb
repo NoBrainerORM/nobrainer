@@ -1,8 +1,12 @@
 module NoBrainer::Base::Core
   extend ActiveSupport::Concern
 
-  def initialize(attrs={}, options={}); end
-  def clear_internal_cache; end
+  def initialize(attrs={}, options={})
+    clear_internal_cache
+  end
+
+  def clear_internal_cache
+  end
 
   def ==(other)
     return super unless self.class == other.class
