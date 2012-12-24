@@ -11,7 +11,7 @@ module NoBrainer::QueryRunner::WriteError
         end
 
         got = result[field]
-        if expected != got
+        if got && expected != got
           error_msg = "#{got} documents were #{field}, but expected #{expected}"
           if result['first_error']
             # FIXME The driver injects a piece of backtrace, which is useless.

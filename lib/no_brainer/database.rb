@@ -17,6 +17,12 @@ class NoBrainer::Database
     raise e unless e.message =~ /No entry with that name/
   end
 
+  def truncate!
+    table_list.each do |table_name|
+      NoBrainer.run { RethinkDB::RQL.table(table_name).delete }
+    end
+  end
+
   [:table_create, :table_drop, :table_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{cmd}(*args)
