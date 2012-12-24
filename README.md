@@ -18,7 +18,8 @@ Features
 * attributes accessors
 * validatation, create, update, save, destroy callbacks
 * validation support, expected behavior with save!, save, etc.
-* where, order_by, skip, limit, first/last, each
+* where, order_by, skip, limit, each
+* belongs_to, has_many
 
 Usage
 ------
