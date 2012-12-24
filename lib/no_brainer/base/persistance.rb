@@ -7,34 +7,35 @@ module NoBrainer::Base::Persistance
   end
 
   # TODO after_initialize callback
-  def initialize(attrs={})
-    @new_record = true
-  end
-
-  def raw_initialize(attrs={})
-    @new_record = false
+  # TODO attr_protected, etc.
+  def initialize(attrs={}, options={})
+    super
+    @new_record = options[:new_record].nil? ? true : options[:new_record]
   end
 
   def new_record?
     @new_record
   end
 
+  def destroyed?
+    !!@destroyed
+  end
+
   def persisted?
-    !new_record?
+    !new_record? && !destroyed?
   end
 
   def reload
-    self.class._find(id) { |attrs| @attributes = attrs }
+    assign_attributes(selector.run, :prestine => true)
+  end
+
+  def update_attributes(attrs)
+    assign_attributes(attrs)
+    save
   end
 
   def update_attribute(field, value)
-    __send__("#{field}=", value)
-    save
-  end
-
-  def update_attributes(hash)
-    hash.each { |field, value| __send__("#{field}=", value) }
-    save
+    update_attributes(field => value)
   end
 
   def save
@@ -42,8 +43,7 @@ module NoBrainer::Base::Persistance
       run_callbacks :save do
         if new_record?
           result = NoBrainer.run { table.insert(attributes) }
-          # TODO self.id= or @attributes['id']= ?
-          @attributes['id'] ||= result['generated_keys'].first
+          self.id ||= result['generated_keys'].first
           @new_record = false
         else
           selector.update { attributes }
@@ -56,6 +56,8 @@ module NoBrainer::Base::Persistance
   def destroy
     run_callbacks :destroy do
       selector.delete
+      @destroyed = true
+      # TODO freeze attriutes, etc.
       true
     end
   end

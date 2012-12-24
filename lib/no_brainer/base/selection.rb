@@ -13,21 +13,22 @@ module NoBrainer::Base::Selection
     delegate :count, :where, :first, :last, :to => :all
 
     def selector_for(id)
+      # TODO Pass primary key if not default
       NoBrainer::Selection.new(table.get(id), self)
     end
 
-    def _find(id)
-      # TODO Pass primary key if not default
-      attrs = selector_for(id).run
-      unless attrs
-        raise NoBrainer::Error::NotFound, "id #{id} not found"
-      end
-
-      yield attrs
+    # XXX this doesn't have the same semantics as
+    # other ORMs. the equivalent is find!.
+    def find(id)
+      from_attributes(selector_for(id).run)
     end
 
-    def find(id)
-      _find(id) { |attrs| from_attributes(attrs) }
+    def find!(id)
+      find(id).tap do |model|
+        unless model
+          raise NoBrainer::Error::NotFound, "#{self.class} id #{id} not found"
+        end
+      end
     end
   end
 end

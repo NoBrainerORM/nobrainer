@@ -35,7 +35,7 @@ describe 'NoBrainer persistance' do
 
   it 'destroys' do
     doc.destroy
-    expect { BasicModel.find(doc.id) }.to raise_error(NoBrainer::Error::NotFound)
+    BasicModel.find(doc.id).should == nil
   end
 
   context "when the document already exists" do

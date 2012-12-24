@@ -8,9 +8,9 @@ class NoBrainer::Base
     include const_get mod
   end
 
+  load_and_include :Core
   load_and_include :Persistance
   load_and_include :Fields
   load_and_include :Selection
-  load_and_include :Core
   load_and_include :Validation
 end

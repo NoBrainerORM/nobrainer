@@ -12,26 +12,22 @@ module NoBrainer::Base::Fields
     field :id
   end
 
-  def initialize(attrs={})
+  def initialize(attrs={}, options={})
     super
-    @attributes = {}
+    assign_attributes(attrs, options.merge(:prestine => true))
+  end
+
+  def assign_attributes(attrs, options={})
+    @attributes = {} if options[:prestine]
     attrs.each do |k,v|
+      # TODO Should we reject undeclared fields ?
       __send__("#{k}=", v)
     end
   end
 
-  # bypasses any attribute protection
-  # TODO find a better name because it sounds like
-  # initialize() doesn't get called
-  def raw_initialize(attrs)
-    super
-    # TODO Should we reject undeclared fields ?
-    @attributes = attrs
-  end
-
   module ClassMethods
-    def from_attributes(attrs)
-      self.new.tap { |model| model.raw_initialize(attrs) } if attrs
+    def from_attributes(attrs, options={})
+      new(attrs, options) if attrs
     end
 
     def field(name, options={})
