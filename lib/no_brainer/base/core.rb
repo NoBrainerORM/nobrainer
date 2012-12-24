@@ -1,6 +1,12 @@
 module NoBrainer::Base::Core
   extend ActiveSupport::Concern
 
+  def ==(other)
+    return super unless self.class == other.class
+    return false if self.id.nil?
+    self.id == other.id
+  end
+
   def table
     self.class.table
   end

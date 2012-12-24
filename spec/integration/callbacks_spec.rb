@@ -57,7 +57,7 @@ describe 'NoBrainer callbacks' do
       BasicModel.before_destroy { false }
       doc = BasicModel.create(:field1 => 'hello')
       doc.destroy
-      BasicModel.find(doc.id).id.should == doc.id
+      BasicModel.find(doc.id).should == doc
     end
   end
 end
