@@ -1,18 +1,25 @@
 class NoBrainer::Selection
   attr_accessor :query, :klass
 
-  def initialize(query, klass)
+  def initialize(query_or_selection, klass=nil)
     # We are saving klass as a context
     # so that the table_on_demand middleware can do its job
     # TODO FIXME Sadly it gets funny with associations
-    self.query = query
-    self.klass = klass
+    if query_or_selection.is_a? NoBrainer::Selection
+      selection = query_or_selection
+      self.query = selection.query
+      self.klass = selection.klass
+    else
+      query = query_or_selection
+      self.query = query
+      self.klass = klass
+    end
   end
 
   delegate :inspect, :to => :query
 
   def chain(query)
-    self.class.new(query, klass)
+    NoBrainer::Selection.new(query, klass)
   end
 
   def run
@@ -72,6 +79,19 @@ class NoBrainer::Selection
     end
     self
   end
+
+  def empty?
+    count == 0
+  end
+
+  def any?
+    !empty?
+  end
+
+  def destroy
+    each { |doc| doc.destroy }
+  end
+  alias_method :destroy_all, :destroy
 
   def method_missing(name, *args, &block)
     each.__send__(name, *args, &block)

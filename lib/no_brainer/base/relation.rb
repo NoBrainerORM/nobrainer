@@ -7,10 +7,20 @@ module NoBrainer::Base::Relation
   end
 
   module ClassMethods
+    def relations
+      @relations
+    end
+
     [:belongs_to, :has_many].each do |relation|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{relation}(target, options={})
-          NoBrainer::Relation::#{relation.to_s.camelize}.new(self, target, options).hook
+          target = target.to_sym
+          r = NoBrainer::Relation::#{relation.to_s.camelize}.new(self, target, options)
+          r.hook
+
+          # FIXME Inheritence will not work well.
+          @relations ||= {}
+          @relations[target] = r
         end
       RUBY
     end

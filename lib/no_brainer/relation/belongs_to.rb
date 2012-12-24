@@ -1,26 +1,31 @@
-class NoBrainer::Relation::BelongsTo < Struct.new(:klass, :parent, :options)
+class NoBrainer::Relation::BelongsTo < Struct.new(:children_klass, :parent_name, :options)
+  def foreign_key
+    @foreign_key ||= options[:foreign_key] || :"#{parent_name}_id"
+  end
+
+  def parent_klass_lazy
+    @parent_klass_lazy ||= options[:class] || parent_name.to_s.camelize
+  end
+
   def hook
-    # TODO test options
-    foreign_key = options[:foreign_key] || :"#{parent}_id"
-    parent_klass = options[:class] || parent.to_s.camelize
+    children_klass.field foreign_key
 
-    klass.field foreign_key
-
-    klass.inject_in_layer :relations, <<-RUBY, __FILE__, __LINE__ + 1
+    children_klass.inject_in_layer :relations, <<-RUBY, __FILE__, __LINE__ + 1
       def #{foreign_key}=(value)
         super
-        @relations_cache[:#{parent}] = nil
+        @relations_cache[:#{parent_name}] = nil
       end
 
-      def #{parent}=(value)
-        value.save! if value && !value.persisted?
-        self.#{foreign_key} = value.try(:id)
-        @relations_cache[:#{parent}] = value
+      def #{parent_name}=(new_parent)
+        # TODO raise when new_parent doesn't have the proper type
+        new_parent.save! if new_parent && !new_parent.persisted?
+        self.#{foreign_key} = new_parent.try(:id)
+        @relations_cache[:#{parent_name}] = new_parent
       end
 
-      def #{parent}
+      def #{parent_name}
         if #{foreign_key}
-          @relations_cache[:#{parent}] ||= #{parent_klass}.find(#{foreign_key})
+          @relations_cache[:#{parent_name}] ||= #{parent_klass_lazy}.find(#{foreign_key})
         end
       end
     RUBY

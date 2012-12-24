@@ -52,8 +52,10 @@ module NoBrainer::Base::Attributes
     end
 
     def field(name, options={})
+      name = name.to_sym
+
       @fields ||= {}
-      @fields[name.to_sym] = true
+      @fields[name] = true
 
       inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}=(value)
