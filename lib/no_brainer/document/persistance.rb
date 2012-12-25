@@ -38,9 +38,9 @@ module NoBrainer::Document::Persistance
     update_attributes(field => value)
   end
 
-  def save
-    run_callbacks(new_record? ? :create : :update) do
-      run_callbacks :save do
+  def save(options={})
+    run_callbacks :save do
+      run_callbacks(new_record? ? :create : :update) do
         if new_record?
           result = NoBrainer.run { table.insert(attributes) }
           self.id ||= result['generated_keys'].first

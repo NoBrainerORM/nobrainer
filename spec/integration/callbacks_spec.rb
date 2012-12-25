@@ -9,7 +9,9 @@ describe 'NoBrainer callbacks' do
 
     context 'when creating' do
       it 'fires the proper callbacks' do
-        BasicModel.callbacks[doc.id].should == [:validation, :create, :save]
+        BasicModel.callbacks.should ==
+          [:before_validation, :after_validation,
+           :before_save, :before_create, :after_create, :after_save]
       end
     end
 
@@ -17,7 +19,9 @@ describe 'NoBrainer callbacks' do
       it 'fires the proper callbacks' do
         BasicModel.callbacks.clear
         doc.update_attributes(:field1 => 'hello')
-        BasicModel.callbacks[doc.id].should == [:validation, :update, :save]
+        BasicModel.callbacks.should == 
+          [:before_validation, :after_validation,
+           :before_save, :before_update, :after_update, :after_save]
       end
     end
 
@@ -25,7 +29,7 @@ describe 'NoBrainer callbacks' do
       it 'fires the proper callbacks' do
         BasicModel.callbacks.clear
         doc.destroy
-        BasicModel.callbacks[doc.id].should == [:destroy]
+        BasicModel.callbacks.should == [:before_destroy, :after_destroy]
       end
     end
   end

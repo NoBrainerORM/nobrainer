@@ -1,16 +1,21 @@
 module NoBrainer::Document::Validation
   extend ActiveSupport::Concern
   include ActiveModel::Validations
+  include ActiveModel::Validations::Callbacks
 
-  included do
-    extend ActiveModel::Callbacks
-    define_model_callbacks :validation
+  def save(options={})
+    options.reverse_merge!(:validate => true)
+
+    if options[:validate]
+      valid? ? super : false
+    else
+      super
+    end
   end
 
-  def save
-    run_callbacks :validation do
-      valid? ? super : false
-    end
+  # TODO Test that thing
+  def valid?(context=nil)
+    super(context || (new_record? ? :create : :update))
   end
 
   [:save, :update_attributes, :update_attribute].each do |method|
