@@ -1,8 +1,10 @@
 module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
-  # TODO we want to 'include ActiveModel::Serialization'
-  # eventually to get to_json, and friends.
+  # TODO test these serialization includes
+  include ActiveModel::Serialization
+  include ActiveModel::Serializers::JSON
+  include ActiveModel::Serializers::Xml
 
   included do
     attr_accessor :attributes
@@ -30,6 +32,7 @@ module NoBrainer::Document::Attributes
     end
   end
 
+  # TODO test that thing
   def inspect
     attrs = self.class.fields.keys.map { |f| "#{f}: #{@attributes[f.to_s].inspect}" }
     "#<#{self.class} #{attrs.join(', ')}>"

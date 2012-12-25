@@ -1,10 +1,12 @@
 class NoBrainer::Relation::BelongsTo < Struct.new(:children_klass, :parent_name, :options)
   def foreign_key
+    # TODO test :foreign_key
     @foreign_key ||= options[:foreign_key] || :"#{parent_name}_id"
   end
 
   def parent_klass_lazy
-    @parent_klass_lazy ||= options[:class] || parent_name.to_s.camelize
+    # TODO test :class_name
+    @parent_klass_lazy ||= options[:class_name] || parent_name.to_s.camelize
   end
 
   def hook

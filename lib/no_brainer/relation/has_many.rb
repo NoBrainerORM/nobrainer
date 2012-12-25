@@ -3,11 +3,13 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
   autoload :Selection
 
   def foreign_key
+    # TODO test :foreign_key
     @foreign_key ||= options[:foreign_key] || :"#{parent_klass.name.underscore}_id"
   end
 
   def children_klass
-    @children_klass ||= (options[:class] || children_name.to_s.singularize.camelize).constantize
+    # TODO test :class_name
+    @children_klass ||= (options[:class_name] || children_name.to_s.singularize.camelize).constantize
   end
 
   def hook

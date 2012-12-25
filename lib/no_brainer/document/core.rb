@@ -1,6 +1,16 @@
 module NoBrainer::Document::Core
   extend ActiveSupport::Concern
 
+  # TODO This assume the primary key is id.
+  # RethinkDB can have a custom primary key. careful.
+  include ActiveModel::Conversion
+
+  included do
+    # TODO test these includes
+    extend ActiveModel::Naming
+    extend ActiveModel::Translation
+  end
+
   def initialize(attrs={}, options={})
     clear_internal_cache
   end
