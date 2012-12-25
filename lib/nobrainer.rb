@@ -1,5 +1,6 @@
 require 'rethinkdb'
 require 'active_support/core_ext'
+require 'no_brainer/railtie' if defined?(Rails)
 
 module NoBrainer
   extend ActiveSupport::Autoload
