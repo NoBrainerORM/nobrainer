@@ -11,7 +11,7 @@ module NoBrainer::Document::Attributes
 
   def initialize(attrs={}, options={})
     super
-    assign_attributes(attrs, options.merge(:prestine => true))
+    assign_attributes(attrs, options.reverse_merge(:prestine => true))
   end
 
   def assign_attributes(attrs, options={})
@@ -37,7 +37,7 @@ module NoBrainer::Document::Attributes
 
   module ClassMethods
     def new_from_db(attrs, options={})
-      new(attrs, options.merge(:from_db => true)) if attrs
+      new(attrs, options.reverse_merge(:from_db => true)) if attrs
     end
 
     def inherited(subclass)

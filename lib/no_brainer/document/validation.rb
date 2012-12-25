@@ -4,7 +4,7 @@ module NoBrainer::Document::Validation
   include ActiveModel::Validations::Callbacks
 
   def save(options={})
-    options.reverse_merge!(:validate => true)
+    options = options.reverse_merge(:validate => true)
 
     if options[:validate]
       valid? ? super : false
