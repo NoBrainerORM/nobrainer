@@ -1,18 +1,18 @@
 require 'spec_helper'
 
 describe "NoBrainer selection" do
-  before { load_models }
+  before { load_simple_document }
 
   context 'when the document does not exist' do
     describe 'find' do
       it 'returns nil' do
-        BasicModel.find('x').should == nil
+        SimpleDocument.find('x').should == nil
       end
     end
 
     describe 'find!' do
       it 'throws not found error' do
-        expect { BasicModel.find!('x') }.to raise_error(NoBrainer::Error::NotFound)
+        expect { SimpleDocument.find!('x') }.to raise_error(NoBrainer::Error::DocumentNotFound)
       end
     end
   end

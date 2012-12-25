@@ -24,7 +24,7 @@ module NoBrainer
     # No not use modules to extend, it's nice to see the NoBrainer module API here.
     delegate :db_create, :db_drop, :db_list, :database, :to => :connection
     delegate :table_create, :table_drop, :table_list,
-             :purge!, :truncate!, :to => :database
+             :purge!, :to => :database
     delegate :run, :to => QueryRunner
   end
 end

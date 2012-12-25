@@ -69,7 +69,7 @@ describe 'has_many' do
       it 'raises an exception' do
         Comment.validates :author, :presence => true
         expect { post.comments.create!(:body => 'ohai') }.
-          to raise_error(NoBrainer::Error::Validations)
+          to raise_error(NoBrainer::Error::DocumentInvalid)
       end
     end
   end

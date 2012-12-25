@@ -24,9 +24,9 @@ module NoBrainer::Document::Selection
     end
 
     def find!(id)
-      find(id).tap do |model|
-        unless model
-          raise NoBrainer::Error::NotFound, "#{self.class} id #{id} not found"
+      find(id).tap do |doc|
+        unless doc
+          raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found"
         end
       end
     end

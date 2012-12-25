@@ -1,13 +1,13 @@
 require 'spec_helper'
 
 describe "NoBrainer serialization" do
-  before { load_models }
+  before { load_simple_document }
 
-  let(:doc) { BasicModel.create(:field1 => 'hello') }
+  let(:doc) { SimpleDocument.create(:field1 => 'hello') }
 
   it 'serializes to json' do
     JSON::parse(doc.to_json).should ==
-      {'basic_model' => {'id' => doc.id, 'field1' => 'hello', 'field2' => nil}}
+      {'simple_document' => {'id' => doc.id, 'field1' => 'hello', 'field2' => nil}}
   end
 
   it 'serializes to xml' do

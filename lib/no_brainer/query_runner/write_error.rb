@@ -19,7 +19,7 @@ module NoBrainer::QueryRunner::WriteError
           else
             error_msg += "\nQuery was: #{q.inspect[0..1000]}"
           end
-          raise NoBrainer::Error::Write, error_msg
+          raise NoBrainer::Error::DocumentNotSaved, error_msg
         end
       end
     end

@@ -1,6 +1,6 @@
 module ModelsHelper
-  def load_models
-    define_constant :BasicModel do
+  def load_simple_document
+    define_constant :SimpleDocument do
       include NoBrainer::Document
 
       field :field1

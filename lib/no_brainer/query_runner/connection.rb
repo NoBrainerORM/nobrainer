@@ -1,7 +1,7 @@
 module NoBrainer::QueryRunner::Connection
   def run(env)
     super
-  rescue RuntimeError, NoBrainer::Error::Write => e
+  rescue RuntimeError, NoBrainer::Error::DocumentNotSaved => e
     if e.message =~ /cannot perform (read|write): lost contact with master/
       env[:connection_retries] ||= 0
       # TODO sleep in between? timing out should be time based?

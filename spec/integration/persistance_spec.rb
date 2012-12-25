@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 describe 'NoBrainer persistance' do
-  before { load_models }
+  before { load_simple_document }
 
-  let!(:doc) { BasicModel.create(:field1 => 'hello', :field2 => 'world') }
+  let!(:doc) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
 
   it 'persist fields on creation' do
     doc.reload
@@ -35,12 +35,12 @@ describe 'NoBrainer persistance' do
 
   it 'destroys' do
     doc.destroy
-    BasicModel.find(doc.id).should == nil
+    SimpleDocument.find(doc.id).should == nil
   end
 
   context "when the document already exists" do
     it 'raises an error when creating' do
-      expect { BasicModel.create(:id => doc.id) }.to raise_error(NoBrainer::Error::Write)
+      expect { SimpleDocument.create(:id => doc.id) }.to raise_error(NoBrainer::Error::DocumentNotSaved)
     end
   end
 
@@ -48,11 +48,11 @@ describe 'NoBrainer persistance' do
     before { doc.destroy }
 
     it 'raises an error when updating' do
-      expect { doc.update_attributes(:field1 => 'oops') }.to raise_error(NoBrainer::Error::Write)
+      expect { doc.update_attributes(:field1 => 'oops') }.to raise_error(NoBrainer::Error::DocumentNotSaved)
     end
 
     it 'raises an error when destroying' do
-      expect { doc.destroy }.to raise_error(NoBrainer::Error::Write)
+      expect { doc.destroy }.to raise_error(NoBrainer::Error::DocumentNotSaved)
     end
   end
 end

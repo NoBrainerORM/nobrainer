@@ -21,7 +21,7 @@ module NoBrainer::Document::Validation
   [:save, :update_attributes, :update_attribute].each do |method|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{method}!(*args)
-        #{method}(*args) or raise NoBrainer::Error::Validations, errors
+        #{method}(*args) or raise NoBrainer::Error::DocumentInvalid, errors
       end
     RUBY
   end

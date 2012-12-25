@@ -11,16 +11,17 @@ class NoBrainer::Database
     @raw ||= RethinkDB::RQL.db(database_name)
   end
 
-  def purge!
-    connection.db_drop(database_name)
+  def purge!(options={})
+    if options[:drop]
+      connection.db_drop(database_name)
+    else
+      # truncating each table is much faster
+      table_list.each do |table_name|
+        NoBrainer.run { RethinkDB::RQL.table(table_name).delete }
+      end
+    end
   rescue RuntimeError => e
     raise e unless e.message =~ /No entry with that name/
-  end
-
-  def truncate!
-    table_list.each do |table_name|
-      NoBrainer.run { RethinkDB::RQL.table(table_name).delete }
-    end
   end
 
   [:table_create, :table_drop, :table_list].each do |cmd|

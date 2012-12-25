@@ -1,22 +1,22 @@
 require 'spec_helper'
 
 describe "each" do
-  before { load_models }
+  before { load_documents }
 
   context 'when there exist some documents' do
-    let!(:models) { 5.times.map { |i| BasicModel.create(:field1 => i) } }
+    let!(:documents) { 5.times.map { |i| SimpleDocument.create(:field1 => i) } }
 
     describe 'each' do
       it 'gets automatically called' do
-        BasicModel.all.to_a.count.should == 5
+        SimpleDocument.all.to_a.count.should == 5
       end
 
-      it 'enumerate models' do
-        BasicModel.all.to_a.first.should be_kind_of BasicModel
+      it 'enumerate documents' do
+        SimpleDocument.all.to_a.first.should be_kind_of SimpleDocument
       end
 
-      it 'maps to models' do
-        BasicModel.all.map(&:field1).sort.should == (0..4).to_a
+      it 'maps to documents' do
+        SimpleDocument.all.map(&:field1).sort.should == (0..4).to_a
       end
     end
   end
@@ -24,7 +24,7 @@ describe "each" do
   context 'when there are no documents' do
     describe 'each' do
       it 'gets automatically called' do
-        BasicModel.all.to_a.count.should == 0
+        SimpleDocument.all.to_a.count.should == 0
       end
     end
   end

@@ -1,27 +1,27 @@
 require 'spec_helper'
 
 describe 'NoBrainer callbacks' do
-  before { load_models }
+  before { load_simple_document }
 
-  before { BasicModel.validates :field1, :presence => true }
+  before { SimpleDocument.validates :field1, :presence => true }
 
   it 'responds to valid?' do
-    doc = BasicModel.new
+    doc = SimpleDocument.new
     doc.valid?.should == false
     doc.field1 = 'hey'
     doc.valid?.should == true
   end
 
   it 'adds errors' do
-    BasicModel.create.errors.should be_present
+    SimpleDocument.create.errors.should be_present
   end
 
   context 'when not using the bang version' do
-    let(:doc) { BasicModel.create(:field1 => 'ohai') }
+    let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
 
     it 'prevents create if invalid' do
       # TODO write better test with count
-      BasicModel.create.id.should == nil
+      SimpleDocument.create.id.should == nil
     end
 
     context 'when passing :validate => false' do
@@ -48,10 +48,10 @@ describe 'NoBrainer callbacks' do
   end
 
   context 'when using the bang version' do
-    let(:doc) { BasicModel.create(:field1 => 'ohai') }
+    let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
 
     it 'throws an exception for create!' do
-      expect { BasicModel.create! }.to raise_error(NoBrainer::Error::Validations)
+      expect { SimpleDocument.create! }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     context 'when passing :validate => false' do
@@ -64,16 +64,16 @@ describe 'NoBrainer callbacks' do
     context 'when passing nothing' do
       it 'throws an exception for save!' do
         doc.field1 = nil
-        expect { doc.save! }.to raise_error(NoBrainer::Error::Validations)
+        expect { doc.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
     end
 
     it 'throws an exception for update_attributes!' do
-      expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::Validations)
+      expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'throws an exception for update_attribute!' do
-      expect { doc.update_attribute!(:field1, nil) }.to raise_error(NoBrainer::Error::Validations)
+      expect { doc.update_attribute!(:field1, nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
   end
 end

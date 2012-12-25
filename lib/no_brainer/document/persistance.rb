@@ -6,8 +6,7 @@ module NoBrainer::Document::Persistance
     define_model_callbacks :create, :update, :save, :destroy
   end
 
-  # TODO after_initialize callback
-  # TODO attr_protected, etc.
+  # TODO after_initialize, after_find callback
   def initialize(attrs={}, options={})
     super
     @new_record = !options[:from_db]
@@ -57,18 +56,18 @@ module NoBrainer::Document::Persistance
     run_callbacks :destroy do
       selector.delete
       @destroyed = true
-      # TODO freeze attriutes, etc.
+      # TODO freeze attributes
       true
     end
   end
 
   module ClassMethods
     def create(*args)
-      new(*args).tap { |model| model.save }
+      new(*args).tap { |doc| doc.save }
     end
 
     def create!(*args)
-      new(*args).tap { |model| model.save! }
+      new(*args).tap { |doc| doc.save! }
     end
   end
 end

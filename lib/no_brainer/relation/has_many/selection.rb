@@ -18,10 +18,10 @@ class NoBrainer::Relation::HasMany::Selection < NoBrainer::Selection
   end
 
   def create(*args)
-    build(*args).tap { |model| model.save }
+    build(*args).tap { |doc| doc.save }
   end
 
   def create!(*args)
-    build(*args).tap { |model| model.save! }
+    build(*args).tap { |doc| doc.save! }
   end
 end
