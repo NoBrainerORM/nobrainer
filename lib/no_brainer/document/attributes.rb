@@ -21,6 +21,7 @@ module NoBrainer::Document::Attributes
       # TODO FIXME Not setting attributes to {} because
       # RethinkDB gives us some "missing attribute" on queries.
       @attributes = Hash[(self.class.fields.keys - [:id]).map { |f| [f.to_s, nil] }]
+      self.id = self.class.generate_id
       clear_internal_cache
     end
 

@@ -20,8 +20,7 @@ describe 'NoBrainer callbacks' do
     let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
 
     it 'prevents create if invalid' do
-      # TODO write better test with count
-      SimpleDocument.create.id.should == nil
+      SimpleDocument.count.should == 0
     end
 
     context 'when passing :validate => false' do

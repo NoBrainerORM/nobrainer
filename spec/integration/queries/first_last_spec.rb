@@ -8,13 +8,13 @@ describe "first and last" do
 
     context 'when not using a scope' do
       describe 'first' do
-        it 'returns the first document', :pending => 'need created_at field' do
+        it 'returns the first document' do
           SimpleDocument.first.id.should == documents.first.id
         end
       end
 
       describe 'last' do
-        it 'returns the last document', :pending => 'need created_at field' do
+        it 'returns the last document' do
           SimpleDocument.last.id.should == documents.last.id
         end
       end

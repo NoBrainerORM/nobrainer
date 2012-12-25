@@ -10,6 +10,7 @@ module NoBrainer::Document
   end
 
   load_and_include :Core
+  load_and_include :Id
   load_and_include :InjectionLayer
   load_and_include :Persistance
   load_and_include :Attributes
