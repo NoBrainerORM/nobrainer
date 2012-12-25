@@ -24,9 +24,18 @@ describe 'NoBrainer callbacks' do
       BasicModel.create.id.should == nil
     end
 
-    it 'returns false for save' do
-      doc.field1 = nil
-      doc.save.should == false
+    context 'when passing :validate => false' do
+      it 'returns true for save' do
+        doc.field1 = nil
+        doc.save(:validate => false).should == true
+      end
+    end
+
+    context 'when passing nothing' do
+      it 'returns false for save' do
+        doc.field1 = nil
+        doc.save.should == false
+      end
     end
 
     it 'returns false for update_attributes' do
@@ -45,9 +54,18 @@ describe 'NoBrainer callbacks' do
       expect { BasicModel.create! }.to raise_error(NoBrainer::Error::Validations)
     end
 
-    it 'throws an exception for save!' do
-      doc.field1 = nil
-      expect { doc.save! }.to raise_error(NoBrainer::Error::Validations)
+    context 'when passing :validate => false' do
+      it 'returns true for save!' do
+        doc.field1 = nil
+        doc.save!(:validate => false).should == true
+      end
+    end
+
+    context 'when passing nothing' do
+      it 'throws an exception for save!' do
+        doc.field1 = nil
+        expect { doc.save! }.to raise_error(NoBrainer::Error::Validations)
+      end
     end
 
     it 'throws an exception for update_attributes!' do
