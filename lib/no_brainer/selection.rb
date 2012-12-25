@@ -36,7 +36,7 @@ class NoBrainer::Selection
 
   alias_method :where, :filter
 
-  [:count, :update, :delete].each do |method|
+  [:count, :delete].each do |method|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{method}(*args, &block)
         chain(query.#{method}(*args, &block)).run
@@ -92,6 +92,11 @@ class NoBrainer::Selection
     each { |doc| doc.destroy }
   end
   alias_method :destroy_all, :destroy
+
+  def update(attrs={}, &block)
+    block = proc { attrs } unless block_given?
+    chain(query.update(&block)).run
+  end
 
   def method_missing(name, *args, &block)
     each.__send__(name, *args, &block)
