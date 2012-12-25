@@ -7,6 +7,7 @@ module NoBrainer::Document::Attributes
   include ActiveModel::Serializers::Xml
 
   included do
+    include ActiveModel::MassAssignmentSecurity
     attr_accessor :attributes
     field :id
   end
@@ -28,6 +29,9 @@ module NoBrainer::Document::Attributes
     if options[:from_db]
       @attributes.merge! attrs
     else
+      unless options[:without_protection]
+        attrs = sanitize_for_mass_assignment(attrs, options[:as])
+      end
       attrs.each { |k,v| __send__("#{k}=", v) }
     end
   end

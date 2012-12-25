@@ -29,8 +29,8 @@ module NoBrainer::Document::Persistance
     assign_attributes(selector.run, :prestine => true)
   end
 
-  def update_attributes(attrs)
-    assign_attributes(attrs)
+  def update_attributes(attrs, options={})
+    assign_attributes(attrs, options)
     save
   end
 
