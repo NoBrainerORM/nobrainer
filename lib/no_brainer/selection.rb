@@ -63,7 +63,7 @@ class NoBrainer::Selection
     # TODO FIXME are not sequential, how do we do that ?? :(
     # TODO FIXME do not add an order_by if there is already one
     attrs = order_by(:id => order).limit(1).run.first
-    klass.from_attributes(attrs)
+    klass.new_from_db(attrs)
   end
 
   def last
@@ -75,7 +75,7 @@ class NoBrainer::Selection
 
     klass.ensure_table! # needed as soon as we get a Query_Result
     run.each do |attrs|
-      yield klass.from_attributes(attrs)
+      yield klass.new_from_db(attrs)
     end
     self
   end

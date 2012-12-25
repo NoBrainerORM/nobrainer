@@ -22,9 +22,11 @@ module NoBrainer::Base::Attributes
       clear_internal_cache
     end
 
-    attrs.each do |k,v|
-      # TODO Should we reject undeclared fields ?
-      __send__("#{k}=", v)
+    # TODO Should we reject undeclared fields ?
+    if options[:from_db]
+      @attributes.merge! attrs
+    else
+      attrs.each { |k,v| __send__("#{k}=", v) }
     end
   end
 
@@ -34,8 +36,8 @@ module NoBrainer::Base::Attributes
   end
 
   module ClassMethods
-    def from_attributes(attrs, options={})
-      new(attrs, options) if attrs
+    def new_from_db(attrs, options={})
+      new(attrs, options.merge(:from_db => true)) if attrs
     end
 
     def inherited(subclass)
@@ -53,7 +55,6 @@ module NoBrainer::Base::Attributes
 
     def field(name, options={})
       name = name.to_sym
-
       @fields ||= {}
       @fields[name] = true
 

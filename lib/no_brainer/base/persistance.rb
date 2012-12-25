@@ -10,7 +10,7 @@ module NoBrainer::Base::Persistance
   # TODO attr_protected, etc.
   def initialize(attrs={}, options={})
     super
-    @new_record = options[:new_record].nil? ? true : options[:new_record]
+    @new_record = !options[:from_db]
   end
 
   def new_record?

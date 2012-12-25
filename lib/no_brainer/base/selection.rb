@@ -20,7 +20,7 @@ module NoBrainer::Base::Selection
     # XXX this doesn't have the same semantics as
     # other ORMs. the equivalent is find!.
     def find(id)
-      from_attributes(selector_for(id).run)
+      new_from_db(selector_for(id).run)
     end
 
     def find!(id)
