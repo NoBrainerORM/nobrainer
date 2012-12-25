@@ -1,4 +1,4 @@
-module NoBrainer::Base::Core
+module NoBrainer::Document::Core
   extend ActiveSupport::Concern
 
   def initialize(attrs={}, options={})

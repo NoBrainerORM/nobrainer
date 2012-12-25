@@ -1,4 +1,4 @@
-module NoBrainer::Base::Selection
+module NoBrainer::Document::Selection
   extend ActiveSupport::Concern
 
   def selector

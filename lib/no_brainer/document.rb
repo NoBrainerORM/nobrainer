@@ -1,7 +1,8 @@
 require 'active_model'
 
-class NoBrainer::Base
+module NoBrainer::Document
   extend ActiveSupport::Autoload
+  extend ActiveSupport::Concern
 
   def self.load_and_include(mod)
     autoload mod

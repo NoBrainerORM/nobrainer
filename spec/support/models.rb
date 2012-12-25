@@ -1,6 +1,8 @@
 module ModelsHelper
   def load_models
-    define_constant :BasicModel, NoBrainer::Base do
+    define_constant :BasicModel do
+      include NoBrainer::Document
+
       field :field1
       field :field2
       field :field3
@@ -8,14 +10,18 @@ module ModelsHelper
   end
 
   def load_blog_models
-    define_constant :Post, NoBrainer::Base do
+    define_constant :Post do
+      include NoBrainer::Document
+
       field :title
       field :body
 
       has_many :comments
     end
 
-    define_constant :Comment, NoBrainer::Base do
+    define_constant :Comment do
+      include NoBrainer::Document
+
       field :author
       field :body
 

@@ -1,4 +1,4 @@
-module NoBrainer::Base::Relation
+module NoBrainer::Document::Relation
   extend ActiveSupport::Concern
 
   def clear_internal_cache

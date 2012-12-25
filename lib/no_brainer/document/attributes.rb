@@ -1,4 +1,4 @@
-module NoBrainer::Base::Attributes
+module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
   # TODO we want to 'include ActiveModel::Serialization'

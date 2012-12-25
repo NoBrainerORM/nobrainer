@@ -1,4 +1,4 @@
-module NoBrainer::Base::InjectionLayer
+module NoBrainer::Document::InjectionLayer
   extend ActiveSupport::Concern
 
   module ClassMethods

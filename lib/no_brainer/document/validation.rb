@@ -1,4 +1,4 @@
-module NoBrainer::Base::Validation
+module NoBrainer::Document::Validation
   extend ActiveSupport::Concern
   include ActiveModel::Validations
 

@@ -1,4 +1,4 @@
-module NoBrainer::Base::Persistance
+module NoBrainer::Document::Persistance
   extend ActiveSupport::Concern
 
   included do

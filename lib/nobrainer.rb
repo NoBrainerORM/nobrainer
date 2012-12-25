@@ -3,7 +3,7 @@ require 'active_support/core_ext'
 
 module NoBrainer
   extend ActiveSupport::Autoload
-  autoload :Base
+  autoload :Document
   autoload :Connection
   autoload :Database
   autoload :Error

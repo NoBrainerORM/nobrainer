@@ -21,7 +21,8 @@ require 'nobrainer'
 
 NoBrainer.connect 'rethinkdb://localhost/blog'
 
-class Post < NoBrainer::Base
+class Post
+  include NoBrainer::Document
   field :title
   field :body
 
@@ -30,7 +31,8 @@ class Post < NoBrainer::Base
   validates :title, :body, :presence => true
 end
 
-class Comment < NoBrainer::Base
+class Comment
+  include NoBrainer::Document
   field :author
   field :body
 
