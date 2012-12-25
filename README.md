@@ -71,6 +71,9 @@ Features
 * validatation, create, update, save, destroy callbacks
 * where, order_by, skip, limit, each
 * belongs_to, has_many
+* to_json, to_xml
+* attr_protected.
+* rails3 compatible
 
 License
 --------
