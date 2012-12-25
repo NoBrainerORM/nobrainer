@@ -1,7 +1,6 @@
 module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
-  # TODO test these serialization includes
   include ActiveModel::Serialization
   include ActiveModel::Serializers::JSON
   include ActiveModel::Serializers::Xml
@@ -35,10 +34,11 @@ module NoBrainer::Document::Attributes
       attrs.each { |k,v| __send__("#{k}=", v) }
     end
   end
+  alias_method :attributes=, :assign_attributes
 
   # TODO test that thing
   def inspect
-    attrs = self.class.fields.keys.map { |f| "#{f}: #{@attributes[f.to_s].inspect}" }
+    attrs = self.class.fields.keys.map { |f| "#{f}: #{attributes[f.to_s].inspect}" }
     "#<#{self.class} #{attrs.join(', ')}>"
   end
 
