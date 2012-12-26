@@ -18,12 +18,10 @@ module NoBrainer::Document::Id
   end
 
   # TODO Unit test that thing
-  # XXX FIXME the compares of strings in rethinkdb might not work at all
   def self.generate
     oid = ''
     # 4 bytes current time
-    t = Time.new.to_i
-    oid += [t].pack("N")
+    oid += [Time.now.to_i].pack("N")
 
     # 3 bytes machine
     oid += @machine_id
