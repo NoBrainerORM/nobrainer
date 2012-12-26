@@ -64,6 +64,7 @@ puts post.comments.count == 1
 Features
 ---------
 
+* Autogeneration of ID MongoDB style
 * creation of database and tables on demand
 * find/create/save/update_attributes/destroy. XXX find vs find!
 * attributes accessors
