@@ -26,6 +26,7 @@ class NoBrainer::Selection
     NoBrainer.run { self }
   end
 
+  # keep the chain open
   [:filter, :skip, :limit].each do |method|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{method}(*args, &block)
@@ -34,14 +35,25 @@ class NoBrainer::Selection
     RUBY
   end
 
-  alias_method :where, :filter
-
+  # execute immediately
   [:count, :delete].each do |method|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{method}(*args, &block)
         chain(query.#{method}(*args, &block)).run
       end
     RUBY
+  end
+
+  def where(attrs)
+    return self if attrs.empty?
+
+    # Waiting for https://github.com/rethinkdb/rethinkdb/issues/183
+    # to settle on the contain issue.
+    # For now, we require all the fields to be mached.
+    filter do |doc|
+      attrs.map    { |k,v| doc.contains(k) & doc[k].eq(v) }
+           .reduce { |a,b| a & b }
+    end
   end
 
   # @rules is a hash with the format {:field1 => :asc, :field2 => :desc}
