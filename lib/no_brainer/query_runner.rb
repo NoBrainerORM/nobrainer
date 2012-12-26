@@ -1,11 +1,7 @@
 module NoBrainer::QueryRunner
-  extend ActiveSupport::Autoload
+  extend NoBrainer::Loader
 
-  def self.use(middleware)
-    autoload middleware
-    extend const_get middleware
-  end
-
+  # Middlewares. Order matters.
   use :Driver
   use :DatabaseOnDemand
   use :TableOnDemand
