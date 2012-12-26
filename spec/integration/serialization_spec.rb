@@ -7,7 +7,7 @@ describe "NoBrainer serialization" do
 
   it 'serializes to json' do
     JSON::parse(doc.to_json).should ==
-      {'simple_document' => {'id' => doc.id, 'field1' => 'hello', 'field2' => nil}}
+      {'id' => doc.id, 'field1' => 'hello', 'field2' => nil}
   end
 
   it 'serializes to xml' do

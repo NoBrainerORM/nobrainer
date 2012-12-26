@@ -14,6 +14,7 @@ module NoBrainer::Document
   load_and_include :InjectionLayer
   load_and_include :Persistance
   load_and_include :Attributes
+  load_and_include :Serialization
   load_and_include :Selection
   load_and_include :Validation
   load_and_include :Relation

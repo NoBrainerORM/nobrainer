@@ -1,10 +1,6 @@
 module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
-  include ActiveModel::Serialization
-  include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
-
   included do
     include ActiveModel::MassAssignmentSecurity
     attr_accessor :attributes
@@ -18,9 +14,11 @@ module NoBrainer::Document::Attributes
 
   def assign_attributes(attrs, options={})
     if options[:prestine]
-      # TODO FIXME Not setting attributes to {} because
-      # RethinkDB gives us some "missing attribute" on queries.
-      @attributes = Hash[(self.class.fields.keys - [:id]).map { |f| [f.to_s, nil] }]
+      # XXX Performance optimization: we don't save field that are not
+      # explicitly set. The row will therefore not contain nil for
+      # unset attributes. This has some implication when using where()
+      # see lib/no_brainer/selection/where.rb
+      @attributes = {}
       self.id = self.class.generate_id
       clear_internal_cache
     end
