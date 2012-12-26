@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'inc/dec' do
   before { load_simple_document }
 
-  before { 2.times { SimpleDocument.create(:field1 => 10) } }
+  let!(:docs) { 2.times { SimpleDocument.create(:field1 => 10) } }
 
   context 'when using a selection' do
     context 'when using the inc wrapper' do

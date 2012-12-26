@@ -56,17 +56,19 @@ class NoBrainer::Selection
     end
   end
 
-  # @rules is a hash with the format {:field1 => :asc, :field2 => :desc}
-  # XXX This only make sense because we have ordered hashes since 1.9.3
-  # But is it true for other interpreters?
-  def order_by(rules)
-    rules = rules.map do |k,v|
-      case v
-      when :asc  then [k, true]
-      when :desc then [k, false]
-      else raise "please pass :asc or :desc, not #{v}"
+  def order_by(*rules)
+    if rules[0].is_a? Hash
+      # Exploiting the fact that Hashes are now ordered.
+      # XXX TODO Throw an exception when using ruby 1.8
+      rules = rules[0].map do |k,v|
+        case v
+        when :asc  then [k, true]
+        when :desc then [k, false]
+        else raise "please pass :asc or :desc, not #{v}"
+        end
       end
     end
+
     chain query.order_by(*rules)
   end
 
@@ -110,6 +112,7 @@ class NoBrainer::Selection
   end
 
   def inc(field, value=1)
+    # TODO return the new value
     update { |doc| { field => doc[field] + value } }
   end
 
