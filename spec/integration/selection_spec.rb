@@ -16,15 +16,4 @@ describe "NoBrainer selection" do
       end
     end
   end
-
-  describe 'update' do
-    it 'updates documents' do
-      SimpleDocument.create(:field1 => 'ohai')
-      SimpleDocument.create(:field1 => 'ohai')
-
-      SimpleDocument.where(:field1 => 'hello').count.should == 0
-      SimpleDocument.all.update(:field1 => 'hello')
-      SimpleDocument.where(:field1 => 'hello').count.should == 2
-    end
-  end
 end

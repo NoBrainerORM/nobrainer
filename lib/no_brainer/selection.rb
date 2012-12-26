@@ -60,7 +60,6 @@ class NoBrainer::Selection
 
   def first(order = :asc)
     klass.ensure_table! # needed as soon as we get a Query_Result
-    # TODO FIXME are not sequential, how do we do that ?? :(
     # TODO FIXME do not add an order_by if there is already one
     attrs = order_by(:id => order).limit(1).run.first
     klass.new_from_db(attrs)
@@ -96,6 +95,14 @@ class NoBrainer::Selection
   def update(attrs={}, &block)
     block = proc { attrs } unless block_given?
     chain(query.update(&block)).run
+  end
+
+  def inc(field, value=1)
+    update { |doc| { field => doc[field] + value } }
+  end
+
+  def dec(field, value=1)
+    inc(field, -value)
   end
 
   def method_missing(name, *args, &block)

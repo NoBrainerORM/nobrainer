@@ -70,6 +70,7 @@ Features
 * validation support, expected behavior with save!, save, etc (todo: uniqueness validation)
 * validatation, create, update, save, destroy callbacks
 * where, order_by, skip, limit, each
+* update, inc, dec
 * belongs_to, has_many
 * to_json, to_xml
 * attr_protected.
