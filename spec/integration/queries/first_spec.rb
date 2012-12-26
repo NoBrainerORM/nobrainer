@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "first and last" do
+describe 'first' do
   before { load_simple_document }
 
   context 'when there exist some documents' do
