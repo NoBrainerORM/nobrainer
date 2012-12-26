@@ -10,19 +10,19 @@ Installation
 gem 'nobrainer'
 ```
 
-Usage Example
---------------
+Usage
+------
 
 Here is a quick example of what NoBrainer can do:
 
 ```ruby
-#!/usr/bin/env ruby
 require 'nobrainer'
 
 NoBrainer.connect 'rethinkdb://localhost/blog'
 
 class Post
   include NoBrainer::Document
+
   field :title
   field :body
 
@@ -33,6 +33,7 @@ end
 
 class Comment
   include NoBrainer::Document
+  
   field :author
   field :body
 
@@ -64,20 +65,20 @@ puts post.comments.count == 1
 Features
 ---------
 
-* Autogeneration of ID MongoDB style
-* creation of database and tables on demand
-* find/create/save/update_attributes/destroy. XXX find vs find!
-* attributes accessors
-* validation support, expected behavior with save!, save, etc (todo: uniqueness validation)
-* validatation, create, update, save, destroy callbacks
-* where, order_by, skip, limit, each
-* update, inc, dec
-* belongs_to, has_many
-* to_json, to_xml
-* attr_protected.
-* rails3 compatible
+* Compatible with Rails 3
+* Autogeneration of ID, MongoDB style
+* Creation of database and tables on demand
+* Attributes accessors (`attr_accessor`)
+* Validation support, expected behavior with `save!`, `save`, etc. (uniqueness validation still in development)
+* Validatation with create, update, save, and destroy callbacks.
+* `find`, `create`, `save`, `update_attributes`, `destroy` (`*.find` vs. `find!`).
+* `where`, `order_by`, `skip`, `limit`, `each`
+* `update`, `inc`, `dec`
+* `belongs_to`, `has_many`
+* `to_json`, `to_xml`
+* `attr_protected`
 
 License
 --------
 
-MIT License
+See [`LICENSE.md`](https://github.com/nviennot/nobrainer/blob/master/LICENSE.md).
