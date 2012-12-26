@@ -21,7 +21,7 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
       end
 
       def #{children_name}
-        # TODO Cache array when we have one
+        # TODO Cache array
         relation = self.class.relations[:#{children_name}]
         ::NoBrainer::Relation::HasMany::Selection.new(self, relation)
       end

@@ -20,10 +20,11 @@ module NoBrainer::Document::Core
 
   def ==(other)
     return super unless self.class == other.class
-    return false if self.id.nil?
-    # TODO FIXME Should we check the attributes?
-    self.id == other.id
+    !id.nil? && id == other.id
   end
+  alias_method :eql?, :==
+
+  delegate :hash, :to => :id
 
   def table
     self.class.table

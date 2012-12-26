@@ -18,16 +18,33 @@ describe 'NoBrainer ==' do
       SimpleDocument.find(doc1.id).should_not == SimpleDocument.find(doc2.id)
     end
   end
+  context 'when object are new' do
+    it 'returns false' do
+      SimpleDocument.new.should_not == SimpleDocument.new
+    end
+  end
 
   context 'when the ids are both nil' do
     it 'returns false' do
-      SimpleDocument.new.should_not == SimpleDocument.new
+      doc1.id = doc2.id = nil
+      doc1.should_not == doc2
     end
   end
 
   context 'when compared to another object type' do
     it 'returns false' do
       SimpleDocument.find(doc1.id).should_not == doc1.id
+    end
+  end
+
+  context 'when using a hash' do
+    it 'hashes things properly' do
+      hash = {}
+      hash[SimpleDocument.find(doc1.id)] = true
+      hash[SimpleDocument.find(doc2.id)] = true
+      hash[SimpleDocument.find(doc1.id)] = true
+      hash[SimpleDocument.find(doc2.id)] = true
+      hash.size.should == 2
     end
   end
 end
