@@ -27,8 +27,8 @@ describe 'NoBrainer persistance' do
     doc.field2.should == 'halp'
   end
 
-  #TODO: Advise RethinkDB to allow for updated document to be returned after update query to ensure
-  # the race condition of an interleaving write happening before reading the document again
+  #TODO: Submitted https://github.com/rethinkdb/rethinkdb/issues/194 to allow for value of
+  # updated doc to be returned atomically
   it 'updates atomically with update' do
     doc.update do |doc|
       {:field1 => 'please', :field2 => 'halp'}
