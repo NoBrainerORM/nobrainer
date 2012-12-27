@@ -32,13 +32,25 @@ describe 'order_by' do
     end
   end
 
-  context 'when mixing the two' do
+  context 'when mixing the two with on order_by call' do
     it 'orders documents properly' do
       SimpleDocument.all.order_by(:field1 => :asc, :field2 => :desc)
         .map { |doc| [doc.field1, doc.field2] }
         .should == [[1,2],[1,1],[2,2],[2,1]]
 
       SimpleDocument.all.order_by(:field2 => :desc, :field1 => :asc)
+        .map { |doc| [doc.field1, doc.field2] }
+        .should == [[1,2],[2,2],[1,1],[2,1]]
+    end
+  end
+
+  context 'when mixing the two by chaining two order_by calls', :pending => true do
+    it 'orders documents properly' do
+      SimpleDocument.all.order_by(:field1 => :asc,).order_by(:field2 => :desc)
+        .map { |doc| [doc.field1, doc.field2] }
+        .should == [[1,2],[1,1],[2,2],[2,1]]
+
+      SimpleDocument.all.order_by(:field2 => :desc).order_by(:field1 => :asc)
         .map { |doc| [doc.field1, doc.field2] }
         .should == [[1,2],[2,2],[1,1],[2,1]]
     end
