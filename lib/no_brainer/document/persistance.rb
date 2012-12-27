@@ -24,8 +24,34 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
+  def _create
+    run_callbacks :create do
+      result = NoBrainer.run { table.insert(attributes) }
+      self.id ||= result['generated_keys'].first
+      @new_record = false
+      true
+    end
+  end
+
   def reload
     assign_attributes(selector.run, :prestine => true)
+  end
+
+  def update(&block)
+    run_callbacks :update do
+      selector.update(&block)
+      true
+    end
+  end
+
+  def save(options={})
+    run_callbacks :save do
+      if new_record?
+        _create
+      else
+        update { attributes }
+      end
+    end
   end
 
   def update_attributes(attrs, options={})
@@ -33,32 +59,15 @@ module NoBrainer::Document::Persistance
     save
   end
 
-  def update(&block)
-    selector.update(&block)
-  end
-
-  def save(options={})
-    run_callbacks :save do
-      run_callbacks(new_record? ? :create : :update) do
-        if new_record?
-          result = NoBrainer.run { table.insert(attributes) }
-          self.id ||= result['generated_keys'].first
-          @new_record = false
-        else
-          selector.update { attributes }
-        end
-        true
-      end
-    end
+  def delete
+    selector.delete
+    @destroyed = true
+    # TODO freeze attributes
+    true
   end
 
   def destroy
-    run_callbacks :destroy do
-      selector.delete
-      @destroyed = true
-      # TODO freeze attributes
-      true
-    end
+    run_callbacks(:destroy) { delete }
   end
 
   module ClassMethods

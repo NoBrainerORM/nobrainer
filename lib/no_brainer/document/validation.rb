@@ -18,7 +18,7 @@ module NoBrainer::Document::Validation
     super(context || (new_record? ? :create : :update))
   end
 
-  [:save, :update_attributes, :update_attribute].each do |method|
+  [:save, :update_attributes].each do |method|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{method}!(*args)
         #{method}(*args) or raise NoBrainer::Error::DocumentInvalid, errors

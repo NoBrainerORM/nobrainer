@@ -15,13 +15,29 @@ describe 'NoBrainer callbacks' do
       end
     end
 
-    context 'when updating' do
+    context 'when updating with update' do
+      it 'fires the proper callbacks' do
+        SimpleDocument.callbacks.clear
+        doc.update {{:field1 => 'hello'}}
+        SimpleDocument.callbacks.should == [:before_update, :after_update]
+      end
+    end
+
+    context 'when updating with save' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.clear
         doc.update_attributes(:field1 => 'hello')
         SimpleDocument.callbacks.should == 
           [:before_validation, :after_validation,
            :before_save, :before_update, :after_update, :after_save]
+      end
+    end
+
+    context 'when deleting' do
+      it 'fires the proper callbacks' do
+        SimpleDocument.callbacks.clear
+        doc.delete
+        SimpleDocument.callbacks.should == []
       end
     end
 

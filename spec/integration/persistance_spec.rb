@@ -35,14 +35,19 @@ describe 'NoBrainer persistance' do
 
     doc.update do |document|
       { :field1 => document[:field1] + 1 }
-    end
+    end.should == true
 
     doc.reload
     doc.field1.should == 2
   end
 
+  it 'deletes' do
+    doc.delete.should == true
+    SimpleDocument.find(doc.id).should == nil
+  end
+
   it 'destroys' do
-    doc.destroy
+    doc.destroy.should == true
     SimpleDocument.find(doc.id).should == nil
   end
 
