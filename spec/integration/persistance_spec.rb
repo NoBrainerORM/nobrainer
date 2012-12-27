@@ -30,13 +30,15 @@ describe 'NoBrainer persistance' do
   #TODO: Submitted https://github.com/rethinkdb/rethinkdb/issues/194 to allow for value of
   # updated doc to be returned atomically
   it 'updates atomically with update' do
-    doc.update do |doc|
-      {:field1 => 'please', :field2 => 'halp'}
+    doc.field1 = 1
+    doc.save
+
+    doc.update do |document|
+      { :field1 => document[:field1] + 1 }
     end
 
     doc.reload
-    doc.field1.should == 'please'
-    doc.field2.should == 'halp'
+    doc.field1.should == 2
   end
 
   it 'updates with update_attribute' do
