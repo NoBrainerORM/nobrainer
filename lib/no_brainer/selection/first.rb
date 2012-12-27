@@ -1,12 +1,21 @@
 module NoBrainer::Selection::First
-  def first(order = :asc)
-    klass.ensure_table! # needed as soon as we get a Query_Result
-    # TODO FIXME do not add an order_by if there is already one
-    attrs = order_by(:id => order).limit(1).run.first
-    klass.new_from_db(attrs)
+  def first
+    get_one(:asc)
   end
 
   def last
-    first(:desc)
+    raise 'last does not work with a custom ordering. ' +
+          'please fix and Make a pull request' if ordered?
+    get_one(:desc)
+  end
+
+  private
+
+  def get_one(order)
+    klass.ensure_table! # needed as soon as we get a Query_Result
+
+    sel = ordered? ? self : order_by(:id => order)
+    attrs = sel.limit(1).run.first
+    klass.new_from_db(attrs)
   end
 end

@@ -25,8 +25,8 @@ module NoBrainer::Selection::Core
     context[:klass]
   end
 
-  def chain(query)
-    NoBrainer::Selection.new(query, context)
+  def chain(query, context=nil)
+    NoBrainer::Selection.new(query, context || self.context)
   end
 
   def run

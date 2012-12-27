@@ -34,7 +34,7 @@ describe 'first' do
       end
     end
 
-    context 'when using an order_by scope', :pending => true do
+    context 'when using an order_by scope' do
       context 'order_by is on the id' do
         describe 'first' do
           it 'returns the document' do
@@ -43,7 +43,7 @@ describe 'first' do
         end
 
         describe 'last' do
-          it 'returns the document' do
+          it 'returns the document', :pending => true do
             SimpleDocument.all.order_by(:id => :desc).last.should == docs.first
           end
         end
@@ -57,7 +57,7 @@ describe 'first' do
         end
 
         describe 'last' do
-          it 'returns the document' do
+          it 'returns the document', :pending => true do
             SimpleDocument.all.order_by(:field1 => :desc).last.should == docs.first
           end
         end

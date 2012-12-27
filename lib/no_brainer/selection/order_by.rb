@@ -12,6 +12,10 @@ module NoBrainer::Selection::OrderBy
       end
     end
 
-    chain query.order_by(*rules)
+    chain(query.order_by(*rules), context.merge(:ordered => true))
+  end
+
+  def ordered?
+    !!context[:ordered]
   end
 end
