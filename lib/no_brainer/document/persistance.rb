@@ -33,6 +33,10 @@ module NoBrainer::Document::Persistance
     save
   end
 
+  def update(&block)
+    selector.update(&block)
+  end
+
   def save(options={})
     run_callbacks :save do
       run_callbacks(new_record? ? :create : :update) do
