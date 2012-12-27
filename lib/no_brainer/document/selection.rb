@@ -7,14 +7,14 @@ module NoBrainer::Document::Selection
 
   module ClassMethods
     def all
-      NoBrainer::Selection.new(table, self)
+      NoBrainer::Selection.new(table, :klass => self)
     end
 
     delegate :count, :where, :first, :last, :to => :all
 
     def selector_for(id)
       # TODO Pass primary key if not default
-      NoBrainer::Selection.new(table.get(id), self)
+      NoBrainer::Selection.new(table.get(id), :klass => self)
     end
 
     # XXX this doesn't have the same semantics as
