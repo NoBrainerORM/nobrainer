@@ -10,7 +10,14 @@ module NoBrainer::Document::Selection
       NoBrainer::Selection.new(table, :klass => self)
     end
 
-    delegate :count, :where, :first, :last, :to => :all
+    def scope(name, selection)
+      singleton_class.instance_eval do
+        define_method(name) { selection }
+      end
+    end
+
+    delegate :count, :where, :order_by, :first, :last, :to => :all
+
 
     def selector_for(id)
       # TODO Pass primary key if not default
