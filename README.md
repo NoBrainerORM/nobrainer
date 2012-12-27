@@ -66,7 +66,7 @@ Features
 
 * Autogeneration of ID MongoDB style
 * creation of database and tables on demand
-* find/create/save/update_attributes/destroy. XXX find vs find!
+* find/create/save/update_attributes/destroy. XXX find vs find! XXX no update_attribute(:because, :its_useless)
 * attributes accessors
 * validation support, expected behavior with save!, save, etc (todo: uniqueness validation)
 * validatation, create, update, save, destroy callbacks

@@ -27,12 +27,6 @@ describe 'NoBrainer persistance' do
     doc.field2.should == 'halp'
   end
 
-  it 'updates with update_attribute' do
-    doc.update_attribute(:field1, 'ohai')
-    doc.reload
-    doc.field1.should == 'ohai'
-  end
-
   it 'destroys' do
     doc.destroy
     SimpleDocument.find(doc.id).should == nil

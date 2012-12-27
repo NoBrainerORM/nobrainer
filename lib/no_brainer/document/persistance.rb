@@ -33,10 +33,6 @@ module NoBrainer::Document::Persistance
     save
   end
 
-  def update_attribute(field, value)
-    update_attributes(field => value)
-  end
-
   def save(options={})
     run_callbacks :save do
       run_callbacks(new_record? ? :create : :update) do

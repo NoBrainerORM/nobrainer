@@ -40,10 +40,6 @@ describe 'NoBrainer callbacks' do
     it 'returns false for update_attributes' do
       doc.update_attributes(:field1 => nil).should == false
     end
-
-    it 'returns false for update_attribute' do
-      doc.update_attribute(:field1, nil).should == false
-    end
   end
 
   context 'when using the bang version' do
@@ -69,10 +65,6 @@ describe 'NoBrainer callbacks' do
 
     it 'throws an exception for update_attributes!' do
       expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
-    end
-
-    it 'throws an exception for update_attribute!' do
-      expect { doc.update_attribute!(:field1, nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
   end
 end
