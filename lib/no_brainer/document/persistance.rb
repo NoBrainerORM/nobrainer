@@ -34,7 +34,7 @@ module NoBrainer::Document::Persistance
   end
 
   def update(&block)
-    self.class.selector_for(id).update(&block)
+    selector.update(&block)
   end
 
   def update_attribute(field, value)
