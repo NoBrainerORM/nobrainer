@@ -9,7 +9,14 @@ module NoBrainer::Selection::Enumerable
     self
   end
 
+  # TODO test that
+  def respond_to?(name, include_private = false)
+    super || [].respond_to?(name)
+  end
+
+  # TODO Make something a bit more efficent ?
   def method_missing(name, *args, &block)
+    return super unless [].respond_to?(name)
     each.__send__(name, *args, &block)
   end
 end

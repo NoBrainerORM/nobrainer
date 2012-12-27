@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe "each" do
-  before { load_documents }
+  before { load_simple_document }
 
   context 'when there exist some documents' do
     let!(:documents) { 5.times.map { |i| SimpleDocument.create(:field1 => i) } }
@@ -27,5 +27,9 @@ describe "each" do
         SimpleDocument.all.to_a.count.should == 0
       end
     end
+  end
+
+  it 'proxies missing methods to enum' do
+    SimpleDocument.all.should respond_to(:unshift)
   end
 end
