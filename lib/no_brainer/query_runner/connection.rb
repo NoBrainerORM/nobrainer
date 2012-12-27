@@ -1,6 +1,6 @@
-module NoBrainer::QueryRunner::Connection
-  def run(env)
-    super
+class NoBrainer::QueryRunner::Connection < NoBrainer::QueryRunner::Middleware
+  def call(env)
+    @runner.call(env)
   rescue RuntimeError, NoBrainer::Error::DocumentNotSaved => e
     if e.message =~ /cannot perform (read|write): lost contact with master/
       env[:connection_retries] ||= 0

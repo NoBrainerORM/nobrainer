@@ -1,8 +1,8 @@
-module NoBrainer::QueryRunner::Selection
-  def run(env)
+class NoBrainer::QueryRunner::Selection < NoBrainer::QueryRunner::Middleware
+  def call(env)
     if env[:query].is_a? NoBrainer::Selection
       env[:selection], env[:query] = env[:query], env[:query].query
     end
-    super(env)
+    @runner.call(env)
   end
 end

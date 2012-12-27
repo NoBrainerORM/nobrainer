@@ -1,7 +1,6 @@
 module NoBrainer::Relation
-  extend ActiveSupport::Autoload
+  extend NoBrainer::Autoload
 
+  autoload :BelongsTo, :HasMany
   # you also want to check NoBrainer::Document::Relation
-  autoload :BelongsTo
-  autoload :HasMany
 end

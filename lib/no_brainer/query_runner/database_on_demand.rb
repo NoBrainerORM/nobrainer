@@ -1,6 +1,6 @@
-module NoBrainer::QueryRunner::DatabaseOnDemand
-  def run(env)
-    super
+class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middleware
+  def call(env)
+    @runner.call(env)
   rescue RuntimeError => e
     if e.message =~ /`FIND_(DB|DATABASE) (.+)`: No entry with that name/
       # RethinkDB may return an FIND_DB not found immediately

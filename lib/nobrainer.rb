@@ -2,17 +2,12 @@ require 'rethinkdb'
 require 'active_model'
 require 'active_support/core_ext'
 require 'no_brainer/railtie' if defined?(Rails)
+require 'no_brainer/autoload'
 
 module NoBrainer
-  extend ActiveSupport::Autoload
-  autoload :Document
-  autoload :Connection
-  autoload :Database
-  autoload :Error
-  autoload :QueryRunner
-  autoload :Selection
-  autoload :Relation
-  autoload :Loader
+  extend NoBrainer::Autoload
+
+  autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Selection, :Relation
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,

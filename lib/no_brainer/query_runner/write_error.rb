@@ -1,6 +1,6 @@
-module NoBrainer::QueryRunner::WriteError
-  def run(env)
-    super.tap do |result|
+class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
+  def call(env)
+    @runner.call(env).tap do |result|
       q = env[:query]
       if q.is_a? RethinkDB::Write_Query
         expected = 1

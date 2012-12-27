@@ -1,15 +1,32 @@
+require 'middleware'
+
 module NoBrainer::QueryRunner
-  extend NoBrainer::Loader
+  extend NoBrainer::Autoload
 
-  # Middlewares. Order matters.
-  use :Driver
-  use :DatabaseOnDemand
-  use :TableOnDemand
-  use :WriteError
-  use :Connection
-  use :Selection
+  class Middleware
+    def initialize(runner)
+      @runner = runner
+    end
+  end
 
-  def self.run(options={}, &block)
-    super :query => yield, :options => options
+  autoload :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
+           :Connection, :Selection
+
+  class << self
+    attr_accessor :stack
+
+    def run(options={}, &block)
+      stack.call(:query => yield, :options => options)
+    end
+  end
+
+  # thread-safe, since require() is ran with a mutex.
+  self.stack = ::Middleware::Builder.new do
+    use Selection
+    use Connection
+    use WriteError
+    use TableOnDemand
+    use DatabaseOnDemand
+    use Driver
   end
 end

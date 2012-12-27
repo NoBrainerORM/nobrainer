@@ -1,6 +1,6 @@
-module NoBrainer::QueryRunner::TableOnDemand
-  def run(env)
-    super
+class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
+  def call(env)
+    @runner.call(env)
   rescue RuntimeError => e
     if e.message =~ /`(FIND|EVAL)_TABLE (.+)`: No entry with that name/
       # TODO Lookup the Model, and get the primary key name
