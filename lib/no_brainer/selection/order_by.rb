@@ -1,8 +1,7 @@
 module NoBrainer::Selection::OrderBy
   def order_by(*rules)
     if rules[0].is_a? Hash
-      # Exploiting the fact that Hashes are now ordered.
-      # XXX TODO Throw an exception when using ruby 1.8
+      # Exploiting the fact that Hashes are now ordered
       rules = rules[0].map do |k,v|
         case v
         when :asc  then [k, true]
