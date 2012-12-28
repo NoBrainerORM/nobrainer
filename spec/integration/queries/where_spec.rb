@@ -39,4 +39,7 @@ describe 'where' do
       SimpleDocument.where(:field_new => nil).count.should == 1
     end
   end
+
+  context 'when passing decorated symbols' do
+  end
 end
