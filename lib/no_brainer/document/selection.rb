@@ -7,17 +7,27 @@ module NoBrainer::Document::Selection
 
   module ClassMethods
     def all
-      NoBrainer::Selection.new(table, :klass => self)
+      sel = NoBrainer::Selection.new(table, :klass => self)
+
+      unless is_root_class?
+        # TODO use this: sel = sel.where(:_type.in(descendants_type_values))
+        sel = sel.where do |doc|
+          doc.contains(:_type) &
+          descendants_type_values.map    { |type| doc[:_type].eq(type) }
+                                 .reduce { |a,b| a | b }
+        end
+      end
+
+      sel
     end
 
     def scope(name, selection)
-      singleton_class.instance_eval do
+      singleton_class.class_eval do
         define_method(name) { selection }
       end
     end
 
     delegate :count, :where, :order_by, :first, :last, :to => :all
-
 
     def selector_for(id)
       # TODO Pass primary key if not default
@@ -32,9 +42,7 @@ module NoBrainer::Document::Selection
 
     def find!(id)
       find(id).tap do |doc|
-        unless doc
-          raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found"
-        end
+        doc or raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found"
       end
     end
   end

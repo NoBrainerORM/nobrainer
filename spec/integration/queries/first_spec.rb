@@ -78,4 +78,13 @@ describe 'first' do
       end
     end
   end
+
+  context 'when using polymorphism' do
+    before { load_polymorphic_models }
+
+    it 'returns the proper type' do
+      Child.create
+      Parent.first.class.should == Child
+    end
+  end
 end

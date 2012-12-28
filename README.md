@@ -77,6 +77,9 @@ Features
 * `belongs_to`, `has_many`
 * `to_json`, `to_xml`
 * `attr_protected`
+* Scopes
+* Thread-safe
+* Polymorphism
 
 License
 --------

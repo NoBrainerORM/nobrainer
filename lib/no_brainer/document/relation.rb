@@ -1,14 +1,20 @@
 module NoBrainer::Document::Relation
   extend ActiveSupport::Concern
 
-  def clear_internal_cache
+  included do
+    class << self; attr_accessor :relations; end
+    self.relations = {}
+  end
+
+  def reset_attributes
     super
     @relations_cache = {}
   end
 
   module ClassMethods
-    def relations
-      @relations
+    def inherited(subclass)
+      super
+      subclass.relations = self.relations.dup
     end
 
     [:belongs_to, :has_many].each do |relation|
@@ -18,9 +24,9 @@ module NoBrainer::Document::Relation
           r = NoBrainer::Relation::#{relation.to_s.camelize}.new(self, target, options)
           r.hook
 
-          # FIXME Inheritence will not work well.
-          @relations ||= {}
-          @relations[target] = r
+          ([self] + descendants).each do |klass|
+            klass.relations[target] = r
+          end
         end
       RUBY
     end

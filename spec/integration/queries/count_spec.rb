@@ -27,4 +27,17 @@ describe "count" do
       SimpleDocument.where(:field1 => 'ohai').count.should == 2
     end
   end
+
+  context 'when using polymorphism' do
+    before { load_polymorphic_models }
+
+    it 'counts the proper types' do
+      Parent.create
+      Child.create
+      GrandChild.create
+      Parent.count.should == 3
+      Child.count.should == 2
+      GrandChild.count.should == 1
+    end
+  end
 end

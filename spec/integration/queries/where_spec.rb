@@ -18,6 +18,12 @@ describe 'where' do
     end
   end
 
+  context 'when passing a block' do
+    it 'filters documents' do
+      SimpleDocument.where {|doc| doc[:field1].eq('ohai')}.count.should == 1
+    end
+  end
+
   context 'when passing a field that does not exist' do
     it 'filters documents without yelling' do
       SimpleDocument.where(:field_new => 'hi').count.should == 0

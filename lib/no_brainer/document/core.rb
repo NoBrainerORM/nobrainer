@@ -11,45 +11,27 @@ module NoBrainer::Document::Core
     extend ActiveModel::Translation
   end
 
-  def initialize(attrs={}, options={})
-    clear_internal_cache
-  end
-
-  def clear_internal_cache
-  end
-
-  def ==(other)
-    return super unless self.class == other.class
-    !id.nil? && id == other.id
-  end
-  alias_method :eql?, :==
-
-  delegate :hash, :to => :id
-
-  def table
-    self.class.table
-  end
-
-  def table_name
-    self.class.table_name
-  end
+  def initialize(attrs={}, options={}); end
 
   module ClassMethods
     def table_name
-      # TODO FIXME Inheritance can make things funny here. Pick the parent.
-      self.name.underscore.gsub('/', '__')
+      root_class.name.underscore.gsub('/', '__').pluralize
     end
 
-    # Even though we are using class variables,
-    # these guys are thread-safe.
+    # Even though we are using class variables, it's threads-safe.
     # It's still racy, but the race is harmless.
     def table
-      @table ||= RethinkDB::RQL.table(table_name)
+      root_class.class_eval do
+        @table ||= RethinkDB::RQL.table(table_name).freeze
+      end
     end
 
+    # Thread safe because the operation is idempotent
+    # (no error if we try to create the table twice)
     def ensure_table!
-      self.count unless @table_created
-      @table_created = true
+      root_class.class_eval do
+        @table_created ||= !!self.count
+      end
     end
   end
 end

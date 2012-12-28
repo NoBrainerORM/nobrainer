@@ -2,10 +2,27 @@ require 'thread'
 require 'socket'
 require 'digest/md5'
 
-# Code inspired by the mongo-ruby-driver
-
 module NoBrainer::Document::Id
   extend ActiveSupport::Concern
+
+  included do
+    self.field :id
+  end
+
+  def reset_attributes
+    super
+    self.id = NoBrainer::Document::Id.generate
+  end
+
+  def ==(other)
+    return super unless self.class == other.class
+    !id.nil? && id == other.id
+  end
+  alias_method :eql?, :==
+
+  delegate :hash, :to => :id
+
+  # The following code is inspired by the mongo-ruby-driver
 
   @machine_id = Digest::MD5.digest(Socket.gethostname)[0, 3]
   @lock = Mutex.new
@@ -33,11 +50,5 @@ module NoBrainer::Document::Id
     oid += [get_inc].pack("N")[1, 3]
 
     oid.unpack("C12").map {|e| v=e.to_s(16); v.size == 1 ? "0#{v}" : v }.join
-  end
-
-  module ClassMethods
-    def generate_id
-      NoBrainer::Document::Id.generate
-    end
   end
 end

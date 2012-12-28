@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'NoBrainer attributes' do
+describe NoBrainer do
   before { load_simple_document }
 
   before do

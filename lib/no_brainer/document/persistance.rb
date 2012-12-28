@@ -26,7 +26,7 @@ module NoBrainer::Document::Persistance
 
   def _create
     run_callbacks :create do
-      result = NoBrainer.run { table.insert(attributes) }
+      result = NoBrainer.run { self.class.table.insert(attributes) }
       self.id ||= result['generated_keys'].first
       @new_record = false
       true
@@ -46,11 +46,7 @@ module NoBrainer::Document::Persistance
 
   def save(options={})
     run_callbacks :save do
-      if new_record?
-        _create
-      else
-        update { attributes }
-      end
+      new_record? ? _create : update { attributes }
     end
   end
 

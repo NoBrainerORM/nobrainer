@@ -29,6 +29,16 @@ describe "each" do
     end
   end
 
+  context 'when using polymorphism' do
+    before { load_polymorphic_models }
+
+    it 'returns the proper instance types' do
+      Parent.create
+      Child.create
+      Parent.all.to_a.map(&:class).should =~ [Parent, Child]
+    end
+  end
+
   it 'proxies missing methods to enum' do
     SimpleDocument.all.should respond_to(:unshift)
   end
