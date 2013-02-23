@@ -1,13 +1,13 @@
 require 'rethinkdb'
 require 'active_model'
 require 'active_support/core_ext'
-require 'no_brainer/railtie' if defined?(Rails)
 
 if Gem::Version.new(RUBY_VERSION.dup) < Gem::Version.new('1.9')
   raise 'Please use Ruby 1.9 or later'
 end
 
 module NoBrainer
+  require 'no_brainer/railtie' if defined?(Rails)
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
