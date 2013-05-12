@@ -1,24 +1,19 @@
 class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env).tap do |result|
-      q = env[:query]
-      if q.is_a? RethinkDB::Write_Query
-        expected = 1
-        case q.body[0]
-        when :insert      then field = 'inserted'; expected = q.body[2].count
-        when :pointdelete then field = 'deleted'
-        when :pointupdate then field = 'updated'
-        end
+      # TODO Fix rethinkdb driver: Their classes Term, Query, Response are
+      # not scoped to the RethinkDB module! (that would prevent a user from
+      # creating a Response model for example).
 
-        got = result[field]
-        if got && expected != got
-          error_msg = "#{got} documents were #{field}, but expected #{expected}"
-          if result['first_error']
-            # FIXME The driver injects a piece of backtrace, which is useless.
-            error_msg += "\n#{result['first_error']}"
-          else
-            error_msg += "\nQuery was: #{q.inspect[0..1000]}"
-          end
+      q = env[:query]
+      if q.body.type.in?([Term::TermType::UPDATE,
+                          Term::TermType::DELETE,
+                          Term::TermType::REPLACE,
+                          Term::TermType::INSERT])
+        if result['errors'] || result['skipped']
+          error_msg = "Non existant document" if result['skipped']
+          error_msg = "#{result['first_error']}" if result['first_error']
+          error_msg += "\nQuery was: #{q.inspect[0..1000]}"
           raise NoBrainer::Error::DocumentNotSaved, error_msg
         end
       end

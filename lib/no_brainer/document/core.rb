@@ -22,7 +22,7 @@ module NoBrainer::Document::Core
     # It's still racy, but the race is harmless.
     def table
       root_class.class_eval do
-        @table ||= RethinkDB::RQL.table(table_name).freeze
+        @table ||= RethinkDB::RQL.new.table(table_name).freeze
       end
     end
 

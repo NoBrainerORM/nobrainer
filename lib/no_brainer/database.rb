@@ -8,7 +8,7 @@ class NoBrainer::Database
   end
 
   def raw
-    @raw ||= RethinkDB::RQL.db(database_name)
+    @raw ||= RethinkDB::RQL.new.db(database_name)
   end
 
   def purge!(options={})
@@ -17,7 +17,7 @@ class NoBrainer::Database
     else
       # truncating each table is much faster
       table_list.each do |table_name|
-        NoBrainer.run { RethinkDB::RQL.table(table_name).delete }
+        NoBrainer.run { RethinkDB::RQL.new.table(table_name).delete }
       end
     end
   rescue RuntimeError => e

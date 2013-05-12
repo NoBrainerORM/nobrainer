@@ -4,8 +4,8 @@ module NoBrainer::Selection::OrderBy
       # Exploiting the fact that Hashes are now ordered
       rules = rules[0].map do |k,v|
         case v
-        when :asc  then [k, true]
-        when :desc then [k, false]
+        when :asc  then RethinkDB::RQL.new.asc(k)
+        when :desc then RethinkDB::RQL.new.desc(k)
         else raise "please pass :asc or :desc, not #{v}"
         end
       end
