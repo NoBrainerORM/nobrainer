@@ -10,8 +10,9 @@ class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
                           Term::TermType::DELETE,
                           Term::TermType::REPLACE,
                           Term::TermType::INSERT])
-        if result['errors'] || result['skipped']
-          error_msg = "Non existant document" if result['skipped']
+
+        if result['errors'].to_i != 0 || result['skipped'].to_i != 0
+          error_msg = "Non existant document" if result['skipped'].to_i != 0
           error_msg = "#{result['first_error']}" if result['first_error']
           error_msg += "\nQuery was: #{q.inspect[0..1000]}"
           raise NoBrainer::Error::DocumentNotSaved, error_msg
