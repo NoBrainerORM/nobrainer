@@ -2,7 +2,8 @@ require 'rubygems'
 require 'bundler'
 Bundler.require
 
-Dir["./spec/support/**/*.rb"].each { |f| require f }
+SPEC_ROOT = File.expand_path File.dirname(__FILE__)
+Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f }
 
 database_name = 'nobrainer_test'
 NoBrainer.connect "rethinkdb://localhost/#{database_name}"
