@@ -5,8 +5,9 @@ Bundler.require
 SPEC_ROOT = File.expand_path File.dirname(__FILE__)
 Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f }
 
-database_name = 'nobrainer_test'
-NoBrainer.connect "rethinkdb://localhost/#{database_name}"
+database_host = ENV['DB_HOST'] || 'localhost'
+database_name = ENV['DB_NAME'] || 'nobrainer_test'
+NoBrainer.connect "rethinkdb://#{database_host}/#{database_name}"
 
 RSpec.configure do |config|
   config.color_enabled = true
