@@ -12,7 +12,7 @@ module NoBrainer::Selection::Where
       # in the documents.
       # This means that where(:non_existing => nil) will never match anything.
       sel = filter do |doc|
-        attrs.map    { |k,v| doc.contains(k) & doc[k].eq(v) }
+        attrs.map    { |k,v| doc.has_fields(k) & doc[k].eq(v) }
              .reduce { |a,b| a & b }
       end
     end

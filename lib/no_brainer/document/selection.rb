@@ -12,7 +12,7 @@ module NoBrainer::Document::Selection
       unless is_root_class?
         # TODO use this: sel = sel.where(:_type.in(descendants_type_values))
         sel = sel.where do |doc|
-          doc.contains(:_type) &
+          doc.has_fields(:_type) &
           descendants_type_values.map    { |type| doc[:_type].eq(type) }
                                  .reduce { |a,b| a | b }
         end
