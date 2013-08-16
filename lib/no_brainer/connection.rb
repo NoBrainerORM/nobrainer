@@ -9,7 +9,7 @@ class NoBrainer::Connection
   end
 
   def raw
-    @raw ||= RethinkDB::Connection.new(host, port, database_name)
+    @raw ||= RethinkDB::Connection.new(:host => host, :port => port, :db => database_name)
   end
 
   alias_method :connect, :raw
