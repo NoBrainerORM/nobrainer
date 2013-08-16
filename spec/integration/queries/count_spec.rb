@@ -34,8 +34,8 @@ describe "count" do
     it 'counts the proper types' do
       Parent.create
       Child.create
-      GrandChild.create
-      Parent.count.should == 3
+      GrandChild.create      
+      Parent.count.should == 3      
       Child.count.should == 2
       GrandChild.count.should == 1
     end
