@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.description = "ORM for RethinkDB"
 
   s.add_dependency "rethinkdb",   "~> 1.8.0"
-  s.add_dependency "activemodel", "~> 3.2.13"
+  s.add_dependency "activemodel", ">= 3.2.0", "< 5"
   s.add_dependency "middleware",  "~> 0.1.0"
 
   s.files        = Dir["lib/**/*"] + ['README.md'] + ['LICENSE.md']
