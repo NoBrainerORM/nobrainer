@@ -2,7 +2,9 @@ module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
   included do
-    include ActiveModel::MassAssignmentSecurity
+    if ActiveModel.version < Gem::Version.new("4")
+      include ActiveModel::MassAssignmentSecurity
+    end
     attr_accessor :attributes
 
     # Not using class_attribute because we want to
@@ -31,8 +33,10 @@ module NoBrainer::Document::Attributes
     if options[:from_db]
       attributes.merge! attrs
     else
-      unless options[:without_protection]
-        attrs = sanitize_for_mass_assignment(attrs, options[:as])
+      if ActiveModel.version < Gem::Version.new("4")
+        unless options[:without_protection]
+          attrs = sanitize_for_mass_assignment(attrs, options[:as])
+        end
       end
       attrs.each { |k,v| __send__("#{k}=", v) }
     end
