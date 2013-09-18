@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/nviennot/nobrainer"
   s.summary     = "ORM for RethinkDB"
   s.description = "ORM for RethinkDB"
+  s.license     = 'MIT'
 
   s.add_dependency "rethinkdb",   "~> 1.8.0"
   s.add_dependency "activemodel", ">= 3.2.0", "< 5"
