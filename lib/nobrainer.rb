@@ -28,5 +28,12 @@ module NoBrainer
     delegate :table_create, :table_drop, :table_list,
              :purge!, :to => :database
     delegate :run, :to => QueryRunner
+
+
+    def rails3?
+      return @rails3 unless @rails3.nil?
+      @rails3 = Gem.loaded_specs['activemodel'].version >= Gem::Version.new('3') &&
+                Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
+    end
   end
 end

@@ -2,7 +2,7 @@ module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
   included do
-    if ActiveModel.version < Gem::Version.new("4")
+    if NoBrainer.rails3?
       include ActiveModel::MassAssignmentSecurity
     end
     attr_accessor :attributes
@@ -33,7 +33,7 @@ module NoBrainer::Document::Attributes
     if options[:from_db]
       attributes.merge! attrs
     else
-      if ActiveModel.version < Gem::Version.new("4")
+      if NoBrainer.rails3?
         unless options[:without_protection]
           attrs = sanitize_for_mass_assignment(attrs, options[:as])
         end
