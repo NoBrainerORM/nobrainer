@@ -3,4 +3,5 @@ gemspec
 
 gem 'rake'
 gem 'rspec'
+gem 'timecop'
 gem 'pry'

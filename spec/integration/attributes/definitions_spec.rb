@@ -6,6 +6,7 @@ describe NoBrainer do
   describe 'fields' do
     # Defining another field after Child has been defined.
     before { Parent.field :other_parent_field }
+    before { Parent.disable_timestamps }
 
     it 'returns a hash of fields' do
       Parent.fields.keys.should      =~ [:id, :parent_field, :other_parent_field]
