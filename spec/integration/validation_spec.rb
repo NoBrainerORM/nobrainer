@@ -67,4 +67,25 @@ describe 'NoBrainer callbacks' do
       expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
   end
+
+
+  context 'when validating a unique field' do
+    before { SimpleDocument.validates :field1, :uniqueness => true }
+
+    let(:doc) { SimpleDocument.create!(:field1 => 'ohai') }
+
+    it 'cannot save a non-unique value' do
+      doc.persisted?.should == true
+      doc2 = SimpleDocument.new field1: 'ohai'
+      doc2.valid?.should == false
+      expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
+    end
+
+    it 'can save a unique value' do
+      doc.persisted?.should == true
+      doc2 = SimpleDocument.new field1: 'okbai'
+      doc2.valid?.should == true
+      doc2.save.should == true
+    end
+  end
 end
