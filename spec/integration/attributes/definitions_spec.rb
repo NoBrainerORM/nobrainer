@@ -14,4 +14,20 @@ describe NoBrainer do
       GrandChild.fields.keys.should  =~ [:id, :_type, :parent_field, :other_parent_field, :child_field, :grand_child_field]
     end
   end
+
+
+  context 'when using field defaults' do
+    before { load_simple_document }
+    before { SimpleDocument.field :has_default, default: 'foo'}
+
+    it 'sets the default value when a new instance is created' do
+      doc = SimpleDocument.new
+      doc.has_default.should == 'foo'
+    end
+
+    it 'still allows you to change the value' do
+      doc = SimpleDocument.new has_default: 'bar'
+      doc.has_default.should == 'bar'
+    end
+  end
 end
