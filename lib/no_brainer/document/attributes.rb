@@ -9,9 +9,8 @@ module NoBrainer::Document::Attributes
 
     # Not using class_attribute because we want to
     # use our custom logic
-    class << self; attr_accessor :fields, :field_defaults; end
+    class << self; attr_accessor :fields; end
     self.fields = {}
-    self.field_defaults = {} # keep track of the default value for each field
   end
 
   def initialize(attrs={}, options={})
@@ -19,9 +18,9 @@ module NoBrainer::Document::Attributes
     assign_attributes(attrs, options.reverse_merge(:prestine => true))
 
     # assign default attributes based on the field definitions
-    self.class.field_defaults.each do |name,value|
-      unless attrs.has_key? name
-        self.send("#{name}=", value)
+    self.class.fields.each do |name,value|
+      if !attrs.has_key?(name) and value.instance_of?(Hash) and value.has_key?(:default)
+        self.send("#{name}=", value[:default])
       end
     end
   end
@@ -74,10 +73,8 @@ module NoBrainer::Document::Attributes
       # - at some point, we want to associate informations with a field (like the type)
       # - it gives us a set for free
       ([self] + descendants).each do |klass|
-        klass.fields[name] = true
-        if options.has_key? :default
-          klass.field_defaults[name] = options[:default]
-        end
+        klass.fields[name] ||= {}
+        klass.fields[name].merge!(options)
       end
 
       # Using a layer so the user can use super when overriding these methods

@@ -18,16 +18,31 @@ describe NoBrainer do
 
   context 'when using field defaults' do
     before { load_simple_document }
-    before { SimpleDocument.field :has_default, default: 'foo'}
+    before { SimpleDocument.field :field1, default: 'foo'}
+
+    it 'sets the default value when a new instance is made' do
+      doc = SimpleDocument.new
+      doc.field1.should == 'foo'
+    end
 
     it 'sets the default value when a new instance is created' do
-      doc = SimpleDocument.new
-      doc.has_default.should == 'foo'
+      SimpleDocument.create.field1.should == 'foo'
     end
 
     it 'still allows you to change the value' do
-      doc = SimpleDocument.new has_default: 'bar'
-      doc.has_default.should == 'bar'
+      doc = SimpleDocument.new field1: 'bar'
+      doc.field1.should == 'bar'
     end
+  end
+
+  context 'when applying field defaults later' do
+    before { load_simple_document }
+    before { SimpleDocument.create }
+
+    it 'will load the default value into a retrieved instance' do
+      SimpleDocument.field :field1, default: 'foo'
+      SimpleDocument.first.field1.should == 'foo'
+    end
+
   end
 end
