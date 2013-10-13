@@ -16,13 +16,6 @@ module NoBrainer::Document::Attributes
   def initialize(attrs={}, options={})
     super
     assign_attributes(attrs, options.reverse_merge(:prestine => true))
-
-    # assign default attributes based on the field definitions
-    self.class.fields.each do |name,value|
-      if !attrs.has_key?(name) and value.instance_of?(Hash) and value.has_key?(:default)
-        self.send("#{name}=", value[:default])
-      end
-    end
   end
 
   def reset_attributes
@@ -31,6 +24,13 @@ module NoBrainer::Document::Attributes
     # unset attributes. This has some implication when using where()
     # see lib/no_brainer/selection/where.rb
     self.attributes = {}
+
+    # assign default attributes based on the field definitions
+    self.class.fields.each do |name,value|
+      if value.instance_of?(Hash) and value.has_key?(:default)
+        self.send("#{name}=", value[:default])
+      end
+    end
   end
 
   def assign_attributes(attrs, options={})

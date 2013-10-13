@@ -26,7 +26,8 @@ describe NoBrainer do
     end
 
     it 'sets the default value when a new instance is created' do
-      SimpleDocument.create.field1.should == 'foo'
+      SimpleDocument.create
+      SimpleDocument.where(:field1 => 'foo').count.should == 1
     end
 
     it 'still allows you to change the value' do
