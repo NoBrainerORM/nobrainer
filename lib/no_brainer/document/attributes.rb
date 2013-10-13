@@ -24,6 +24,11 @@ module NoBrainer::Document::Attributes
     # unset attributes. This has some implication when using where()
     # see lib/no_brainer/selection/where.rb
     self.attributes = {}
+
+    # assign default attributes based on the field definitions
+    self.class.fields.each do |name, options|
+      self.__send__("#{name}=", options[:default]) if options.has_key?(:default)
+    end
   end
 
   def assign_attributes(attrs, options={})
@@ -66,7 +71,8 @@ module NoBrainer::Document::Attributes
       # - at some point, we want to associate informations with a field (like the type)
       # - it gives us a set for free
       ([self] + descendants).each do |klass|
-        klass.fields[name] = true
+        klass.fields[name] ||= {}
+        klass.fields[name].merge!(options)
       end
 
       # Using a layer so the user can use super when overriding these methods
