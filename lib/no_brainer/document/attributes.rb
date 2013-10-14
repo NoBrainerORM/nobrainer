@@ -26,10 +26,8 @@ module NoBrainer::Document::Attributes
     self.attributes = {}
 
     # assign default attributes based on the field definitions
-    self.class.fields.each do |name,value|
-      if value.instance_of?(Hash) and value.has_key?(:default)
-        self.send("#{name}=", value[:default])
-      end
+    self.class.fields.each do |name, options|
+      self.__send__("#{name}=", options[:default]) if options.has_key?(:default)
     end
   end
 
