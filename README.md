@@ -65,7 +65,7 @@ puts post.comments.count == 1
 Features
 ---------
 
-* Compatible with Rails 3
+* Compatible with Rails 3 and Rails 4
 * Autogeneration of ID, MongoDB style
 * Creation of database and tables on demand
 * Attributes accessors (`attr_accessor`)
@@ -80,6 +80,10 @@ Features
 * Scopes
 * Thread-safe
 * Polymorphism
+
+Contributors
+------------
+- Andy Selvig (@ajselvig)
 
 License
 --------
