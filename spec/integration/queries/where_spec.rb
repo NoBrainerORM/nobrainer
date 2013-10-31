@@ -42,4 +42,18 @@ describe 'where' do
 
   context 'when passing decorated symbols' do
   end
+
+  context 'when passing a regex as a condition' do
+    it 'can filter using that regex' do
+      SimpleDocument.where(:field1 => /h/).count.should == 2
+    end
+
+    it 'can filter using that regex with a chained where clause' do
+      SimpleDocument.where(:field1 => /h/).where(:field1 => 'ohai').count.should == 1
+    end
+
+    it 'should only find documents that match the regex' do
+      SimpleDocument.where(:field1 => /x/).count.should == 0
+    end
+  end
 end
