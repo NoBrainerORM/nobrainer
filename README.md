@@ -60,6 +60,13 @@ Comment.all.each { |comment| puts comment.body }
 
 post.comments.where(:author => 'dude').destroy
 puts post.comments.count == 1
+
+# Handles Regex as a condition
+post.comments.create(:author => 'dude', :body => 'hello')
+post.comments.create(:author => 'dude', :body => 'ohai')
+
+post.comments.where(:body => /^h/).map{|comment| comment.body } # => ["hello"]
+post.comments.where(:body => /h/).map{|comment| comment.body } # => ["ohai", "hello"]
 ```
 
 Features
