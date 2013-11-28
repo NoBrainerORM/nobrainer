@@ -5,19 +5,30 @@ class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
       # not scoped to the RethinkDB module! (that would prevent a user from
       # creating a Response model for example).
 
-      q = env[:query]
-      if q.body.type.in?([Term::TermType::UPDATE,
-                          Term::TermType::DELETE,
-                          Term::TermType::REPLACE,
-                          Term::TermType::INSERT])
-
-        if result['errors'].to_i != 0 || result['skipped'].to_i != 0
-          error_msg = "Non existant document" if result['skipped'].to_i != 0
-          error_msg = "#{result['first_error']}" if result['first_error']
-          error_msg += "\nQuery was: #{q.inspect[0..1000]}"
-          raise NoBrainer::Error::DocumentNotSaved, error_msg
-        end
+      if is_write_query?(env) && (result['errors'].to_i != 0 || result['skipped'].to_i != 0)
+        raise_write_error(env, result['first_error'])
       end
     end
+  rescue RethinkDB::RqlRuntimeError => e
+    raise unless is_write_query?(env)
+
+    error_msg = e.message.split("\nBacktrace").first
+    error_msg = "Non existent document" if e.message =~ /Expected type OBJECT but found NULL/
+    raise_write_error(env, error_msg)
+  end
+
+  private
+
+  def is_write_query?(env)
+    env[:query].body.type.in?([Term::TermType::UPDATE,
+                               Term::TermType::DELETE,
+                               Term::TermType::REPLACE,
+                               Term::TermType::INSERT])
+  end
+
+  def raise_write_error(env, error_msg)
+    error_msg ||= "Unknown error"
+    error_msg += "\nQuery was: #{env[:query].inspect[0..1000]}"
+    raise NoBrainer::Error::DocumentNotSaved, error_msg
   end
 end
