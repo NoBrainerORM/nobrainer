@@ -27,7 +27,7 @@ module NoBrainer::Document::Selection
       end
     end
 
-    delegate :count, :where, :order_by, :first, :last, :to => :all
+    delegate :eq_join, :map, :pluck, :count, :where, :order_by, :first, :last, :to => :all
 
     def selector_for(id)
       # TODO Pass primary key if not default
