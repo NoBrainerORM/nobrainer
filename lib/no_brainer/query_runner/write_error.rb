@@ -12,12 +12,16 @@ class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
                           Term::TermType::INSERT])
 
         if result['errors'].to_i != 0 || result['skipped'].to_i != 0
-          error_msg = "Non existant document" if result['skipped'].to_i != 0
           error_msg = "#{result['first_error']}" if result['first_error']
           error_msg += "\nQuery was: #{q.inspect[0..1000]}"
           raise NoBrainer::Error::DocumentNotSaved, error_msg
         end
       end
     end
+
+  rescue RethinkDB::RqlRuntimeError => e
+    error_msg = "Non existant document"
+    error_msg += "\nQuery was: #{env[:query].inspect[0..1000]}"
+    raise NoBrainer::Error::DocumentNotSaved, error_msg
   end
 end
