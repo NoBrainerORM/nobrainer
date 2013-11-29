@@ -20,7 +20,7 @@ module NoBrainer
     attr_accessor :connection
 
     def connect(uri)
-      self.connection = Connection.new(uri).tap { |c| c.connect }
+      self.connection = Connection.new(uri).tap { |conn| conn.connect }
     end
 
     # No not use modules to extend, it's nice to see the NoBrainer module API here.
@@ -31,9 +31,24 @@ module NoBrainer
 
 
     def rails3?
-      return @rails3 unless @rails3.nil?
-      @rails3 = Gem.loaded_specs['activemodel'].version >= Gem::Version.new('3') &&
-                Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
+      @rails3 ||= within_minimum_version && within_maximum_version
+    end
+
+    private
+    def within_minimum_version
+      Gem.loaded_specs['activemodel'].version >= version_three
+    end
+
+    def within_maximum_version
+      Gem.loaded_specs['activemodel'].version < version_four
+    end
+
+    def version_three
+      Gem::Version.new('3')
+    end
+
+    def version_four
+      Gem::Version.new('4')
     end
   end
 end
