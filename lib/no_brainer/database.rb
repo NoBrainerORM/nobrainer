@@ -17,11 +17,11 @@ class NoBrainer::Database
     else
       # truncating each table is much faster
       table_list.each do |table_name|
-        NoBrainer.run { RethinkDB::RQL.new.table(table_name).delete }
+        self.class.truncate_table!(table_name)
       end
     end
-  rescue RuntimeError => e
-    raise e unless e.message =~ /No entry with that name/
+  rescue RuntimeError => err
+    raise err unless err.message =~ /No entry with that name/
   end
 
   [:table_create, :table_drop, :table_list].each do |cmd|
@@ -30,5 +30,9 @@ class NoBrainer::Database
         NoBrainer.run { raw.#{cmd}(*args) }
       end
     RUBY
+  end
+
+  def self.truncate_table!(table_name)
+    NoBrainer.run { RethinkDB::RQL.new.table(table_name).delete }
   end
 end
