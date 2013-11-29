@@ -43,15 +43,16 @@ module NoBrainer::Document::Attributes
           attrs = sanitize_for_mass_assignment(attrs, options[:as])
         end
       end
-      attrs.each { |k,v| __send__("#{k}=", v) }
+      attrs.each { |key,value| __send__("#{key}=", value) }
     end
   end
   alias_method :attributes=, :assign_attributes
 
   # TODO test that thing
   def inspect
-    attrs = self.class.fields.keys.map { |f| "#{f}: #{attributes[f.to_s].inspect}" }
-    "#<#{self.class} #{attrs.join(', ')}>"
+    klass = self.class
+    attrs = klass.fields.keys.map { |key| "#{key}: #{attributes[key.to_s].inspect}" }
+    return "#<#{klass} #{attrs.join(', ')}>"
   end
 
   module ClassMethods
@@ -71,8 +72,7 @@ module NoBrainer::Document::Attributes
       # - at some point, we want to associate informations with a field (like the type)
       # - it gives us a set for free
       ([self] + descendants).each do |klass|
-        klass.fields[name] ||= {}
-        klass.fields[name].merge!(options)
+        (klass.fields[name] ||= {}).merge!(options)
       end
 
       # Using a layer so the user can use super when overriding these methods

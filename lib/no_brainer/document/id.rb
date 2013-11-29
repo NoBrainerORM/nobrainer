@@ -36,19 +36,15 @@ module NoBrainer::Document::Id
 
   # TODO Unit test that thing
   def self.generate
-    oid = ''
-    # 4 bytes current time
-    oid += [Time.now.to_i].pack("N")
+    # 4 bytes current time, 3 bytes machine, 2 bytes pid, 3 bytes inc
+    oid = 
+      [Time.now.to_i].pack("N") +
+      @machine_id +
+      [Process.pid % 0xFFFF].pack("n") +
+      [get_inc].pack("N")[1, 3]
 
-    # 3 bytes machine
-    oid += @machine_id
-
-    # 2 bytes pid
-    oid += [Process.pid % 0xFFFF].pack("n")
-
-    # 3 bytes inc
-    oid += [get_inc].pack("N")[1, 3]
-
-    oid.unpack("C12").map {|e| v=e.to_s(16); v.size == 1 ? "0#{v}" : v }.join
+    oid.unpack("C12").map {|byte| 
+      byte.to_s(16).rjust(2, '0')
+    }.join
   end
 end

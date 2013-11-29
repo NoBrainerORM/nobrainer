@@ -24,15 +24,6 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
-  def _create
-    run_callbacks :create do
-      result = NoBrainer.run { self.class.table.insert(attributes) }
-      self.id ||= result['generated_keys'].first
-      @new_record = false
-      true
-    end
-  end
-
   def reload
     assign_attributes(selector.run, :prestine => true)
   end
@@ -46,7 +37,7 @@ module NoBrainer::Document::Persistance
 
   def save(options={})
     run_callbacks :save do
-      new_record? ? _create : update { attributes }
+      _save
     end
   end
 
@@ -74,5 +65,23 @@ module NoBrainer::Document::Persistance
     def create!(*args)
       new(*args).tap { |doc| doc.save! }
     end
+  end
+
+  private
+  def _save
+    new_record? ? _create : update { attributes }
+  end
+
+  def _create
+    run_callbacks :create do
+      result = run_query(self.class.table.insert(attributes))
+      self.id ||= result['generated_keys'].first
+      @new_record = false
+      true
+    end
+  end
+
+  def run_query(runnable)
+    NoBrainer.run { runnable }
   end
 end

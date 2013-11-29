@@ -26,18 +26,22 @@ module NoBrainer::Document::Validation
     RUBY
   end
 
+  # Validate the document for uniqueness violations.
+  #
+  # @example Validate the document.
+  #   validate_each(person, :title, "Sir")
+  #
+  # @param [ Document ] document The document to validate.
+  # @param [ Symbol ] attribute The field to validate on.
+  # @param [ Object ] value The value of the field.
+  #
+  # @return [ Boolean ] true if the attribute is unique.
   class UniquenessValidator < ActiveModel::EachValidator
-    # Validate the document for uniqueness violations.
-    #
-    # @example Validate the document.
-    #   validate_each(person, :title, "Sir")
-    #
-    # @param [ Document ] document The document to validate.
-    # @param [ Symbol ] attribute The field to validate on.
-    # @param [ Object ] value The value of the field.
-    #
-    # @return [ Boolean ] true if the attribute is unique.
     def validate_each(document, attribute, value)
+      self.class.validate_each(document, attribute, value)
+    end
+
+    def self.validate_each(document, attribute, value)
       is_unique = document.class.where(attribute => value).count == 0
       unless is_unique
         document.errors.add(attribute, 'is already taken')

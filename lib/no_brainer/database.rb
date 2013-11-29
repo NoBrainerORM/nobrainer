@@ -20,8 +20,8 @@ class NoBrainer::Database
         self.class.truncate_table!(table_name)
       end
     end
-  rescue RuntimeError => e
-    raise e unless e.message =~ /No entry with that name/
+  rescue RuntimeError => err
+    raise err unless err.message =~ /No entry with that name/
   end
 
   [:table_create, :table_drop, :table_list].each do |cmd|

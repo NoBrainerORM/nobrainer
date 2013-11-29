@@ -1,8 +1,8 @@
 class NoBrainer::QueryRunner::Connection < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
-  rescue RuntimeError, NoBrainer::Error::DocumentNotSaved => e
-    if e.message =~ /cannot perform (read|write): lost contact with master/
+  rescue RuntimeError, NoBrainer::Error::DocumentNotSaved => err
+    if err.message =~ /cannot perform (read|write): lost contact with master/
       env[:connection_retries] ||= 0
       # TODO sleep in between? timing out should be time based?
 
@@ -12,6 +12,6 @@ class NoBrainer::QueryRunner::Connection < NoBrainer::QueryRunner::Middleware
       # TODO Unit test
       retry if (env[:connection_retries] += 1) < 10
     end
-    raise e
+    raise err
   end
 end

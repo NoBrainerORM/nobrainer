@@ -9,7 +9,9 @@ module NoBrainer::Document::Polymorphic
 
   def reset_attributes
     super
-    self._type = self.class.type_value unless self.class.is_root_class?
+    self.class.tap {|klass| 
+      self._type = klass.type_value unless klass.is_root_class?
+    }
   end
 
   module ClassMethods

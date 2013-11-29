@@ -1,8 +1,13 @@
 class NoBrainer::QueryRunner::Selection < NoBrainer::QueryRunner::Middleware
   def call(env)
-    if env[:query].is_a? NoBrainer::Selection
-      env[:selection], env[:query] = env[:query], env[:query].query
+    @runner.call(self.class.normalize_query_and_selection(env))
+  end
+
+  def self.normalize_query_and_selection(env)
+    query, selection = env.values_at(:query, :selection)
+    if query.is_a? NoBrainer::Selection
+      env[:selection], env[:query] = query, query.query
     end
-    @runner.call(env)
+    env
   end
 end
