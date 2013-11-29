@@ -38,8 +38,12 @@ class NoBrainer::Connection
         "Invalid URI. Expecting something like rethinkdb://host:port/database. Got #{uri}"
     end
 
-    self.host = parsed_uri.host
-    self.port = parsed_uri.port || 28015
-    self.database_name = parsed_uri.path.gsub(/^\//, '')
+    apply_connection_settings!(parsed_uri)
+  end
+
+  def apply_connection_settings!(uri)
+    self.host = uri.host
+    self.port = uri.port || 28015
+    self.database_name = uri.path.gsub(/^\//, '')
   end
 end
