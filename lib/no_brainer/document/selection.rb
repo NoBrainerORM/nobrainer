@@ -13,8 +13,7 @@ module NoBrainer::Document::Selection
         # TODO use this: sel = sel.where(:_type.in(descendants_type_values))
         sel = sel.where do |doc|
           doc.has_fields(:_type) &
-          descendants_type_values.map    { |type| doc[:_type].eq(type) }
-                                 .reduce { |a,b| a | b }
+            filter_descendants(doc[:_type])
         end
       end
 
@@ -22,9 +21,7 @@ module NoBrainer::Document::Selection
     end
 
     def scope(name, selection)
-      singleton_class.class_eval do
-        define_method(name) { selection }
-      end
+      singleton_class.send(:define_method, name, lambda {selection})
     end
 
     delegate :count, :where, :order_by, :first, :last, :to => :all
@@ -44,6 +41,13 @@ module NoBrainer::Document::Selection
       find(id).tap do |doc|
         doc or raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found"
       end
+    end
+
+    private
+    def filter_descendants(required_type)
+      descendants_type_values.
+        map {|type| required_type.eq(type)}.
+        reduce {|alpha, beta| alpha | beta}
     end
   end
 end
