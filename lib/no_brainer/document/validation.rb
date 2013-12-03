@@ -38,7 +38,11 @@ module NoBrainer::Document::Validation
     #
     # @return [ Boolean ] true if the attribute is unique.
     def validate_each(document, attribute, value)
-      is_unique = document.class.where(attribute => value).count == 0
+      finder = document.class.where(attribute => value)
+      if document.persisted?
+        finder = finder.where{|doc| doc["id"].ne(document.id)}
+      end
+      is_unique = finder.count == 0
       unless is_unique
         document.errors.add(attribute, 'is already taken')
       end
