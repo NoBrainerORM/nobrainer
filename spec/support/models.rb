@@ -5,6 +5,7 @@ module ModelsHelper
 
       field :field1
       field :field2
+      field :field3
     end
   end
 
