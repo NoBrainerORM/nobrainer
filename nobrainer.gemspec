@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.description = "ORM for RethinkDB"
   s.license     = 'MIT'
 
-  s.add_dependency "rethinkdb",   "~> 1.10.0"
+  s.add_dependency "rethinkdb",   "~> 1.11.0.1"
   s.add_dependency "activemodel", ">= 3.2.0", "< 5"
   s.add_dependency "middleware",  "~> 0.1.0"
 
