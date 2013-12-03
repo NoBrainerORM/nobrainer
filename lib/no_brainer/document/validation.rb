@@ -39,14 +39,24 @@ module NoBrainer::Document::Validation
     # @return [ Boolean ] true if the attribute is unique.
     def validate_each(document, attribute, value)
       finder = document.class.where(attribute => value)
-      if document.persisted?
-        finder = finder.where{|doc| doc["id"].ne(document.id)}
-      end
+      finder = apply_scopes(finder, document)
+      finder = exclude_document(finder, document) if document.persisted?
       is_unique = finder.count == 0
       unless is_unique
         document.errors.add(attribute, 'is already taken')
       end
       is_unique
+    end
+
+    def apply_scopes(finder, document)
+      Array.wrap(options[:scope]).each do |scope_item|
+        finder = finder.where{|doc| doc[scope_item.to_s].eq(document.attributes[scope_item.to_s])}
+      end
+      finder
+    end
+
+    def exclude_document(finder, document)
+      finder.where{|doc| doc["id"].ne(document.attributes["id"])}
     end
   end
 end
