@@ -74,6 +74,12 @@ describe 'NoBrainer callbacks' do
 
     let(:doc) { SimpleDocument.create!(:field1 => 'ohai') }
 
+    it 'can save an existing document' do
+      doc.persisted?.should == true
+      doc.valid?.should == true
+      doc.save.should == true
+    end
+
     it 'cannot save a non-unique value' do
       doc.persisted?.should == true
       doc2 = SimpleDocument.new field1: 'ohai'
