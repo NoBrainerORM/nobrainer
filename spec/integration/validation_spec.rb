@@ -154,6 +154,30 @@ describe 'NoBrainer callbacks' do
       end
     end
 
-  end
+    context 'with polymorphic classes' do
+      before { load_polymorphic_models }
 
+      context 'when applied on the parent' do
+        before { Parent.validates :parent_field, :uniqueness => true }
+        let!(:parent_doc) { Parent.create(:parent_field => 'ohai') }
+
+        it 'validates in the scope of the parent' do
+          Parent.new(:parent_field => 'ohai').valid?.should == false
+          Child.new(:parent_field => 'ohai').valid?.should == false
+          GrandChild.new(:parent_field => 'ohai').valid?.should == false
+        end
+      end
+
+      context 'when applied on the child' do
+        before { Child.validates :parent_field, :uniqueness => true }
+        let!(:parent_doc) { Parent.create(:parent_field => 'ohai') }
+
+        it 'validates in the scope of the child' do
+          Parent.new(:parent_field => 'ohai').valid?.should == true
+          Child.new(:parent_field => 'ohai').valid?.should == false
+          GrandChild.new(:parent_field => 'ohai').valid?.should == false
+        end
+      end
+    end
+  end
 end
