@@ -1,8 +1,7 @@
 require 'spec_helper'
-require 'no_brainer/document/dynamic_attributes'
 
 describe 'NoBrainer::Document::DynamicAttributes' do
-  before do 
+  before do
     load_simple_document
     SimpleDocument.send(:include, NoBrainer::Document::DynamicAttributes)
   end

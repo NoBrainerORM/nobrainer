@@ -12,7 +12,6 @@ module NoBrainer
   extend NoBrainer::Autoload
 
   autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Selection, :Relation
-  require 'no_brainer/document/dynamic_attributes'
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,

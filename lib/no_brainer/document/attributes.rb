@@ -35,29 +35,26 @@ module NoBrainer::Document::Attributes
 
     # assign default attributes based on the field definitions
     self.class.fields.each do |name, options|
-      self.__send__("#{name}=", options[:default]) if options.has_key?(:default)
+      self.__send__("[]=", name, options[:default]) if options.has_key?(:default)
     end
   end
 
   def assign_attributes(attrs, options={})
     reset_attributes if options[:prestine]
 
-    # TODO Should we reject undeclared fields ?
     if options[:from_db]
+      # TODO Should we reject undeclared fields ?
+      #
+      # TODO Should we use the setters?
+      # Let's postpone the answer once we have custom types to
+      # serialize/deserialize on the database.
       attributes.merge! attrs
     else
-      if NoBrainer.rails3?
-        unless options[:without_protection]
-          attrs = sanitize_for_mass_assignment(attrs, options[:as])
-        end
+      if NoBrainer.rails3? && !options[:without_protection]
+        # TODO What's up with rails4?
+        attrs = sanitize_for_mass_assignment(attrs, options[:as])
       end
-      attrs.each do |k,v| 
-        if respond_to?("#{k}=")
-          __send__("#{k}=", v)
-        else 
-          attributes[k.to_s] = v
-        end
-      end
+      attrs.each { |k,v| __send__("[]=", k, v) }
     end
   end
   alias_method :attributes=, :assign_attributes
@@ -112,6 +109,10 @@ module NoBrainer::Document::Attributes
         undef #{name}=
         undef #{name}
       RUBY
+    end
+
+    def has_field?(name)
+      !!fields[name.to_sym]
     end
   end
 end

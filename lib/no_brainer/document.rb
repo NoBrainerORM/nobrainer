@@ -5,4 +5,5 @@ module NoBrainer::Document
   autoload_and_include :Core, :InjectionLayer, :Attributes, :Id, :Relation,
                        :Persistance, :Serialization, :Selection, :Validation, :Polymorphic,
                        :Timestamps
+  autoload :DynamicAttributes
 end

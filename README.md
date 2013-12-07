@@ -68,7 +68,8 @@ post.comments.create(:author => 'dude', :body => 'ohai')
 post.comments.where(:body => /^h/).map{|comment| comment.body } # => ["hello"]
 post.comments.where(:body => /h/).map{|comment| comment.body } # => ["ohai", "hello"]
 
-# Supports dynamic attributes
+# Supports dynamic attributes.
+# Not explicitly defined field can be accessed with [] and []=
 class Animal
   include NoBrainer::Document
   include NoBrainer::Document::DynamicAttributes
@@ -76,8 +77,6 @@ class Animal
   field :name
 end
 
-# Note that when using dynamic attributes, getters and setters
-# are not created; you should use model[attribute] syntax:
 fido = Animal.create!(name: 'Fido', kind: 'Dog')
 fido.name
  => 'Fido'

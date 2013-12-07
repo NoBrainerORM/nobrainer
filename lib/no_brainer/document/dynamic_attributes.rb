@@ -2,11 +2,10 @@ module NoBrainer::Document::DynamicAttributes
   extend ActiveSupport::Concern
 
   def [](name)
-    attributes[name.to_s]
+    self.class.has_field?(name) ? super : attributes[name.to_s]
   end
 
   def []=(name, value)
-    attributes[name.to_s] = value
+    self.class.has_field?(name) ? super : attributes[name.to_s] = value
   end
-
 end
