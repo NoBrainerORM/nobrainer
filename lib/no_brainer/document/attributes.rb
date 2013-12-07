@@ -51,7 +51,13 @@ module NoBrainer::Document::Attributes
           attrs = sanitize_for_mass_assignment(attrs, options[:as])
         end
       end
-      attrs.each { |k,v| __send__("#{k}=", v) if respond_to?("#{k}=") }
+      attrs.each do |k,v| 
+        if respond_to?("#{k}=")
+          __send__("#{k}=", v)
+        else 
+          attributes[k.to_s] = v
+        end
+      end
     end
   end
   alias_method :attributes=, :assign_attributes
