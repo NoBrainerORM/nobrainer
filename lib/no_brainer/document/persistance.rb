@@ -35,6 +35,7 @@ module NoBrainer::Document::Persistance
 
   def reload
     assign_attributes(selector.run, :prestine => true)
+    self
   end
 
   def update(&block)
