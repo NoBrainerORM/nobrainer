@@ -107,7 +107,9 @@ Features
 
 Contributors
 ------------
-- Andy Selvig (@ajselvig)
+
+- [Toby Marsden](https://github.com/tobymarsden)
+- [Andy Selvig](https://github.com/ajselvig)
 
 License
 --------
