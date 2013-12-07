@@ -15,7 +15,7 @@ module NoBrainer::Document::Attributes
 
   def initialize(attrs={}, options={})
     super
-    assign_attributes(attrs, options.reverse_merge(:prestine => true))
+    assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
   def [](name)
@@ -40,7 +40,7 @@ module NoBrainer::Document::Attributes
   end
 
   def assign_attributes(attrs, options={})
-    reset_attributes if options[:prestine]
+    reset_attributes if options[:pristine]
 
     if options[:from_db]
       # TODO Should we reject undeclared fields ?
