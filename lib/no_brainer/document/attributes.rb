@@ -18,6 +18,14 @@ module NoBrainer::Document::Attributes
     assign_attributes(attrs, options.reverse_merge(:prestine => true))
   end
 
+  def [](name)
+    __send__("#{name}")
+  end
+
+  def []=(name, value)
+    __send__("#{name}=", value)
+  end
+
   def reset_attributes
     # XXX Performance optimization: we don't save field that are not
     # explicitly set. The row will therefore not contain nil for
@@ -43,7 +51,13 @@ module NoBrainer::Document::Attributes
           attrs = sanitize_for_mass_assignment(attrs, options[:as])
         end
       end
-      attrs.each { |k,v| __send__("#{k}=", v) }
+      attrs.each do |k,v| 
+        if respond_to?("#{k}=")
+          __send__("#{k}=", v)
+        else 
+          attributes[k.to_s] = v
+        end
+      end
     end
   end
   alias_method :attributes=, :assign_attributes
