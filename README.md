@@ -67,6 +67,24 @@ post.comments.create(:author => 'dude', :body => 'ohai')
 
 post.comments.where(:body => /^h/).map{|comment| comment.body } # => ["hello"]
 post.comments.where(:body => /h/).map{|comment| comment.body } # => ["ohai", "hello"]
+
+# Supports dynamic attributes
+class Animal
+  include NoBrainer::Document
+  include NoBrainer::Document::DynamicAttributes
+
+  field :name
+end
+
+# Note that when using dynamic attributes, getters and setters
+# are not created; you should use model[attribute] syntax:
+fido = Animal.create!(name: 'Fido', kind: 'Dog')
+fido.name
+ => 'Fido'
+fido['kind']
+ => 'Dog'
+fido['kind'] = 'Sheepdog'
+ => 'Sheepdog'
 ```
 
 Features
