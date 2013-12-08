@@ -33,4 +33,18 @@ describe 'scope' do
       SimpleDocument.all.should respond_to(:haz_cheeseburger)
     end
   end
+
+  context 'when the scope is defined as a lambda' do
+    before do
+      SimpleDocument.class_eval do
+        scope :haz_cheeseburger, ->(name){ where(:field1 => name) }
+      end
+    end
+
+    it 'scopes' do
+      SimpleDocument.haz_cheeseburger('ohai').count.should == 1
+      SimpleDocument.all.haz_cheeseburger('ohai').count.should == 1
+      SimpleDocument.all.should respond_to(:haz_cheeseburger)
+    end
+  end
 end

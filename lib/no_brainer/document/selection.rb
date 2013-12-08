@@ -23,7 +23,11 @@ module NoBrainer::Document::Selection
 
     def scope(name, selection)
       singleton_class.class_eval do
-        define_method(name) { selection }
+        if selection.is_a?(Proc)
+          define_method(name) { |*args| selection.call(*args) }
+        else
+          define_method(name) { selection }
+        end
       end
     end
 
