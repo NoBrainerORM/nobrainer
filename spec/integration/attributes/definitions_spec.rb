@@ -43,6 +43,19 @@ describe NoBrainer do
       SimpleDocument.field :field1, default: 'foo'
       SimpleDocument.first.field1.should == 'foo'
     end
+  end
 
+  context 'when using a proc as a default' do
+    before { load_simple_document }
+    before { SimpleDocument.field :field1, default: ->{ $default_value } }
+
+    it 'will load the default value into a retrieved instance' do
+      $default_value = 'ohai'
+      SimpleDocument.create
+      SimpleDocument.where(:field1 => 'ohai').count.should == 1
+      $default_value = 'hello'
+      SimpleDocument.create
+      SimpleDocument.where(:field1 => 'hello').count.should == 1
+    end
   end
 end

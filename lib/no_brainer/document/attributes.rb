@@ -35,7 +35,11 @@ module NoBrainer::Document::Attributes
 
     # assign default attributes based on the field definitions
     self.class.fields.each do |name, options|
-      self.__send__("[]=", name, options[:default]) if options.has_key?(:default)
+      if options.has_key?(:default)
+        default_value = options[:default]
+        default_value = default_value.call if default_value.is_a?(Proc)
+        self.__send__("[]=", name, default_value)
+      end
     end
   end
 
