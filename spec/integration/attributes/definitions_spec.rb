@@ -15,7 +15,6 @@ describe NoBrainer do
     end
   end
 
-
   context 'when using field defaults' do
     before { load_simple_document }
     before { SimpleDocument.field :field1, default: 'foo'}

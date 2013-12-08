@@ -43,7 +43,7 @@ describe 'first' do
         end
 
         describe 'last' do
-          it 'returns the document', :pending => true do
+          it 'returns the document' do
             SimpleDocument.all.order_by(:id => :desc).last.should == docs.first
           end
         end
@@ -57,7 +57,7 @@ describe 'first' do
         end
 
         describe 'last' do
-          it 'returns the document', :pending => true do
+          it 'returns the document' do
             SimpleDocument.all.order_by(:field1 => :desc).last.should == docs.first
           end
         end
