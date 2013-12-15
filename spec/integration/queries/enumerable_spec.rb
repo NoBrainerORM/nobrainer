@@ -8,11 +8,16 @@ describe "each" do
 
     describe 'each' do
       it 'gets automatically called' do
-        SimpleDocument.all.to_a.count.should == 5
+        SimpleDocument.all.each.to_a.size == 5
+      end
+
+      it 'gets automatically called' do
+        SimpleDocument.all.count.should == 5
+        SimpleDocument.all.size.should == 5
       end
 
       it 'enumerate documents' do
-        SimpleDocument.all.to_a.first.should be_kind_of SimpleDocument
+        SimpleDocument.all.first.should be_kind_of SimpleDocument
       end
 
       it 'maps to documents' do
@@ -24,7 +29,8 @@ describe "each" do
   context 'when there are no documents' do
     describe 'each' do
       it 'gets automatically called' do
-        SimpleDocument.all.to_a.count.should == 0
+        SimpleDocument.all.count.should == 0
+        SimpleDocument.all.size.should == 0
       end
     end
   end

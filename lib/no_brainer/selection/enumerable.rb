@@ -17,6 +17,6 @@ module NoBrainer::Selection::Enumerable
   # TODO Make something a bit more efficent ?
   def method_missing(name, *args, &block)
     return super unless [].respond_to?(name)
-    each.__send__(name, *args, &block)
+    each.to_a.__send__(name, *args, &block)
   end
 end
