@@ -8,6 +8,10 @@ module NoBrainer::Selection::Count
   end
 
   def any?
-    !empty?
+    if block_given?
+      to_a.any? { |*args| yield(*args) }
+    else
+      !empty?
+    end
   end
 end

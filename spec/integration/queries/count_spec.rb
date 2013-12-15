@@ -41,3 +41,17 @@ describe "count" do
     end
   end
 end
+
+describe "any?" do
+  before { load_simple_document }
+
+  it 'returns whether some document exists' do
+    SimpleDocument.create(:field1 => 'ohai')
+    SimpleDocument.create(:field1 => 'ohai')
+    SimpleDocument.create(:field1 => 'hello')
+
+    SimpleDocument.all.any?.should == true
+    SimpleDocument.all.any? { |doc| doc.field1 == 'nop' }.should == false
+    SimpleDocument.all.any? { |doc| doc.field1 == 'hello' }.should == true
+  end
+end
