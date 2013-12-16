@@ -5,21 +5,26 @@ module NoBrainer::Document::Criteria
     @selector ||= self.class.selector_for(id)
   end
 
+  included do
+    class_attribute :default_scope_proc
+  end
+
   module ClassMethods
-    delegate :count, :where, :order_by, :first, :last, :to => :all
+    delegate :count, :where, :order_by, :first, :last, :scoped, :unscoped, :to => :all
 
     def all
       NoBrainer::Criteria.new(:root_rql => table, :klass => self)
     end
 
-    def scope(name, selection)
+    def scope(name, criteria)
+      criteria_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
       singleton_class.class_eval do
-        if selection.is_a?(Proc)
-          define_method(name) { |*args| selection.call(*args) }
-        else
-          define_method(name) { selection }
-        end
+        define_method(name) { |*args| criteria_proc.call(*args) }
       end
+    end
+
+    def default_scope(criteria)
+      self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
     end
 
     def selector_for(id)

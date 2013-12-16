@@ -1,4 +1,5 @@
 class NoBrainer::Criteria
+  # The disctinction between Chainable and Termination is purely cosmetic.
   module Chainable
     extend NoBrainer::Autoload
     extend ActiveSupport::Concern
