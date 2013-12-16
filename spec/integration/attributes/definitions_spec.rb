@@ -58,4 +58,14 @@ describe NoBrainer do
       SimpleDocument.where(:field1 => 'hello').count.should == 1
     end
   end
+
+  context 'when using reserved attribute names' do
+    before { load_simple_document }
+
+    it 'raises' do
+      expect { SimpleDocument.field :in }.to raise_error
+      expect { SimpleDocument.field :or }.to raise_error
+      expect { SimpleDocument.field :and }.to raise_error
+    end
+  end
 end

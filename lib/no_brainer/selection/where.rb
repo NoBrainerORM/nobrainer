@@ -1,31 +1,42 @@
 module NoBrainer::Selection::Where
+  RESERVED_FIELDS = NoBrainer::DecoratedSymbol::MODIFIERS.keys + [:default, :and, :or]
+
   def where(*args, &block)
-    options = args.extract_options!.dup
-    regexp_filters = extract_regexp!(options)
-    default_option = options.select { |k,v| k == :default }
-
-    filtered_query = query.filter(*args, options, &block)
-
-    if !regexp_filters.empty?
-      filtered_query = filtered_query.filter(default_option) do |doc|
-        regexp_filters.map    { |field, regexp| doc[field].match(regexp) }
-                      .reduce { |a,b| a & b }
-      end
-    end
-
-    chain filtered_query
+    chain(query.filter { |doc| normalize_filters(doc, [*args, block].compact) })
   end
 
   private
 
-  def extract_regexp!(options)
-    regexp_filters = {}
-    options.each do |k,v|
-      if v.is_a?(Regexp)
-        options.delete(k)
-        regexp_filters[k] = v.inspect[1..-2]
+  def normalize_filters(doc, filter)
+    case filter
+    when Array then normalize_filters(doc, :and => filter)
+    when Proc  then filter.call(doc)
+    when Hash
+      case filter.size
+      when 0 then {}
+      when 1 then normalize_filter_stub(doc, filter.first[0], filter.first[1])
+      else normalize_filters(doc, :and => filter.map { |k,v| { k => v } })
+      end
+    else raise "Invalid filter: #{filter}"
+    end
+  end
+
+  def normalize_filter_stub(doc, field, value)
+    case field
+    when :and then value.map { |v| normalize_filters(doc, v) }.reduce { |a,b| a & b }
+    when :or  then value.map { |v| normalize_filters(doc, v) }.reduce { |a,b| a | b }
+    when NoBrainer::DecoratedSymbol then
+      case field.modifier
+      when :not then normalize_filters(doc, field.symbol => value).not
+      when :in  then normalize_filters(doc, :or => value.map { |v| { field.symbol => v } })
+      else doc[field.symbol].__send__(field.modifier, value)
+      end
+    else
+      case value
+      when Range  then (doc[field] >= value.min) & (doc[field] <= value.max)
+      when Regexp then doc[field].match(value.inspect[1..-2])
+      else doc[field].eq(value)
       end
     end
-    regexp_filters
   end
 end

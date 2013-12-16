@@ -82,6 +82,10 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
+      if name.in? NoBrainer::Selection::Where::RESERVED_FIELDS
+        raise "Cannot use a reserved field name: #{name}"
+      end
+
       # Using a hash because:
       # - at some point, we want to associate informations with a field (like the type)
       # - it gives us a set for free

@@ -11,7 +11,10 @@ module NoBrainer
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
-  autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Selection, :Relation
+  autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Selection, :Relation,
+           :DecoratedSymbol
+
+  DecoratedSymbol.hook
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,

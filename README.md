@@ -84,6 +84,19 @@ fido['kind']
  => 'Dog'
 fido['kind'] = 'Sheepdog'
  => 'Sheepdog'
+
+# Supports complex where queries
+# Ranges
+Model.where(:field.lt => 5)
+Model.where(:field.gt => 5)
+Model.where(:field => (3..8))
+Model.where(:field.not => (3..8))
+# Inclusions
+Model.where(:field.in => ['hello', /^ohai/])
+# Booleans
+Model.where(:or => [{:field1 => 'hello'}, {:field2 => 'ohai'}])
+# Arbitrary RethinkDB lambdas
+Model.where { |doc| (doc[:field1] + doc[:field2]).eq(3) }
 ```
 
 Features
