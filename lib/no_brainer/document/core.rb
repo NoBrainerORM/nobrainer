@@ -25,13 +25,5 @@ module NoBrainer::Document::Core
         @table ||= RethinkDB::RQL.new.table(table_name).freeze
       end
     end
-
-    # Thread safe because the operation is idempotent
-    # (no error if we try to create the table twice)
-    def ensure_table!
-      root_class.class_eval do
-        @table_created ||= !!self.count
-      end
-    end
   end
 end
