@@ -29,8 +29,7 @@ module NoBrainer::Document::Attributes
   def reset_attributes
     # XXX Performance optimization: we don't save field that are not
     # explicitly set. The row will therefore not contain nil for
-    # unset attributes. This has some implication when using where()
-    # see lib/no_brainer/selection/where.rb
+    # unset attributes.
     self.attributes = {}
 
     # assign default attributes based on the field definitions
@@ -82,7 +81,7 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
-      if name.in? NoBrainer::Selection::Where::RESERVED_FIELDS
+      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
         raise "Cannot use a reserved field name: #{name}"
       end
 

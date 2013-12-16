@@ -22,7 +22,6 @@ module NoBrainer::QueryRunner
 
   # thread-safe, since require() is ran with a mutex.
   self.stack = ::Middleware::Builder.new do
-    use Selection
     use Connection
     use WriteError
     use TableOnDemand

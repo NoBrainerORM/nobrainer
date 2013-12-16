@@ -1,4 +1,4 @@
-module NoBrainer::Document::Selection
+module NoBrainer::Document::Criteria
   extend ActiveSupport::Concern
 
   def selector
@@ -6,10 +6,10 @@ module NoBrainer::Document::Selection
   end
 
   module ClassMethods
+    delegate :count, :where, :order_by, :first, :last, :to => :all
+
     def all
-      sel = NoBrainer::Selection.new(table, :klass => self)
-      sel = sel.where(:_type.in => descendants_type_values) unless is_root_class?
-      sel
+      NoBrainer::Criteria.new(:root_rql => table, :klass => self)
     end
 
     def scope(name, selection)
@@ -22,11 +22,9 @@ module NoBrainer::Document::Selection
       end
     end
 
-    delegate :count, :where, :order_by, :first, :last, :to => :all
-
     def selector_for(id)
       # TODO Pass primary key if not default
-      NoBrainer::Selection.new(table.get(id), :klass => self)
+      NoBrainer::Criteria.new(:root_rql => table.get(id), :klass => self)
     end
 
     # XXX this doesn't have the same semantics as

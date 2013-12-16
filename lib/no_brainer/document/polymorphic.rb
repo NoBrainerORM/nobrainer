@@ -33,5 +33,11 @@ module NoBrainer::Document::Polymorphic
     def klass_from_attrs(attrs)
       attrs['_type'].try(:constantize) || root_class
     end
+
+    def all
+      criterion = super
+      criterion = criterion.where(:_type.in => descendants_type_values) unless is_root_class?
+      criterion
+    end
   end
 end

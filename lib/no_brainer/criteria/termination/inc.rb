@@ -1,4 +1,4 @@
-module NoBrainer::Selection::Inc
+module NoBrainer::Criteria::Termination::Inc
   def inc(field, value=1)
     # TODO The useful inc() is on a model instance.
     # But then do we want to postpone the inc() to the next save?

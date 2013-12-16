@@ -1,6 +1,6 @@
-module NoBrainer::Selection::Count
+module NoBrainer::Criteria::Termination::Count
   def count
-    chain(query.count).run
+    NoBrainer.run { to_rql.count }
   end
 
   def empty?

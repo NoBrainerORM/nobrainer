@@ -1,6 +1,6 @@
 class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :options)
   extend ActiveSupport::Autoload
-  autoload :Selection
+  autoload :Criteria
 
   def foreign_key
     # TODO test :foreign_key
@@ -23,7 +23,7 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
       def #{children_name}
         # TODO Cache array
         relation = self.class.relations[:#{children_name}]
-        ::NoBrainer::Relation::HasMany::Selection.new(self, relation)
+        ::NoBrainer::Relation::HasMany::Criteria.new(:parent_instance => self, :relation => relation)
       end
     RUBY
   end

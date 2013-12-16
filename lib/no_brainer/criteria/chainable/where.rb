@@ -1,11 +1,29 @@
-module NoBrainer::Selection::Where
+module NoBrainer::Criteria::Chainable::Where
+  extend ActiveSupport::Concern
+
   RESERVED_FIELDS = NoBrainer::DecoratedSymbol::MODIFIERS.keys + [:default, :and, :or]
 
-  def where(*args, &block)
-    chain(query.filter { |doc| normalize_filters(doc, [*args, block].compact) })
+  included { attr_accessor :where_clauses }
+
+  def initialize(options={})
+    super
+    self.where_clauses = []
   end
 
-  private
+  def where(*args, &block)
+    chain { |criteria| criteria.where_clauses = [*args, block].compact }
+  end
+
+  def merge!(criteria)
+    super
+    self.where_clauses += criteria.where_clauses
+  end
+
+  def to_rql
+    rql = super
+    rql = rql.filter { |doc| normalize_filters(doc, self.where_clauses) } if self.where_clauses.present?
+    rql
+  end
 
   def normalize_filters(doc, filter)
     case filter
