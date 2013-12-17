@@ -117,6 +117,7 @@ Features
 * Scopes
 * Thread-safe
 * Polymorphism
+* Dirty tracking
 
 Contributors
 ------------

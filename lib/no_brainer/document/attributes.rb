@@ -15,6 +15,7 @@ module NoBrainer::Document::Attributes
 
   def initialize(attrs={}, options={})
     super
+    @attributes = {}
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
@@ -29,32 +30,25 @@ module NoBrainer::Document::Attributes
   def []=(*args); write_attribute(*args); end
 
   def assign_defaults
-    self.class.fields.each do |name, options|
-      if options.has_key?(:default)
-        default_value = options[:default]
+    self.class.fields.each do |name, field_options|
+      if field_options.has_key?(:default) && !attributes.has_key?(name.to_s)
+        default_value = field_options[:default]
         default_value = default_value.call if default_value.is_a?(Proc)
         self.write_attribute(name, default_value)
       end
     end
   end
 
-  def reset_attributes
-    # XXX Performance optimization: we don't save field that are not
-    # explicitly set. The row will therefore not contain nil for
-    # unset attributes.
-    self.attributes = {}
-    self.assign_defaults
-  end
-
   def assign_attributes(attrs, options={})
-    reset_attributes if options[:pristine]
+    # XXX We don't save field that are not explicitly set. The row will
+    # therefore not contain nil for unset attributes.
+    self.attributes.clear if options[:pristine]
 
     if options[:from_db]
       # TODO Should we reject undeclared fields ?
       #
-      # TODO Should we use the setters?
-      # Let's postpone the answer once we have custom types to
-      # serialize/deserialize on the database.
+      # TODO Not using the getter/setters, the dirty tracking won't notice it,
+      # also we should start thinking about custom serializer/deserializer.
       attributes.merge! attrs
     else
       if NoBrainer.rails3? && !options[:without_protection]
@@ -63,6 +57,9 @@ module NoBrainer::Document::Attributes
       end
       attrs.each { |k,v| self.write_attribute(k, v) }
     end
+
+    assign_defaults if options[:pristine] || options[:from_db]
+    self
   end
   def attributes=(*args); assign_attributes(*args); end
 

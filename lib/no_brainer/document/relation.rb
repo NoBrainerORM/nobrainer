@@ -6,9 +6,9 @@ module NoBrainer::Document::Relation
     self.relations = {}
   end
 
-  def reset_attributes
-    super
+  def assign_attributes(*args)
     @relations_cache = {}
+    super
   end
 
   module ClassMethods
