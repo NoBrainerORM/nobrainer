@@ -9,6 +9,9 @@ database_host = ENV['DB_HOST'] || 'localhost'
 database_name = ENV['DB_NAME'] || 'nobrainer_test'
 NoBrainer.connect "rethinkdb://#{database_host}/#{database_name}"
 
+# Silence some warning in I18n
+I18n.enforce_available_locales = false rescue nil
+
 RSpec.configure do |config|
   config.color_enabled = true
   config.include ModelsHelper
