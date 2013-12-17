@@ -1,14 +1,6 @@
 class NoBrainer::Relation::HasMany::Criteria < NoBrainer::Criteria
   delegate :foreign_key, :children_klass, :to => :relation
 
-  def initialize(options={})
-    # FIXME This is a bit hacky
-    self.options = options
-    options = options.merge(:root_rql => children_klass.where(foreign_key => parent_instance.id).to_rql,
-                            :klass => children_klass)
-    super(options)
-  end
-
   def parent_instance
     options[:parent_instance]
   end

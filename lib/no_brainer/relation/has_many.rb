@@ -12,6 +12,12 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
     @children_klass ||= (options[:class_name] || children_name.to_s.singularize.camelize).constantize
   end
 
+  def children_criteria(parent_instance)
+    options = {:parent_instance => parent_instance, :relation => self}
+    criteria = ::NoBrainer::Relation::HasMany::Criteria.new(options)
+    criteria.merge(children_klass.where(self.foreign_key => parent_instance.id))
+  end
+
   def hook
     # TODO yell when some options are not recognized
     parent_klass.inject_in_layer :relations, <<-RUBY, __FILE__, __LINE__ + 1
@@ -22,8 +28,7 @@ class NoBrainer::Relation::HasMany < Struct.new(:parent_klass, :children_name, :
 
       def #{children_name}
         # TODO Cache array
-        relation = self.class.relations[:#{children_name}]
-        ::NoBrainer::Relation::HasMany::Criteria.new(:parent_instance => self, :relation => relation)
+        self.class.relations[:#{children_name}].children_criteria(self)
       end
     RUBY
   end

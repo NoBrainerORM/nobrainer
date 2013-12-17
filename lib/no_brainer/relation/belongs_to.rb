@@ -4,9 +4,9 @@ class NoBrainer::Relation::BelongsTo < Struct.new(:children_klass, :parent_name,
     @foreign_key ||= options[:foreign_key] || :"#{parent_name}_id"
   end
 
-  def parent_klass_lazy
+  def parent_klass
     # TODO test :class_name
-    @parent_klass_lazy ||= options[:class_name] || parent_name.to_s.camelize
+    @parent_klass ||= (options[:class_name] || parent_name.to_s.camelize).constantize
   end
 
   def hook
@@ -28,7 +28,7 @@ class NoBrainer::Relation::BelongsTo < Struct.new(:children_klass, :parent_name,
 
       def #{parent_name}
         if #{foreign_key}
-          @relations_cache[:#{parent_name}] ||= #{parent_klass_lazy}.find(#{foreign_key})
+          @relations_cache[:#{parent_name}] ||= #{parent_klass}.find(#{foreign_key})
         end
       end
     RUBY
