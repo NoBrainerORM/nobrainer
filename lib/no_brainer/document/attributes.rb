@@ -18,12 +18,24 @@ module NoBrainer::Document::Attributes
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
-  def [](name)
+  def read_attribute(name)
     __send__("#{name}")
   end
+  def [](*args); read_attribute(*args); end
 
-  def []=(name, value)
+  def write_attribute(name, value)
     __send__("#{name}=", value)
+  end
+  def []=(*args); write_attribute(*args); end
+
+  def assign_defaults
+    self.class.fields.each do |name, options|
+      if options.has_key?(:default)
+        default_value = options[:default]
+        default_value = default_value.call if default_value.is_a?(Proc)
+        self.write_attribute(name, default_value)
+      end
+    end
   end
 
   def reset_attributes
@@ -31,15 +43,7 @@ module NoBrainer::Document::Attributes
     # explicitly set. The row will therefore not contain nil for
     # unset attributes.
     self.attributes = {}
-
-    # assign default attributes based on the field definitions
-    self.class.fields.each do |name, options|
-      if options.has_key?(:default)
-        default_value = options[:default]
-        default_value = default_value.call if default_value.is_a?(Proc)
-        self.__send__("[]=", name, default_value)
-      end
-    end
+    self.assign_defaults
   end
 
   def assign_attributes(attrs, options={})
@@ -57,10 +61,10 @@ module NoBrainer::Document::Attributes
         # TODO What's up with rails4?
         attrs = sanitize_for_mass_assignment(attrs, options[:as])
       end
-      attrs.each { |k,v| __send__("[]=", k, v) }
+      attrs.each { |k,v| self.write_attribute(k, v) }
     end
   end
-  alias_method :attributes=, :assign_attributes
+  def attributes=(*args); assign_attributes(*args); end
 
   # TODO test that thing
   def inspect
