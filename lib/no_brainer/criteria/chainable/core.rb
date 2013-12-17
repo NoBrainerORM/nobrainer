@@ -29,22 +29,26 @@ module NoBrainer::Criteria::Chainable::Core
     merge(tmp)
   end
 
-  def must_precompile?
-    !options[:precompiled]
+  def compile_criteria
+    # This method is overriden by other modules.
+    # compile_criteria returns a criteria that will be used to generate the RQL.
+    # This is useful to apply the class default scope at the very end of the chain.
+    self
   end
 
-  def precompile
-    merge(NoBrainer::Criteria.new(:precompiled => true))
-  end
-
-  def to_rql
-    return precompile.to_rql if must_precompile?
+  def compile_rql
+    # This method is overriden by other modules.
     raise "Criteria not bound" unless root_rql
     root_rql
   end
 
+  def to_rql
+    compile_criteria.compile_rql
+  end
+
   def inspect
-    root_rql ? to_rql.inspect : super
+    # rescue super because sometimes root_rql is not set.
+    to_rql.inspect rescue super
   end
 
   def run

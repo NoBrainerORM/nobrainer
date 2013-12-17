@@ -18,7 +18,7 @@ module NoBrainer::Criteria::Chainable::Limit
     self._limit = criteria._limit if criteria._limit
   end
 
-  def to_rql
+  def compile_rql
     rql = super
     rql = rql.skip(_skip) if _skip
     rql = rql.limit(_limit) if _limit

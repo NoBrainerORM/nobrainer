@@ -46,7 +46,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
     self.order.present?
   end
 
-  def to_rql
+  def compile_rql
     rql = super
     if self.ordered?
       rql_rules = self.order.map do |k,v|
