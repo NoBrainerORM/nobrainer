@@ -3,7 +3,7 @@ class NoBrainer::Criteria
   module Chainable
     extend NoBrainer::Autoload
     extend ActiveSupport::Concern
-    autoload_and_include :Core, :Indexed, :Scope, :Where, :OrderBy, :Limit
+    autoload_and_include :Core, :IndexedWhere, :Scope, :Where, :OrderBy, :Limit
   end
 
   module Termination

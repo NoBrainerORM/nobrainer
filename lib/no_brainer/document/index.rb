@@ -8,7 +8,15 @@ module NoBrainer::Document::Index
 
   module ClassMethods
     def index(name, *args)
-      indexes[name.to_sym] = args
+      options = args.extract_options!
+      raise "Too many arguments: #{args}" if args.size > 1
+      kind, what = case args.first
+        when nil   then [:single,   name.to_sym]
+        when Array then [:compound, args.first.map(&:to_sym)]
+        when Proc  then [:proc,     args.first]
+        else raise "Index argument must be a lambda or a list of fields"
+      end
+      indexes[name.to_sym] = {:kind => kind, :what => what, :options => options}
     end
 
     def remove_index(name)
@@ -26,24 +34,17 @@ module NoBrainer::Document::Index
     end
 
     def perform_create_index(index_name, options={})
-      index_args = self.indexes[index_name].dup
-      options = index_args.extract_options!
+      index_name = index_name.to_sym
+      index_args = self.indexes[index_name]
 
-      index_proc = index_args.shift
-      if index_proc
-        raise "Too many arguments: #{index_args}" unless index_args.empty?
-        if index_proc.is_a?(Array)
-          index_fields = index_proc
-          index_proc = ->(doc) { index_fields.map { |field| doc[field] } }
-        end
-        raise "Index argument must be a lambda or a list of fields" unless index_proc.is_a?(Proc)
+      index_proc = case index_args[:kind]
+        when :single   then nil
+        when :compound then ->(doc) { index_args[:what].map { |field| doc[field] } }
+        when :proc     then index_args[:what]
       end
 
-      NoBrainer.run { self.table.index_create(index_name, options, &index_proc) }
-
-      if options[:wait]
-        NoBrainer.run { self.table.index_wait(index_name) }
-      end
+      NoBrainer.run { self.table.index_create(index_name, index_args[:options], &index_proc) }
+      NoBrainer.run { self.table.index_wait(index_name) } if options[:wait]
     end
 
     def perform_drop_index(index_name, options={})
@@ -61,6 +62,5 @@ module NoBrainer::Document::Index
         perform_create_index(index_name, options)
       end
     end
-
   end
 end

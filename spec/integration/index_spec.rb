@@ -14,8 +14,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello') }
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai') }
 
-    it 'uses the index with indexed()' do
-      SimpleDocument.indexed(:field1 => 'ohai').count.should == 1
+    it 'uses the index with indexed_where()' do
+      SimpleDocument.indexed_where(:field1 => 'ohai').count.should == 1
     end
   end
 
@@ -28,8 +28,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field4 => 'hello') }
     let!(:doc2) { SimpleDocument.create(:field4 => 'ohai') }
 
-    it 'uses the index with indexed()' do
-      SimpleDocument.indexed(:field4 => 'ohai').count.should == 1
+    it 'uses the index with indexed_where()' do
+      SimpleDocument.indexed_where(:field4 => 'ohai').count.should == 1
     end
   end
 
@@ -42,8 +42,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
 
-    it 'uses the index with indexed()' do
-      SimpleDocument.indexed(:field12 => 'hello_world').count.should == 1
+    it 'uses the index with indexed_where()' do
+      SimpleDocument.indexed_where(:field12 => 'hello_world').count.should == 1
     end
   end
 
@@ -56,8 +56,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
 
-    it 'uses the index with indexed()' do
-      SimpleDocument.indexed(:field12 => ['hello', 'world']).count.should == 1
+    it 'uses the index with indexed_where()' do
+      SimpleDocument.indexed_where(:field12 => ['hello', 'world']).count.should == 1
     end
   end
 
@@ -76,6 +76,66 @@ describe 'NoBrainer index' do
       SimpleDocument.remove_index :field2
       NoBrainer.update_indexes
       NoBrainer.run { SimpleDocument.table.index_list }.should =~ []
+    end
+  end
+
+  context 'when using a single field index' do
+    before do
+      SimpleDocument.field :field1, :index => true
+    end
+
+    let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'yay') }
+    let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
+    let!(:doc3) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'ola') }
+
+    context 'when using a single where' do
+      it 'uses an index when possible' do
+        expect { SimpleDocument.where(:field1 => 'ohai').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+        NoBrainer.update_indexes
+        SimpleDocument.where(:field1 => 'ohai').count.should == 2
+      end
+    end
+
+    context 'when using a without_index where' do
+      it 'uses an index when possible' do
+        SimpleDocument.without_index.where(:field1 => 'ohai').count.should == 2
+        SimpleDocument.where(:field1 => 'ohai').without_index.count.should == 2
+      end
+    end
+
+    context 'when using multiple where' do
+      it 'uses an index when possible' do
+        expect { SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+        NoBrainer.update_indexes
+        SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count.should == 1
+      end
+    end
+  end
+
+  context 'when using a compound field index' do
+    before do
+      SimpleDocument.index :field12, [:field1, :field2]
+    end
+
+    let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'yay', :field3 => 'cheeze') }
+    let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay', :field3 => 'steak') }
+    let!(:doc3) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay', :field3 => 'bread') }
+    let!(:doc4) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'ola', :field3 => 'letuce') }
+
+    context 'when using multiple where' do
+      it 'uses an index when possible' do
+        expect { SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+        expect { SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay', :field3 => 'bread').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+
+        NoBrainer.update_indexes
+
+        SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count.should == 2
+        SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay', :field3 => 'bread').count.should == 1
+      end
     end
   end
 end

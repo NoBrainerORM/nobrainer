@@ -97,6 +97,39 @@ Model.where(:field.in => ['hello', /^ohai/])
 Model.where(:or => [{:field1 => 'hello'}, {:field2 => 'ohai'}])
 # Arbitrary RethinkDB lambdas
 Model.where { |doc| (doc[:field1] + doc[:field2]).eq(3) }
+
+# Indexes
+
+class Person
+  field :first_name
+  field :last_name
+  field :job, :index => true # Single field index
+
+  # Single field index alternate syntax
+  index :job
+
+  # Compound Indexes
+  index :full_name, [:first_name, :last_name]
+
+  # Arbitrary Indexes
+  index :full_name2, ->(doc){ doc['first_name'] + "_" + doc['last_name'] }
+end
+
+# Index creation on the database.
+# It will also drop indexes that are no longer declared.
+NoBrainer.update_indexes
+
+Person.create(:first_name => 'John', :last_name => 'Doe', :job => 'none')
+
+Person.indexed_where(:job => 'none') # Explicitely use the job index
+Person.where(:job => 'none') # Implicitely use the job index
+Person.without_index.where(:job => 'none') # Not using the job index
+
+Person.indexed_where(:full_name => ['John', 'Doe']) # Explicitely using the compound index
+Person.where(:first_name => 'John', :last_name => 'Doe') # Implicitely using the compound index
+Person.without_index.where(:first_name => 'John', :last_name => 'Doe') # Not using the comound index
+
+Person.indexed_where(:full_name2 => 'John_Doe') # Using the custom index
 ```
 
 Features
@@ -118,6 +151,7 @@ Features
 * Thread-safe
 * Polymorphism
 * Dirty tracking
+* Secondary indexes + transparent usage of indexes when using where()
 
 Contributors
 ------------

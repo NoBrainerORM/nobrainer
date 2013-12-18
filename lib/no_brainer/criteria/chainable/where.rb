@@ -20,9 +20,8 @@ module NoBrainer::Criteria::Chainable::Where
   end
 
   def compile_rql
-    rql = super
-    rql = rql.filter { |doc| normalize_filters(doc, self.where_clauses) } if self.where_clauses.present?
-    rql
+    return super unless self.where_clauses.present?
+    super.filter { |doc| normalize_filters(doc, self.where_clauses) }
   end
 
   def normalize_filters(doc, filter)

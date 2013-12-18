@@ -25,7 +25,7 @@ module NoBrainer::Criteria::Chainable::Scope
     merge(self.klass.method(name).call(*args, &block))
   end
 
-  def compile_criteria
+  def compile_criteria_pass1
     criteria = super
     if klass.default_scope_proc && use_default_scope != false
       criteria = criteria.merge(klass.default_scope_proc.call)
