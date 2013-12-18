@@ -18,6 +18,8 @@ Here is a quick example of what NoBrainer can do:
 ```ruby
 require 'nobrainer'
 
+# Connecting to the database can be done either by using NoBrainer.connect()
+# or by exporting a RETHINKDB_URL environment variable.
 NoBrainer.connect 'rethinkdb://localhost/blog'
 
 class Post

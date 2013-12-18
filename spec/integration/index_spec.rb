@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe 'NoBrainer index' do
   before { load_simple_document }
-  before { NoBrainer.purge! :drop => true }
-  after  { NoBrainer.purge! :drop => true }
+  before { NoBrainer.drop! }
+  after  { NoBrainer.drop! }
 
   context 'when indexing a field normally' do
     before do
