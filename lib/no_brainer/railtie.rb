@@ -13,6 +13,10 @@ class NoBrainer::Railtie < Rails::Railtie
   end
 
   config.after_initialize do
+    if defined?(ActiveRecord)
+      STDERR.puts "[NoBrainer] WARN: ActiveRecord is loaded, which is probably not what you want"
+    end
+
     ActionDispatch::Reloader.to_cleanup do
       NoBrainer::Loader.cleanup
     end

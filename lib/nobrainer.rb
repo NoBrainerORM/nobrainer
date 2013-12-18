@@ -30,11 +30,19 @@ module NoBrainer
       return @connection if @connection
       return connect(ENV['RETHINKDB_URL']) if ENV['RETHINKDB_URL']
 
-      app_name = Rails.application.class.parent_name.underscore rescue 'app_name'
+      if defined?(Rails)
+        app_name = Rails.application.class.parent_name.underscore
+        app_name += '_#{Rails.env}'
+        initializer_file = 'config/initializers/nobrainer.rb'
+      else
+        app_name = 'app_name'
+        initializer_file = 'an initializer file'
+      end
+
       raise "NoBrainer is not connected.\n" +
-            "Please add the following in your initializers:\n" +
-            "  NoBrainer.connect 'rethinkdb://localhost/#{app_name}'\n" +
-            "You may also use the RETHINKDB_URL environment variable"
+            "Please add the following in #{initializer_file}:\n" +
+            "  NoBrainer.connect \"rethinkdb://localhost/#{app_name}\"\n" +
+            "You can also set the RETHINKDB_URL environment variable instead."
     end
 
     # No not use modules to extend, it's nice to see the NoBrainer module API here.

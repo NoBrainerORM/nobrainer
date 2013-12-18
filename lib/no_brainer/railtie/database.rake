@@ -4,16 +4,25 @@ namespace :db do
     NoBrainer.drop!
   end
 
-  desc 'Load the seed data from db/seeds.rb'
+  desc 'Load seed data from db/seeds.rb'
   task :seed => :environment do
     Rails.application.load_seed
   end
 
-  desc 'Equivalent to db:seed'
-  task :setup => [ 'db:seed' ]
+  desc 'Create and drop indexes on the database'
+  task :update_indexes => :environment do
+    NoBrainer.update_indexes(:verbose => true)
+  end
 
-  desc 'Equivalent to db:drop + db:seed'
-  task :reset => [ 'db:drop', 'db:seed' ]
+  task :update_indexes_quiet => :environment do
+    NoBrainer.update_indexes
+  end
+
+  desc 'Equivalent to db:update_indexes + db:seed'
+  task :setup => [ :update_indexes_quiet, :seed ]
+
+  desc 'Equivalent to db:drop + db:setup'
+  task :reset => [ :drop, :setup ]
 
   task :create => :environment do
     # noop
@@ -21,10 +30,5 @@ namespace :db do
 
   task :migrate => :environment do
     # noop
-  end
-
-  desc 'Update indexes'
-  task :update_indexes => :environment do
-    NoBrainer.update_indexes(:verbose => true)
   end
 end

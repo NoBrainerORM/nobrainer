@@ -23,12 +23,8 @@ module NoBrainer::Document::Core
       root_class.name.underscore.gsub('/', '__').pluralize
     end
 
-    # Even though we are using class variables, it's threads-safe.
-    # It's still racy, but the race is harmless.
     def table
-      root_class.class_eval do
-        @table ||= RethinkDB::RQL.new.table(table_name).freeze
-      end
+      RethinkDB::RQL.new.table(table_name)
     end
   end
 end
