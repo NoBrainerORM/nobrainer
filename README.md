@@ -117,7 +117,7 @@ end
 
 # Index creation on the database.
 # It will also drop indexes that are no longer declared.
-NoBrainer.update_indexes
+NoBrainer.update_indexes # can also use rake db:update_indexes
 
 Person.create(:first_name => 'John', :last_name => 'Doe', :job => 'none')
 

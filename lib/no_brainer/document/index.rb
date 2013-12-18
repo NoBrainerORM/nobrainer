@@ -45,10 +45,12 @@ module NoBrainer::Document::Index
 
       NoBrainer.run { self.table.index_create(index_name, index_args[:options], &index_proc) }
       NoBrainer.run { self.table.index_wait(index_name) } if options[:wait]
+      STDERR.puts "Created index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_drop_index(index_name, options={})
       NoBrainer.run { self.table.index_drop(index_name) }
+      STDERR.puts "Dropped index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_update_indexes(options={})
