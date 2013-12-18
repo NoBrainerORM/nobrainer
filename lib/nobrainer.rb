@@ -20,11 +20,19 @@ module NoBrainer
     # Note: we always access the connection explicitly, so that in the future,
     # we can refactor to return a connection depending on the context.
     # Note that a connection is tied to a database in NoBrainer.
-    attr_accessor :connection
     attr_accessor :logger
 
     def connect(uri)
-      self.connection = Connection.new(uri).tap { |c| c.connect }
+      @connection = Connection.new(uri).tap { |c| c.connect }
+    end
+
+    def connection
+      unless @connection
+        app_name = Rails.application.class.parent_name.underscore rescue 'app_name'
+        raise "NoBrainer is not connected. You may add the following in your initializers:\n" +
+              "  NoBrainer.connect 'rethinkdb://localhost/#{app_name}'"
+      end
+      @connection
     end
 
     # No not use modules to extend, it's nice to see the NoBrainer module API here.
