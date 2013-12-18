@@ -53,7 +53,7 @@ module NoBrainer::Document::Persistance
 
   def update_attributes(attrs, options={})
     assign_attributes(attrs, options)
-    save
+    save(options)
   end
 
   def delete
