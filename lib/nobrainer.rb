@@ -21,6 +21,7 @@ module NoBrainer
     # we can refactor to return a connection depending on the context.
     # Note that a connection is tied to a database in NoBrainer.
     attr_accessor :connection
+    attr_accessor :logger
 
     def connect(uri)
       self.connection = Connection.new(uri).tap { |c| c.connect }
@@ -39,4 +40,6 @@ module NoBrainer
                 Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
     end
   end
+
+  self.logger = defined?(Rails) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
 end
