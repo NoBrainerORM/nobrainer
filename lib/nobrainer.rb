@@ -12,7 +12,7 @@ module NoBrainer
   extend NoBrainer::Autoload
 
   autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Criteria, :Relation,
-           :DecoratedSymbol
+           :DecoratedSymbol, :IndexManager, :Loader
 
   DecoratedSymbol.hook
 
@@ -32,7 +32,7 @@ module NoBrainer
     delegate :table_create, :table_drop, :table_list,
              :purge!, :to => :database
     delegate :run, :to => QueryRunner
-
+    delegate :update_indexes, :to => IndexManager
 
     def rails3?
       return @rails3 unless @rails3.nil?

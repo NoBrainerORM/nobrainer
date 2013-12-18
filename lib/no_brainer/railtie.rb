@@ -12,5 +12,11 @@ class NoBrainer::Railtie < Rails::Railtie
     load "no_brainer/railtie/database.rake"
   end
 
+  config.after_initialize do
+    ActionDispatch::Reloader.to_cleanup do
+      NoBrainer::Loader.cleanup
+    end
+  end
+
   #config.eager_load_namespaces << NoBrainer
 end

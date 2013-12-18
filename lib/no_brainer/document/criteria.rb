@@ -10,7 +10,8 @@ module NoBrainer::Document::Criteria
   end
 
   module ClassMethods
-    delegate :count, :where, :order_by, :first, :last, :scoped, :unscoped, :to => :all
+    delegate :count, :where, :order_by, :first, :last, :scoped, :unscoped,
+             :indexed, :to => :all
 
     def all
       NoBrainer::Criteria.new(:root_rql => table, :klass => self)
