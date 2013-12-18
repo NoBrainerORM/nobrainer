@@ -70,54 +70,60 @@ describe 'NoBrainer callbacks' do
 
 
   context 'when validating a unique field' do
-
     context 'without a scope' do
       before { SimpleDocument.validates :field1, :uniqueness => true }
-
-      let(:doc) { SimpleDocument.create!(:field1 => 'ohai') }
+      let!(:doc) { SimpleDocument.create!(:field1 => 'ohai') }
 
       it 'can save an existing document' do
-        doc.persisted?.should == true
         doc.valid?.should == true
         doc.save.should == true
       end
 
       it 'cannot save a non-unique value' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'ohai'
         doc2.valid?.should == false
         expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
 
       it 'can save a unique value' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'okbai'
         doc2.valid?.should == true
         doc2.save.should == true
       end
     end
 
+    context 'with a default scope' do
+      before do
+        SimpleDocument.class_eval do
+          validates :field1, :uniqueness => true
+          default_scope where(:field2 => 'hello')
+        end
+      end
+
+      it 'does not use the default scope' do
+        SimpleDocument.create!(field1: 'hello')
+        SimpleDocument.new(field1: 'hello').valid?.should == false
+      end
+    end
+
     context 'with a single scope' do
       before { SimpleDocument.validates :field1, :uniqueness => {scope: :field2} }
 
-      let(:doc) { SimpleDocument.create!(:field1 => 'ohai', :field2 => 'there') }
+      let!(:doc) { SimpleDocument.create!(:field1 => 'ohai', :field2 => 'there') }
 
       it 'cannot save a non-unique value in the same scope' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'ohai', field2: 'there'
         doc2.valid?.should == false
         expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
 
       it 'can save a unique value in the same scope' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'okbai', field2: 'there'
         doc2.valid?.should == true
         doc2.save.should == true
       end
 
       it 'can save a non-unique value in a different scope' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'ohai', field2: 'now'
         doc2.valid?.should == true
         doc2.save.should == true
@@ -127,24 +133,21 @@ describe 'NoBrainer callbacks' do
     context 'with multiple scopes' do
       before { SimpleDocument.validates :field1, :uniqueness => {scope: [:field2, :field3]} }
 
-      let(:doc) { SimpleDocument.create!(:field1 => 'ohai', :field2 => 'there', :field3 => 'bob') }
+      let!(:doc) { SimpleDocument.create!(:field1 => 'ohai', :field2 => 'there', :field3 => 'bob') }
 
       it 'cannot save a non-unique value in all of the same scopes' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'ohai', field2: 'there', field3: 'bob'
         doc2.valid?.should == false
         expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
 
       it 'can save a unique value in all of the same scopes' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'okbai', field2: 'there', field3: 'bob'
         doc2.valid?.should == true
         doc2.save.should == true
       end
 
       it 'can save a non-unique value when not all of the scopes match' do
-        doc.persisted?.should == true
         doc2 = SimpleDocument.new field1: 'ohai', field2: 'there', field3: 'jimmy'
         doc2.valid?.should == true
         doc2.save.should == true

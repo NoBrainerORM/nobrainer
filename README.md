@@ -138,10 +138,9 @@ Features
 * Compatible with Rails 3 and Rails 4
 * Autogeneration of ID, MongoDB style
 * Creation of database and tables on demand
-* Attributes accessors (`attr_accessor`)
-* Validation support, expected behavior with `save!`, `save`, etc. (uniqueness validation still in development)
-* Validatation with create, update, save, and destroy callbacks.
-* `find`, `create`, `save`, `update_attributes`, `destroy` (`*.find` vs. `find!`).
+* Validation support, expected behavior with `save!`, `save`, etc.
+* validation, create, update, save, and destroy callbacks.
+* `find`, `find!`, `create`, `save`, `update_attributes`, `destroy`
 * `where`, `order_by`, `skip`, `limit`, `each`
 * `update`, `inc`, `dec`
 * `belongs_to`, `has_many`

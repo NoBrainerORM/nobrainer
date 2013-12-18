@@ -21,7 +21,7 @@ module NoBrainer::Criteria::Chainable::Where
 
   def compile_rql
     return super unless self.where_clauses.present?
-    super.filter { |doc| normalize_filters(doc, self.where_clauses) }
+    super.filter { |doc| normalize_filters(doc, self.where_clauses) || {} }
   end
 
   def normalize_filters(doc, filter)
@@ -30,7 +30,7 @@ module NoBrainer::Criteria::Chainable::Where
     when Proc  then filter.call(doc)
     when Hash
       case filter.size
-      when 0 then {}
+      when 0 then nil
       when 1 then normalize_filter_stub(doc, filter.first[0], filter.first[1])
       else normalize_filters(doc, :and => filter.map { |k,v| { k => v } })
       end
@@ -40,8 +40,8 @@ module NoBrainer::Criteria::Chainable::Where
 
   def normalize_filter_stub(doc, field, value)
     case field
-    when :and then value.map { |v| normalize_filters(doc, v) }.reduce { |a,b| a & b }
-    when :or  then value.map { |v| normalize_filters(doc, v) }.reduce { |a,b| a | b }
+    when :and then value.map { |v| normalize_filters(doc, v) }.compact.reduce { |a,b| a & b }
+    when :or  then value.map { |v| normalize_filters(doc, v) }.compact.reduce { |a,b| a | b }
     when NoBrainer::DecoratedSymbol then
       case field.modifier
       when :not then normalize_filters(doc, field.symbol => value).not

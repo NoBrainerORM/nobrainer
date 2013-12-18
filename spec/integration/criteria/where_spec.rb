@@ -7,9 +7,21 @@ describe 'where' do
   let!(:doc2) { SimpleDocument.create(:field1 => 'hello') }
   let!(:doc3) { SimpleDocument.create(:field1 => 'hola') }
 
-  context 'when passing an empty hash' do
+  context 'when passing empty conditions' do
     it 'filters documents' do
+      SimpleDocument.where(:field1 => 'ohai').where({}).count.should == 1
+
       SimpleDocument.where({}).count.should == 3
+      SimpleDocument.where({},{}).count.should == 3
+      SimpleDocument.where([]).count.should == 3
+      SimpleDocument.where([],[]).count.should == 3
+      SimpleDocument.where().count.should == 3
+
+      SimpleDocument.where(:field1 => 'ohai').where({}).count.should == 1
+      SimpleDocument.where(:field1 => 'ohai').where({},{}).count.should == 1
+      SimpleDocument.where(:field1 => 'ohai').where([]).count.should == 1
+      SimpleDocument.where(:field1 => 'ohai').where([],[]).count.should == 1
+      SimpleDocument.where(:field1 => 'ohai').where().count.should == 1
     end
   end
 
