@@ -27,6 +27,7 @@ module NoBrainer::Document::Relation
           ([self] + descendants).each do |klass|
             klass.relations[target] = r
           end
+          r
         end
       RUBY
     end

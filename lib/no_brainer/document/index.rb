@@ -28,6 +28,12 @@ module NoBrainer::Document::Index
       index(name) if options[:index]
     end
 
+    def belongs_to(target, options={})
+      super.tap do |relation|
+        index relation.foreign_key if options[:index]
+      end
+    end
+
     def remove_field(name)
       remove_index(name) if fields[name.to_sym][:index]
       super

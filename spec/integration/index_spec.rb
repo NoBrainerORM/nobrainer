@@ -33,6 +33,21 @@ describe 'NoBrainer index' do
     end
   end
 
+  context 'when indexing a field on a belongs_to' do
+    before do
+      load_blog_models
+      Comment.belongs_to :post, :index => true
+      NoBrainer.update_indexes
+    end
+
+    let!(:post)    { Post.create }
+    let!(:comment) { post.comments.create }
+
+    it 'uses the index with indexed_where()' do
+      Comment.indexed_where(:post_id => post.id).count.should == 1
+    end
+  end
+
   context 'when indexing a field with a lambda' do
     before do
       SimpleDocument.index :field12, ->(doc){ doc['field1'] + "_" + doc['field2'] }
