@@ -51,6 +51,7 @@ module NoBrainer
              :drop!, :purge!, :to => :database
     delegate :run, :to => QueryRunner
     delegate :update_indexes, :to => IndexManager
+    delegate :with_database, :to => QueryRunner::DatabaseSelector
 
     def rails3?
       return @rails3 unless @rails3.nil?

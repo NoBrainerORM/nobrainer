@@ -90,5 +90,6 @@ module NoBrainer::Document::Index
         perform_create_index(index_name, options)
       end
     end
+    alias_method :update_indexes, :perform_update_indexes
   end
 end
