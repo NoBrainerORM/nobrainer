@@ -1,7 +1,7 @@
 module NoBrainer::Criteria::Chainable::Where
   extend ActiveSupport::Concern
 
-  RESERVED_FIELDS = NoBrainer::DecoratedSymbol::MODIFIERS.keys + [:default, :and, :or]
+  RESERVED_FIELDS = NoBrainer::DecoratedSymbol::MODIFIERS.keys + [:index, :default, :and, :or]
 
   included { attr_accessor :where_clauses }
 

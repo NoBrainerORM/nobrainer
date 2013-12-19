@@ -1,8 +1,7 @@
 class NoBrainer::DecoratedSymbol < Struct.new(:symbol, :modifier)
-  MODIFIERS = { :ne => :not, :not => :not,
+  MODIFIERS = { :ne => :not, :not => :not, :in => :in,
                 :gt => :gt, :ge => :ge, :gte => :ge,
-                :lt => :lt, :le => :le, :lte => :le,
-                :in => :in }
+                :lt => :lt, :le => :le, :lte => :le}
 
   def self.hook
     Symbol.class_eval do

@@ -19,14 +19,16 @@ module NoBrainer::Document::Criteria
       NoBrainer::Criteria.new(:klass => self)
     end
 
-    def scope(name, criteria)
+    def scope(name, criteria=nil, &block)
+      criteria ||= block
       criteria_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
       singleton_class.class_eval do
         define_method(name) { |*args| criteria_proc.call(*args) }
       end
     end
 
-    def default_scope(criteria)
+    def default_scope(criteria=nil, &block)
+      criteria ||= block
       self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
     end
 
