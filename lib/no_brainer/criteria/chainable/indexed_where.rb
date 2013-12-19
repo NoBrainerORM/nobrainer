@@ -47,9 +47,9 @@ module NoBrainer::Criteria::Chainable::IndexedWhere
     # could be used with an index.
     wc_hash = []; wc_eq_hash = {}; wc_others = []
     self.where_clauses.each { |wc| (wc.is_a?(Hash) ? wc_hash : wc_others) << wc }
-    wc_hash.reduce(:merge).each do |k,v|
-      if k.to_sym.in?(NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS) ||
-         k.is_a?(NoBrainer::DecoratedSymbol) ||
+    (wc_hash.reduce(:merge) || {}).each do |k,v|
+      if k.is_a?(NoBrainer::DecoratedSymbol) ||
+         k.to_sym.in?(NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS) ||
          v.is_a?(Regexp) || v.is_a?(Range)
         wc_others << {k => v}
       else

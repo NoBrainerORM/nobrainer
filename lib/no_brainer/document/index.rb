@@ -8,6 +8,7 @@ module NoBrainer::Document::Index
 
   module ClassMethods
     def index(name, *args)
+      name = name.to_sym
       options = args.extract_options!
       raise "Too many arguments: #{args}" if args.size > 1
       kind, what = case args.first
@@ -16,7 +17,12 @@ module NoBrainer::Document::Index
         when Proc  then [:proc,     args.first]
         else raise "Index argument must be a lambda or a list of fields"
       end
-      indexes[name.to_sym] = {:kind => kind, :what => what, :options => options}
+
+      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
+        raise "Cannot use a reserved field name: #{name}"
+      end
+
+      indexes[name] = {:kind => kind, :what => what, :options => options}
     end
 
     def remove_index(name)
