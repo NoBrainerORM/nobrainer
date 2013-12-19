@@ -45,7 +45,7 @@ module NoBrainer::Document::Index
       end
 
       super
-      index(name) if options[:index]
+      index(name, options[:index].is_a?(Hash) ? options[:index] : {}) if options[:index]
     end
 
     def belongs_to(target, options={})

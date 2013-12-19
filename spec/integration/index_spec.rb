@@ -149,6 +149,24 @@ describe 'NoBrainer index' do
     end
   end
 
+  context 'when using a multi single field index' do
+    before do
+      SimpleDocument.field :field1, :index => {:multi => true}
+      NoBrainer.update_indexes
+    end
+
+    let!(:doc1) { SimpleDocument.create(:field1 => ['hello', 'ohai']) }
+    let!(:doc2) { SimpleDocument.create(:field1 => ['hello', 'world']) }
+    let!(:doc3) { SimpleDocument.create(:field1 => ['this', 'is', 'fun']) }
+
+    it 'uses the index' do
+      SimpleDocument.where(:field1 => 'hello').count.should == 2
+      SimpleDocument.where(:field1 => 'is').count.should == 1
+      SimpleDocument.where(:field1 => ['hello', 'ohai']).count.should == 0
+      SimpleDocument.without_index.where(:field1 => ['hello', 'ohai']).count.should == 1
+    end
+  end
+
   context 'when using a compound field index' do
     before do
       SimpleDocument.index :field12, [:field1, :field2]
