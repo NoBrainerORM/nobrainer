@@ -3,4 +3,5 @@ module NoBrainer::Error
   class DocumentNotFound < StandardError; end
   class DocumentInvalid  < StandardError; end
   class DocumentNotSaved < StandardError; end
+  class ChildrenExist    < StandardError; end
 end

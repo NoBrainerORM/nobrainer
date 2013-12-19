@@ -40,7 +40,7 @@ module NoBrainer::Document::Persistance
 
   def update(&block)
     run_callbacks :update do
-      selector.update(&block)
+      selector.update_all(&block)
       true
     end
   end
@@ -57,7 +57,7 @@ module NoBrainer::Document::Persistance
   end
 
   def delete
-    selector.delete
+    selector.delete_all
     @destroyed = true
     # TODO freeze attributes
     true
