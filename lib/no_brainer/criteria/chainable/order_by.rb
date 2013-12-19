@@ -48,20 +48,27 @@ module NoBrainer::Criteria::Chainable::OrderBy
   end
 
   def compile_rql
-    rql = super
-    if self.ordered?
-      rql_rules = self.order.map do |k,v|
-        case v
-        when :asc  then RethinkDB::RQL.new.asc(k)
-        when :desc then RethinkDB::RQL.new.desc(k)
-        end
+    return super unless self.ordered?
+
+    rql_rules = self.order.map do |k,v|
+      case v
+      when :asc  then RethinkDB::RQL.new.asc(k)
+      when :desc then RethinkDB::RQL.new.desc(k)
       end
-      rql = rql.order_by(*rql_rules)
     end
-    rql
+
+    options = {}
+    unless without_index?
+      first_key = self.order.first[0]
+      if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
+        options[:index] = rql_rules.shift
+      end
+    end
+
+    super.order_by(*rql_rules, options)
   end
 
   def raise_bad_rule(rule)
-    raise "Please pass something like ':field1=> :desc, :field2 => :asc', not #{rule}"
+    raise "Please pass something like ':field1 => :desc, :field2 => :asc', not #{rule}"
   end
 end

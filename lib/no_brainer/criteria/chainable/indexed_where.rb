@@ -27,7 +27,7 @@ module NoBrainer::Criteria::Chainable::IndexedWhere
   end
 
   def without_index?
-    # Used by where() to prevent automatic index usage
+    # Used by where()/order_by() to prevent automatic index usage
     !!self._without_index
   end
 

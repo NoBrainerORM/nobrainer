@@ -134,6 +134,9 @@ Person.without_index.where(:first_name => 'John', :last_name => 'Doe') # Not usi
 
 Person.indexed_where(:full_name_lambda => 'John_Doe') # Explicitely using the custom index
 Person.where(:full_name_lambda => 'John_Doe') # Implicitely using the compound index
+
+# Indexes are also autmatically used in order_by() queries, but won't figure out
+# what compound index to use, it's your job to pass the name of the index if desired.
 ```
 
 Features

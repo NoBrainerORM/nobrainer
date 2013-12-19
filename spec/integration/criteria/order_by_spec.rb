@@ -60,6 +60,92 @@ describe 'order_by' do
     end
   end
 
+  context 'when using indexes' do
+    before do
+      SimpleDocument.field :field1,  :index => true
+      SimpleDocument.index :field12, [:field1, :field2]
+      NoBrainer.update_indexes
+    end
+
+    context 'when not specifying orders' do
+      context 'when using order_by with implicit indexes' do
+        it 'orders documents properly' do
+          SimpleDocument.order_by(:field1)
+            .map(&:field1).should == [1,1,2,2]
+          SimpleDocument.order_by(:field12)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should == [[1,1],[1,2],[2,1],[2,2]]
+        end
+      end
+
+      context 'when using a without_index order_by' do
+        it 'orders documents properly' do
+          SimpleDocument.without_index.order_by(:field1)
+            .map(&:field1).should == [1,1,2,2]
+          SimpleDocument.without_index.order_by(:field12)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should_not == [[1,1],[1,2],[2,1],[2,2]]
+        end
+      end
+    end
+
+    context 'when using :asc' do
+      context 'when using order_by with implicit indexes' do
+        it 'orders documents properly' do
+          SimpleDocument.order_by(:field1 => :asc)
+            .map(&:field1).should == [1,1,2,2]
+          SimpleDocument.order_by(:field12 => :asc)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should == [[1,1],[1,2],[2,1],[2,2]]
+        end
+      end
+
+      context 'when using a without_index order_by' do
+        it 'orders documents properly' do
+          SimpleDocument.without_index.order_by(:field1 => :asc)
+            .map(&:field1).should == [1,1,2,2]
+          SimpleDocument.without_index.order_by(:field12 => :asc)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should_not == [[1,1],[1,2],[2,1],[2,2]]
+        end
+      end
+    end
+
+    context 'when using :desc' do
+      context 'when using order_by with implicit indexes' do
+        it 'orders documents properly' do
+          SimpleDocument.order_by(:field1 => :desc)
+            .map(&:field1).should == [2,2,1,1]
+          SimpleDocument.order_by(:field12 => :desc)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should == [[2,2],[2,1],[1,2],[1,1]]
+        end
+      end
+
+      context 'when using a without_index order_by' do
+        it 'orders documents properly' do
+          SimpleDocument.without_index.order_by(:field1 => :desc)
+            .map(&:field1).should == [2,2,1,1]
+          SimpleDocument.without_index.order_by(:field12 => :desc)
+            .map { |doc| [doc.field1, doc.field2] }
+            .should_not == [[2,2],[2,1],[1,2],[1,1]]
+        end
+      end
+    end
+
+    context 'when mixing non indexed and indexed fields' do
+      it 'orders documents properly' do
+        SimpleDocument.order_by(:field2, :field1)
+          .map { |doc| [doc.field1, doc.field2] }
+          .should == [[1,1],[2,1],[1,2],[2,2]]
+
+        SimpleDocument.order_by(:field1, :field2)
+          .map { |doc| [doc.field1, doc.field2] }
+          .should == [[1,1],[1,2],[2,1],[2,2]]
+      end
+    end
+  end
+
   context 'when mixing the two with on order_by call' do
     it 'orders documents properly' do
       SimpleDocument.all.order_by(:field1 => :asc, :field2 => :desc)
