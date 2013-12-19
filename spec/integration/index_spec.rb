@@ -60,6 +60,16 @@ describe 'NoBrainer index' do
     it 'uses the index with indexed_where()' do
       SimpleDocument.indexed_where(:field12 => 'hello_world').count.should == 1
     end
+
+    it 'does not allow to use a field with the same name as an index' do
+      SimpleDocument.index :index_name, ->(doc){}
+      expect { SimpleDocument.field :index_name }.to raise_error
+    end
+
+    it 'does not allow to use an index with the same name' do
+      SimpleDocument.field :field_name
+      expect { SimpleDocument.index :field_name, ->(doc){} }.to raise_error
+    end
   end
 
   context 'when indexing a compound field' do
@@ -151,6 +161,16 @@ describe 'NoBrainer index' do
         SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count.should == 2
         SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay', :field3 => 'bread').count.should == 1
       end
+    end
+
+    it 'does not allow to use a field with the same name as an index' do
+      SimpleDocument.index :index_name, [:field1, :field2]
+      expect { SimpleDocument.field :index_name }.to raise_error
+    end
+
+    it 'does not allow to use an index with the same name' do
+      SimpleDocument.field :field_name
+      expect { SimpleDocument.index :field_name, [:field1, :field2] }.to raise_error
     end
   end
 end

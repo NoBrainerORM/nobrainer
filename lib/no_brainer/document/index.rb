@@ -11,6 +11,7 @@ module NoBrainer::Document::Index
       name = name.to_sym
       options = args.extract_options!
       raise "Too many arguments: #{args}" if args.size > 1
+
       kind, what = case args.first
         when nil   then [:single,   name.to_sym]
         when Array then [:compound, args.first.map(&:to_sym)]
@@ -21,6 +22,9 @@ module NoBrainer::Document::Index
       if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
         raise "Cannot use a reserved field name: #{name}"
       end
+      if has_field?(name) && kind != :single
+        raise "Cannot reuse field name #{name}"
+      end
 
       indexes[name] = {:kind => kind, :what => what, :options => options}
     end
@@ -29,7 +33,17 @@ module NoBrainer::Document::Index
       indexes.delete(name.to_sym)
     end
 
+    def has_index?(name)
+      !!indexes[name.to_sym]
+    end
+
     def field(name, options={})
+      name = name.to_sym
+
+      if has_index?(name) && indexes[name][:kind] != :single
+        raise "Cannot reuse index name #{name}"
+      end
+
       super
       index(name) if options[:index]
     end
