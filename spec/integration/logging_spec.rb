@@ -22,25 +22,35 @@ describe 'NoBrainer logging' do
 
   context 'when using a test logger' do
 
-    before { NoBrainer.logger = TestLogger.new }
+    before do
+      NoBrainer.configure do |config|
+        config.logger = TestLogger.new
+        config.log_prefix = '[TestPrefix]'
+      end
+    end
 
     it 'must log insert query' do
       SimpleDocument.create(field1:'foo')
-      NoBrainer.logger.logs.count.should > 0 # I'm not sure if we want to hard code the actual number
-      NoBrainer.logger.logs.first[:message].index('r.table("simple_documents").insert').should > -1
+      NoBrainer.config.logger.logs.count.should > 0 # I'm not sure if we want to hard code the actual number
+      NoBrainer.config.logger.logs.first[:message].index('r.table("simple_documents").insert').should > -1
+    end
+
+    it 'must use user-defined prefix' do
+      SimpleDocument.create(field1:'foo')
+      NoBrainer.config.logger.logs.first[:message].index('[TestPrefix]').should > -1
     end
 
     it 'must use INFO by default' do
       SimpleDocument.create(field1:'foo')
-      NoBrainer.logger.logs.count.should > 0
-      NoBrainer.logger.logs.first[:severity] == Logger::INFO
+      NoBrainer.config.logger.logs.count.should > 0
+      NoBrainer.config.logger.logs.first[:severity] == Logger::INFO
     end
 
     it 'must use user-defined severity' do
-      NoBrainer.log_level = Logger::WARN
+      NoBrainer.config.log_level = Logger::WARN
       SimpleDocument.create(field1:'foo')
-      NoBrainer.logger.logs.count.should > 0
-      NoBrainer.logger.logs.first[:severity] == Logger::WARN
+      NoBrainer.config.logger.logs.count.should > 0
+      NoBrainer.config.logger.logs.first[:severity] == Logger::WARN
     end
 
   end

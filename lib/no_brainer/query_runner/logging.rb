@@ -1,9 +1,9 @@
 class NoBrainer::QueryRunner::Logging < NoBrainer::QueryRunner::Middleware
 
   def call(env)
-    if NoBrainer.logger
-      severity = NoBrainer.log_level ? NoBrainer.log_level : Logger::INFO
-      NoBrainer.logger.log(severity, env[:query].pp)
+    if NoBrainer.config.logger
+      severity = NoBrainer.config.log_level ? NoBrainer.config.log_level : Logger::INFO
+      NoBrainer.config.logger.log(severity, "#{NoBrainer.config.log_prefix} #{env[:query].pp}")
     end
     @runner.call(env)
   end
