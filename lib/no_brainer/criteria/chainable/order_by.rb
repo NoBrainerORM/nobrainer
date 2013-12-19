@@ -17,6 +17,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
         raise_bad_rule(bad_rule) if bad_rule
         rule
       when Symbol then { rule => :asc }
+      when Proc   then { rule => :asc }
       else raise_bad_rule(rule)
       end
     end.reduce(:merge)
