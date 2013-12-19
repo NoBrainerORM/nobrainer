@@ -20,7 +20,7 @@ module NoBrainer
     # Note: we always access the connection explicitly, so that in the future,
     # we can refactor to return a connection depending on the context.
     # Note that a connection is tied to a database in NoBrainer.
-    attr_accessor :logger
+    attr_accessor :logger, :log_level
 
     def connect(uri)
       @connection = Connection.new(uri).tap { |c| c.connect }
@@ -60,4 +60,5 @@ module NoBrainer
   end
 
   self.logger = defined?(Rails) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
+  self.log_level = Logger::INFO
 end
