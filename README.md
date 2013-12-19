@@ -114,7 +114,7 @@ class Person
   index :full_name, [:first_name, :last_name]
 
   # Arbitrary Indexes
-  index :full_name2, ->(doc){ doc['first_name'] + "_" + doc['last_name'] }
+  index :full_name_lambda, ->(doc){ doc['first_name'] + "_" + doc['last_name'] }
 end
 
 # Index creation on the database.
@@ -128,10 +128,12 @@ Person.where(:job => 'none') # Implicitely use the job index
 Person.without_index.where(:job => 'none') # Not using the job index
 
 Person.indexed_where(:full_name => ['John', 'Doe']) # Explicitely using the compound index
-Person.where(:first_name => 'John', :last_name => 'Doe') # Implicitely using the compound index
+Person.where(:full_name => ['John', 'Doe']) # Implicitely using the compound index
+Person.where(:first_name => 'John', :last_name => 'Doe') # Also implicitely using the compound index
 Person.without_index.where(:first_name => 'John', :last_name => 'Doe') # Not using the comound index
 
-Person.indexed_where(:full_name2 => 'John_Doe') # Using the custom index
+Person.indexed_where(:full_name_lambda => 'John_Doe') # Explicitely using the custom index
+Person.where(:full_name_lambda => 'John_Doe') # Implicitely using the compound index
 ```
 
 Features

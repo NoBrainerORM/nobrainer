@@ -60,8 +60,10 @@ module NoBrainer::Criteria::Chainable::IndexedWhere
     query_keys = wc_eq_hash.keys.map(&:to_sym)
 
     # We want to use an index that have the most number of fields in it
+    # We'll also try to match the index names
     index_keys, index_name = klass.indexes
-      .map { |name, args| [[*args[:what]], name] }
+      .map { |name, args| [[[*args[:what]], name], [[name], name]] }
+      .flatten(1)
       .sort_by! { |k,v| -k.size }
       .select { |k,v| k & query_keys == k}
       .first
@@ -72,7 +74,7 @@ module NoBrainer::Criteria::Chainable::IndexedWhere
       wc_others << wc_hash_others if wc_hash_others.present?
 
       value = index_keys.map { |k| wc_eq_hash[k] }
-      value = value.first if klass.indexes[index_name][:kind] == :single
+      value = value.first if index_keys == [index_name]
       criteria = criteria.indexed_where(index_name => value)
       criteria.where_clauses = wc_others
     end

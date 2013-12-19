@@ -14,8 +14,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello') }
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai') }
 
-    it 'uses the index with indexed_where()' do
-      SimpleDocument.indexed_where(:field1 => 'ohai').count.should == 1
+    it 'uses the index with where()' do
+      SimpleDocument.where(:field1 => 'ohai').count.should == 1
     end
   end
 
@@ -84,6 +84,16 @@ describe 'NoBrainer index' do
     it 'uses the index with indexed_where()' do
       SimpleDocument.indexed_where(:field12 => ['hello', 'world']).count.should == 1
     end
+
+    it 'does not allow to use a field with the same name as an index' do
+      SimpleDocument.index :index_name, [:field1, :field2]
+      expect { SimpleDocument.field :index_name }.to raise_error
+    end
+
+    it 'does not allow to use an index with the same name' do
+      SimpleDocument.field :field_name
+      expect { SimpleDocument.index :field_name, [:field1, :field2] }.to raise_error
+    end
   end
 
   context 'when updating indexes' do
@@ -151,6 +161,8 @@ describe 'NoBrainer index' do
 
     context 'when using multiple where' do
       it 'uses an index when possible' do
+        expect { SimpleDocument.where(:field12 => ['ohai', 'yay']).count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
         expect { SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count }
           .to raise_error(RethinkDB::RqlRuntimeError)
         expect { SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay', :field3 => 'bread').count }
@@ -158,19 +170,33 @@ describe 'NoBrainer index' do
 
         NoBrainer.update_indexes
 
+        SimpleDocument.where(:field12 => ['ohai', 'yay']).count.should == 2
         SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count.should == 2
         SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay', :field3 => 'bread').count.should == 1
       end
     end
+  end
 
-    it 'does not allow to use a field with the same name as an index' do
-      SimpleDocument.index :index_name, [:field1, :field2]
-      expect { SimpleDocument.field :index_name }.to raise_error
+  context 'when using a lambda index' do
+    before do
+      SimpleDocument.index :field12, ->(doc){ doc['field1'] + "_" + doc['field2'] }
     end
 
-    it 'does not allow to use an index with the same name' do
-      SimpleDocument.field :field_name
-      expect { SimpleDocument.index :field_name, [:field1, :field2] }.to raise_error
+    let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world', :field3 => 'ohai') }
+    let!(:doc2) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world', :field3 => 'yay') }
+
+    context 'when using multiple where' do
+      it 'uses an index when possible' do
+        expect { SimpleDocument.where(:field12 => 'hello_world').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+        expect { SimpleDocument.where(:field12 => 'hello_world', :field3 => 'ohai').count }
+          .to raise_error(RethinkDB::RqlRuntimeError)
+
+        NoBrainer.update_indexes
+
+        SimpleDocument.where(:field12 => 'hello_world').count.should == 2
+        SimpleDocument.where(:field12 => 'hello_world', :field3 => 'ohai').count.should == 1
+      end
     end
   end
 end
