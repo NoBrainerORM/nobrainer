@@ -19,7 +19,8 @@ module NoBrainer::Document::Index
         else raise "Index argument must be a lambda or a list of fields"
       end
 
-      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
+      # FIXME Primary key may not always be :id
+      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS || name == :id
         raise "Cannot use a reserved field name: #{name}"
       end
       if has_field?(name) && kind != :single
