@@ -7,10 +7,6 @@ module NoBrainer::Criteria::Chainable::Core
     self.options = options
   end
 
-  def root_rql
-    options[:root_rql]
-  end
-
   def klass
     options[:klass]
   end
@@ -42,8 +38,8 @@ module NoBrainer::Criteria::Chainable::Core
 
   def compile_rql
     # This method is overriden by other modules.
-    raise "Criteria not bound" unless root_rql
-    root_rql
+    raise "Criteria not bound" unless klass
+    klass.table
   end
 
   def to_rql
@@ -51,11 +47,11 @@ module NoBrainer::Criteria::Chainable::Core
   end
 
   def inspect
-    # rescue super because sometimes root_rql is not set.
+    # rescue super because sometimes klass is not set.
     to_rql.inspect rescue super
   end
 
-  def run
-    NoBrainer.run { to_rql }
+  def run(rql=nil)
+    NoBrainer.run { rql || to_rql }
   end
 end

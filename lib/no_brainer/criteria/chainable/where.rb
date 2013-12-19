@@ -21,6 +21,15 @@ module NoBrainer::Criteria::Chainable::Where
 
   def compile_rql
     return super unless self.where_clauses.present?
+
+    # TODO Primary key might not always be id
+    if where_clauses.size == 1
+      wc = where_clauses.first
+      if wc.is_a?(Hash) && wc.size == 1 && wc.keys.first == :id
+        return super.get(wc.values.first)
+      end
+    end
+
     super.filter { |doc| normalize_filters(doc, self.where_clauses) || {} }
   end
 

@@ -16,7 +16,7 @@ module NoBrainer::Document::Criteria
              :inc_all, :dec_all, :to => :all
 
     def all
-      NoBrainer::Criteria.new(:root_rql => table, :klass => self)
+      NoBrainer::Criteria.new(:klass => self)
     end
 
     def scope(name, criteria)
@@ -32,7 +32,7 @@ module NoBrainer::Document::Criteria
 
     def selector_for(id)
       # TODO Pass primary key if not default
-      NoBrainer::Criteria.new(:root_rql => table.get(id), :klass => self)
+      where(:id => id)
     end
 
     # XXX this doesn't have the same semantics as

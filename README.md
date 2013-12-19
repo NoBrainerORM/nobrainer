@@ -137,6 +137,14 @@ Person.where(:full_name_lambda => 'John_Doe') # Implicitely using the compound i
 
 # Indexes are also autmatically used in order_by() queries, but won't figure out
 # what compound index to use, it's your job to pass the name of the index if desired.
+
+# Multi tenancy support:
+# 1) Globally switch database with:
+NoBrainer.with_database('db_name') do
+  ...
+end
+# 2) Per model database/table name usage:
+Model.store_in :database => ->{ 'db_name' }, :table => ->{ 'table_name' }
 ```
 
 Features
