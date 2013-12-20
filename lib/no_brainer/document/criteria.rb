@@ -34,7 +34,7 @@ module NoBrainer::Document::Criteria
 
     def selector_for(id)
       # TODO Pass primary key if not default
-      where(:id => id)
+      unscoped.where(:id => id)
     end
 
     # XXX this doesn't have the same semantics as

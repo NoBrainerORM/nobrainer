@@ -78,6 +78,12 @@ describe 'scope' do
       end
     end
 
+    context 'when using find()' do
+      it 'does not apply the default scope' do
+        SimpleDocument.find(doc2.id).should == doc2
+      end
+    end
+
     context 'when doing regular queries' do
       it 'applies the default scope' do
         SimpleDocument.count.should == 1
