@@ -60,6 +60,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
     options = {}
     unless without_index?
       first_key = self.order.first[0]
+      first_key = nil if first_key == :id # FIXME For some reason, using the id index doesn't work.
       if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
         options[:index] = rql_rules.shift
       end

@@ -25,14 +25,10 @@ module NoBrainer::Criteria::Chainable::Core
     merge(tmp)
   end
 
-  def compile_criteria_pass1
+  def compile_criteria
     # This method is overriden by other modules.
     # compile_criteria returns a criteria that will be used to generate the RQL.
     # This is useful to apply the class default scope at the very end of the chain.
-    self
-  end
-
-  def compile_criteria_pass2
     self
   end
 
@@ -43,7 +39,7 @@ module NoBrainer::Criteria::Chainable::Core
   end
 
   def to_rql
-    compile_criteria_pass1.compile_criteria_pass2.compile_rql
+    compile_criteria.compile_rql
   end
 
   def inspect

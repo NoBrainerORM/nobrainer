@@ -1,16 +1,16 @@
 module NoBrainer::Criteria::Termination::First
-  def first
-    get_one(ordered? ? self : order_by(:id => :asc))
+  def first(options={})
+    return get_one(ordered? ? self : order_by(:id => :asc), options)
   end
 
-  def last
-    get_one(ordered? ? self.reverse_order : order_by(:id => :desc))
+  def last(options={})
+    return get_one(ordered? ? self.reverse_order : order_by(:id => :desc), options)
   end
 
   private
 
-  def get_one(criteria)
+  def get_one(criteria, options={})
     attrs = criteria.limit(1).run.first
-    klass.new_from_db(attrs)
+    options[:raw] ? attrs : klass.new_from_db(attrs)
   end
 end

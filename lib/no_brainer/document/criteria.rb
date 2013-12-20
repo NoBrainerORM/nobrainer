@@ -10,8 +10,8 @@ module NoBrainer::Document::Criteria
   end
 
   module ClassMethods
-    delegate :count, :where, :order_by, :first, :last, :scoped, :unscoped,
-             :indexed_where, :without_index,
+    delegate :count, :first, :last, :scoped, :unscoped,
+             :with_index, :without_index, :used_index, :indexed?, :where, :order_by,
              :update_all, :delete_all, :destroy_all,
              :inc_all, :dec_all, :to => :all
 
@@ -40,7 +40,7 @@ module NoBrainer::Document::Criteria
     # XXX this doesn't have the same semantics as
     # other ORMs. the equivalent is find!.
     def find(id)
-      new_from_db(selector_for(id).run)
+      selector_for(id).first
     end
 
     def find!(id)

@@ -34,13 +34,13 @@ module NoBrainer::Document::Persistance
   end
 
   def reload
-    assign_attributes(selector.run, :pristine => true, :from_db => true)
+    assign_attributes(selector.first(:raw => true), :pristine => true, :from_db => true)
     self
   end
 
   def update(&block)
     run_callbacks :update do
-      selector.update_all(&block)
+      selector.update_all(&block)['replaced']
       true
     end
   end
@@ -57,8 +57,10 @@ module NoBrainer::Document::Persistance
   end
 
   def delete
-    selector.delete_all
-    @destroyed = true
+    unless @destroyed
+      selector.delete_all
+      @destroyed = true
+    end
     # TODO freeze attributes
     true
   end

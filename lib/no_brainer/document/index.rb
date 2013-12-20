@@ -4,6 +4,7 @@ module NoBrainer::Document::Index
   included do
     class_attribute :indexes
     self.indexes = {}
+    self.index :id
   end
 
   module ClassMethods
@@ -20,7 +21,7 @@ module NoBrainer::Document::Index
       end
 
       # FIXME Primary key may not always be :id
-      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS || name == :id
+      if name.in?(NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS)
         raise "Cannot use a reserved field name: #{name}"
       end
       if has_field?(name) && kind != :single
@@ -82,12 +83,13 @@ module NoBrainer::Document::Index
 
     def perform_update_indexes(options={})
       current_indexes = NoBrainer.run { self.table.index_list }.map(&:to_sym)
+      wanted_indexes = self.indexes.keys - [:id] # XXX Primary key?
 
-      (current_indexes - self.indexes.keys).each do |index_name|
+      (current_indexes - wanted_indexes).each do |index_name|
         perform_drop_index(index_name, options)
       end
 
-      (self.indexes.keys - current_indexes).each do |index_name|
+      (wanted_indexes - current_indexes).each do |index_name|
         perform_create_index(index_name, options)
       end
     end

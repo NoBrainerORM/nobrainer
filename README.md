@@ -123,17 +123,18 @@ NoBrainer.update_indexes # can also use rake db:update_indexes
 
 Person.create(:first_name => 'John', :last_name => 'Doe', :job => 'none')
 
-Person.indexed_where(:job => 'none') # Explicitely use the job index
 Person.where(:job => 'none') # Implicitely use the job index
 Person.without_index.where(:job => 'none') # Not using the job index
 
-Person.indexed_where(:full_name => ['John', 'Doe']) # Explicitely using the compound index
-Person.where(:full_name => ['John', 'Doe']) # Implicitely using the compound index
-Person.where(:first_name => 'John', :last_name => 'Doe') # Also implicitely using the compound index
+Person.where(:full_name => ['John', 'Doe']) # Using the compound index
+Person.where(:first_name => 'John', :last_name => 'Doe') # Implicitely using the compound index
 Person.without_index.where(:first_name => 'John', :last_name => 'Doe') # Not using the comound index
 
-Person.indexed_where(:full_name_lambda => 'John_Doe') # Explicitely using the custom index
-Person.where(:full_name_lambda => 'John_Doe') # Implicitely using the compound index
+Person.where(:full_name_lambda => 'John_Doe') # Using the compound index
+
+# You can use .use_index(:index_name) to force NoBrainer to use a specific index
+# in case multiple indexes could be used. An error will be raised if the index
+# cannot be used.
 
 # Indexes are also autmatically used in order_by() queries, but won't figure out
 # what compound index to use, it's your job to pass the name of the index if desired.

@@ -62,16 +62,4 @@ describe 'NoBrainer persistance' do
       expect { SimpleDocument.create(:id => doc.id) }.to raise_error(NoBrainer::Error::DocumentNotSaved)
     end
   end
-
-  context "when the document doesn't exist" do
-    before { doc.destroy }
-
-    it 'raises an error when updating' do
-      expect { doc.update_attributes(:field1 => 'oops') }.to raise_error(NoBrainer::Error::DocumentNotSaved)
-    end
-
-    it 'raises an error when destroying' do
-      expect { doc.destroy }.to raise_error(NoBrainer::Error::DocumentNotSaved)
-    end
-  end
 end

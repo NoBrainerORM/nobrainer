@@ -4,4 +4,5 @@ module NoBrainer::Error
   class DocumentInvalid  < StandardError; end
   class DocumentNotSaved < StandardError; end
   class ChildrenExist    < StandardError; end
+  class CannotUseIndex   < StandardError; end
 end
