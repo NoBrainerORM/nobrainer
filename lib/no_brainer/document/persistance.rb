@@ -26,7 +26,7 @@ module NoBrainer::Document::Persistance
 
   def _create
     run_callbacks :create do
-      result = NoBrainer.run { self.class.table.insert(attributes) }
+      result = NoBrainer.run { self.class.rql_table.insert(attributes) }
       self.id ||= result['generated_keys'].first
       @new_record = false
       true

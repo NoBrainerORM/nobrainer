@@ -45,7 +45,7 @@ module NoBrainer::Document::Criteria
 
     def find!(id)
       find(id).tap do |doc|
-        doc or raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found"
+        raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found" unless doc
       end
     end
   end

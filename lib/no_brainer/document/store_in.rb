@@ -23,7 +23,7 @@ module NoBrainer::Document::StoreIn
       table_name || root_class.name.underscore.gsub('/', '__').pluralize
     end
 
-    def table
+    def rql_table
       db = self.database_name
       rql = RethinkDB::RQL.new
       rql = rql.db(db) if db

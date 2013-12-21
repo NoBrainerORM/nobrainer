@@ -11,6 +11,19 @@ module NoBrainer::Criteria::Chainable::Core
     options[:klass]
   end
 
+  def to_rql
+    compile_criteria.__send__(:compile_rql)
+  end
+
+  def inspect
+    # rescue super because sometimes klass is not set.
+    to_rql.inspect rescue super
+  end
+
+  def run(rql=nil)
+    NoBrainer.run { rql || to_rql }
+  end
+
   def merge!(criteria)
     self.options = self.options.merge(criteria.options)
   end
@@ -18,6 +31,8 @@ module NoBrainer::Criteria::Chainable::Core
   def merge(criteria)
     dup.tap { |new_criteria| new_criteria.merge!(criteria) }
   end
+
+  private
 
   def chain(&block)
     tmp = self.class.new(options) # we might want to optimize that thing
@@ -34,20 +49,7 @@ module NoBrainer::Criteria::Chainable::Core
 
   def compile_rql
     # This method is overriden by other modules.
-    raise "Criteria not bound" unless klass
-    klass.table
-  end
-
-  def to_rql
-    compile_criteria.compile_rql
-  end
-
-  def inspect
-    # rescue super because sometimes klass is not set.
-    to_rql.inspect rescue super
-  end
-
-  def run(rql=nil)
-    NoBrainer.run { rql || to_rql }
+    raise "Criteria not bound to a class" unless klass
+    klass.rql_table
   end
 end

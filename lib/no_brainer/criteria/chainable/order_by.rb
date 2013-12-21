@@ -47,6 +47,8 @@ module NoBrainer::Criteria::Chainable::OrderBy
     self.order.present?
   end
 
+  private
+
   def compile_rql
     return super unless self.ordered?
 
