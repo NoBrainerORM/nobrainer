@@ -82,13 +82,11 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
+      options.assert_valid_keys(:index, :default)
       if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
         raise "Cannot use a reserved field name: #{name}"
       end
 
-      # Using a hash because:
-      # - at some point, we want to associate informations with a field (like the type)
-      # - it gives us a set for free
       ([self] + descendants).each do |klass|
         klass.fields[name] ||= {}
         klass.fields[name].merge!(options)

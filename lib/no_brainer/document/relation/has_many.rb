@@ -13,12 +13,13 @@ class NoBrainer::Document::Relation::HasMany
     end
 
     def hook
-      # TODO yell when some options are not recognized
-      metadata = self
       @foreign_key = nil
       @rhs_klass = nil
 
+      options.assert_valid_keys(:foreign_key, :class_name, :dependent)
+
       if options[:dependent] && !@added_destroy_callback
+        metadata = self
         lhs_klass.before_destroy { relation(metadata).destroy_callback }
         @added_destroy_callback = true
       end

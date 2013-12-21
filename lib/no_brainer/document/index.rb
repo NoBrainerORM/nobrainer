@@ -11,6 +11,8 @@ module NoBrainer::Document::Index
     def index(name, *args)
       name = name.to_sym
       options = args.extract_options!
+      options.assert_valid_keys(:multi)
+
       raise "Too many arguments: #{args}" if args.size > 1
 
       kind, what = case args.first
@@ -48,12 +50,6 @@ module NoBrainer::Document::Index
 
       super
       index(name, options[:index].is_a?(Hash) ? options[:index] : {}) if options[:index]
-    end
-
-    def belongs_to(target, options={})
-      super.tap do |relation|
-        index relation.foreign_key if options[:index]
-      end
     end
 
     def remove_field(name)

@@ -13,11 +13,13 @@ class NoBrainer::Document::Relation::BelongsTo
     end
 
     def hook
-      # TODO yell when some options are not recognized
       @foreign_key = nil
       @rhs_klass = nil
 
-      lhs_klass.field foreign_key
+      options.assert_valid_keys(:foreign_key, :class_name, :index)
+
+      lhs_klass.field foreign_key, :index => options[:index]
+
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       delegate("#{rhs_name}=", :write)
       delegate("#{rhs_name}", :read)
