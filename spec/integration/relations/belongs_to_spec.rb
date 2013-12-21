@@ -68,4 +68,12 @@ describe 'belongs_to' do
       comment.post.should == post2
     end
   end
+
+  context 'when the association is set with a wrong object type' do
+    let(:comment) { Comment.create(:post => post) }
+
+    it 'raises' do
+      expect { Comment.create(:post => Comment.new) }.to raise_error NoBrainer::Error::InvalidType
+    end
+  end
 end

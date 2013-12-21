@@ -26,8 +26,7 @@ describe 'has_many' do
 
   context 'when appending' do
     it 'persists elements' do
-      post.comments << Comment.new
-      post.comments << Comment.create
+      post.comments << Comment.new << Comment.create
       post.comments.count.should == 2
 
       post.reload
@@ -81,6 +80,12 @@ describe 'has_many' do
       comment.save
       Post.find(post.id).comments.first.should == comment
       Post.find(post.id).comments.first.body.should == 'ohai'
+    end
+  end
+
+  context 'when the association is set with a wrong object type' do
+    it 'raises' do
+      expect { post.comments << Post.new }.to raise_error NoBrainer::Error::InvalidType
     end
   end
 end

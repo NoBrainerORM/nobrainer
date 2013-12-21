@@ -1,48 +1,59 @@
 class NoBrainer::Document::Relation::HasMany
+  include NoBrainer::Document::Relation::Core
+
   class Metadata
     include NoBrainer::Document::Relation::Core::Metadata
 
     def foreign_key
       # TODO test :foreign_key
-      @foreign_key ||= options[:foreign_key] || :"#{lhs_klass.name.underscore}_id"
+      @foreign_key ||= options[:foreign_key] || :"#{owner_klass.name.underscore}_id"
     end
 
-    def rhs_klass
+    def target_klass
       # TODO test :class_name
-      @rhs_klass ||= (options[:class_name] || rhs_name.to_s.singularize.camelize).constantize
+      @target_klass ||= (options[:class_name] || target_name.to_s.singularize.camelize).constantize
     end
 
     def hook
+      super
       @foreign_key = nil
-      @rhs_klass = nil
+      @target_klass = nil
 
       options.assert_valid_keys(:foreign_key, :class_name, :dependent)
 
       if options[:dependent] && !@added_destroy_callback
         metadata = self
-        lhs_klass.before_destroy { relation(metadata).destroy_callback }
+        owner_klass.before_destroy { relation(metadata).destroy_callback }
         @added_destroy_callback = true
       end
-
-      delegate("#{rhs_name}", :read)
-      delegate("#{rhs_name}=", :write)
     end
   end
 
   class Criteria < NoBrainer::Criteria
-    delegate :<<, :build, :create, :create!, :to => :relation
+    delegate :build, :create, :create!, :to => :relation
 
     def relation
       options[:relation]
     end
+
+    def <<(child)
+      relation << child
+      self
+    end
   end
 
-  include NoBrainer::Document::Relation::Core
-  delegate :foreign_key, :rhs_klass, :to => :metadata
+  def read
+    children_criteria
+  end
+
+  def write(new_children)
+    destroy_callback(:destroy)
+    new_children.each { |child| self << child }
+  end
 
   def children_criteria
     @children_criteria ||= begin
-      criteria = rhs_klass.where(foreign_key => instance.id)
+      criteria = target_klass.where(foreign_key => instance.id)
       Criteria.new(:relation => self).merge(criteria)
     end
   end
@@ -60,22 +71,14 @@ class NoBrainer::Document::Relation::HasMany
     true
   end
 
-  def read
-    children_criteria
-  end
-
-  def write(new_children)
-    destroy_callback(:destroy)
-    new_children.each { |child| self << child }
-  end
-
   def <<(child)
-    # TODO raise when child doesn't have the proper type
+    assert_target_type(child)
     child.update_attributes(foreign_key => instance.id)
+    self
   end
 
   def build(attrs={})
-    rhs_klass.new(attrs.merge(foreign_key => instance.id))
+    target_klass.new(attrs.merge(foreign_key => instance.id))
   end
 
   def create(*args)
