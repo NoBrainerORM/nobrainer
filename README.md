@@ -61,20 +61,20 @@ NoBrainer.purge!
 
 post = Post.create!(:title => 'ohai', :body  => 'yummy')
 
-puts post.comments.create(:author => 'dude').
+puts Comment.create(:post => post, :author => 'dude').
   errors.full_messages == ["Body can't be blank"]
 
-post.comments.create(:author => 'dude', :body => 'burp')
-post.comments.create(:author => 'dude', :body => 'wut')
-post.comments.create(:author => 'joe',  :body => 'sir')
+Comment.create(:post => post, :author => 'dude', :body => 'burp')
+Comment.create(:post => post, :author => 'dude', :body => 'wut')
+Comment.create(:post => post, :author => 'joe',  :body => 'sir')
 Comment.all.each { |comment| puts comment.body }
 
 post.comments.where(:author => 'dude').destroy
 puts post.comments.count == 1
 
 # Handles Regex as a condition
-post.comments.create(:author => 'dude', :body => 'hello')
-post.comments.create(:author => 'dude', :body => 'ohai')
+Comment.create(:post => post, :author => 'dude', :body => 'hello')
+Comment.create(:post => post, :author => 'dude', :body => 'ohai')
 
 post.comments.where(:body => /^h/).map{|comment| comment.body } # => ["hello"]
 post.comments.where(:body => /h/).map{|comment| comment.body } # => ["ohai", "hello"]
