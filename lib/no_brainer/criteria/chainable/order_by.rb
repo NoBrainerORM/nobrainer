@@ -35,25 +35,21 @@ module NoBrainer::Criteria::Chainable::OrderBy
   end
 
   def reverse_order
-    raise "No ordering set" unless ordered?
-
-    rules = self.order.map do |k,v|
+    rules = effective_order.map do |k,v|
       v == :asc ? { k => :desc } : { k => :asc }
     end.reduce(:merge)
 
     chain { |criteria| criteria.order = rules }
   end
 
-  def ordered?
-    self.order.present?
-  end
-
   private
 
-  def compile_rql
-    return super unless self.ordered?
+  def effective_order
+    self.order.present? ? self.order : {:id => :asc}
+  end
 
-    rql_rules = self.order.map do |k,v|
+  def compile_rql
+    rql_rules = effective_order.map do |k,v|
       case v
       when :asc  then RethinkDB::RQL.new.asc(k)
       when :desc then RethinkDB::RQL.new.desc(k)
@@ -62,7 +58,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
 
     options = {}
     unless without_index?
-      first_key = self.order.first[0]
+      first_key = effective_order.first[0]
       first_key = nil if first_key == :id # FIXME For some reason, using the id index doesn't work.
       if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
         options[:index] = rql_rules.shift
