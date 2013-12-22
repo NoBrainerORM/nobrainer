@@ -4,8 +4,8 @@ describe 'dependents' do
   before { load_blog_models }
 
   let!(:author)   { Author.create  }
-  let!(:posts)    { 2.times { author.posts.create } }
-  let!(:comments) { 2.times { |i| 2.times { author.posts[i].comments.create } } }
+  let!(:posts)    { 2.times { Post.create(:author => author) } }
+  let!(:comments) { 2.times { |i| 2.times { Comment.create(:post => author.posts[i]) } } }
 
   context 'when deleting an object with a has_many relation' do
     before do

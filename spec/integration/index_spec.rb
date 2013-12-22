@@ -56,7 +56,7 @@ describe 'NoBrainer index' do
     end
 
     let!(:post)    { Post.create }
-    let!(:comment) { post.comments.create }
+    let!(:comment) { Comment.create(:post => post) }
 
     it 'uses the index' do
       post.comments.indexed?.should == true

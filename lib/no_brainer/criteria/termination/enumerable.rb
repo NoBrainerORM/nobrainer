@@ -6,6 +6,10 @@ module NoBrainer::Criteria::Termination::Enumerable
     self.run.each { |attrs| block.call(instantiate_doc(attrs)) }
   end
 
+  def to_a
+    each.to_a.freeze
+  end
+
   # TODO test that
   def respond_to?(name, include_private = false)
     super || [].respond_to?(name)
@@ -14,6 +18,6 @@ module NoBrainer::Criteria::Termination::Enumerable
   # TODO Make something a bit more efficent ?
   def method_missing(name, *args, &block)
     return super unless [].respond_to?(name)
-    each.to_a.__send__(name, *args, &block)
+    to_a.__send__(name, *args, &block)
   end
 end

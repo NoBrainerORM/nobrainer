@@ -27,6 +27,13 @@ describe "each" do
       it 'maps to documents' do
         SimpleDocument.all.map(&:field1).sort.should == (0..4).to_a
       end
+
+      context 'when trying to modify the criteria array' do
+        it 'raises' do
+          expect { SimpleDocument.all.map!(&:field1) }.to raise_error
+          expect { SimpleDocument.all << SimpleDocument.new }.to raise_error
+        end
+      end
     end
   end
 
@@ -46,6 +53,7 @@ describe "each" do
       Parent.create
       Child.create
       Parent.all.to_a.map(&:class).should =~ [Parent, Child]
+      Child.all.to_a.map(&:class).should =~ [Child]
     end
   end
 
