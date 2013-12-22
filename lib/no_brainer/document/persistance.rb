@@ -40,7 +40,7 @@ module NoBrainer::Document::Persistance
 
   def update(&block)
     run_callbacks :update do
-      selector.update_all(&block)['replaced']
+      selector.update_all(&block)
       true
     end
   end

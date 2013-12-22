@@ -7,6 +7,10 @@ describe "each" do
     let!(:documents) { 5.times.map { |i| SimpleDocument.create(:field1 => i) } }
 
     describe 'each' do
+      it 'returns the enumerated array' do
+        SimpleDocument.all.each { }.should == documents
+      end
+
       it 'gets automatically called' do
         SimpleDocument.all.each.to_a.size == 5
       end

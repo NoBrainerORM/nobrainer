@@ -31,7 +31,6 @@ module NoBrainer::Criteria::Termination::Cache
       cache << instance
     end
     @cache = cache
-    self
   end
 
   def self.reload_on(*methods)
