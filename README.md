@@ -18,9 +18,17 @@ Here is a quick example of what NoBrainer can do:
 ```ruby
 require 'nobrainer'
 
-# Connecting to the database can be done either by using NoBrainer.connect()
-# or by exporting a RETHINKDB_URL environment variable.
-NoBrainer.connect 'rethinkdb://localhost/blog'
+
+# Configuring NoBrainer is typically done in an initializer.
+# The defaults are shown when using a Rails app:
+NoBrainer.configure do |config|
+  config.rethinkdb_url          = "rethinkdb://localhost/#{Rails.app.name}_#{Rails.env}"
+  config.logger                 = Rails.logger
+  config.warn_on_active_record  = true
+  config.auto_create_database   = true
+  config.auto_create_tables     = true
+  config.max_reconnection_tries = 10
+end
 
 class Post
   include NoBrainer::Document

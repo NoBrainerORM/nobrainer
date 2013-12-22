@@ -2,7 +2,8 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
   rescue RuntimeError => e
-    if e.message =~ /^Table `(.+)` does not exist\.$/
+    if NoBrainer::Config.auto_create_tables &&
+       e.message =~ /^Table `(.+)` does not exist\.$/
 
       # FIXME This stinks.
       database_names = find_db_names(env[:query])
