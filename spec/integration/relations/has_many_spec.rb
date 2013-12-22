@@ -25,25 +25,14 @@ describe 'has_many' do
   end
 
   context 'when appending' do
-    it 'persists elements' do
-      post.comments << Comment.new << Comment.create
-      post.comments.count.should == 2
-
-      post.reload
-      Comment.create(:post => post)
-      post.comments.count.should == 3
+    it 'raises' do
+      expect { post.comments << Comment.new }.to raise_error
     end
   end
 
   context 'when using =' do
-    it 'destroys, and persists elements' do
-      Comment.create(:post => post)
-      post.comments.count.should == 1
-
-      post.comments = [Comment.new, Comment.create]
-      post.comments.count.should == 2
-      post.reload
-      post.comments.count.should == 2
+    it 'raises' do
+      expect { post.comments = [] }.to raise_error
     end
   end
 
@@ -80,12 +69,6 @@ describe 'has_many' do
       comment.save
       Post.find(post.id).comments.first.should == comment
       Post.find(post.id).comments.first.body.should == 'ohai'
-    end
-  end
-
-  context 'when the association is set with a wrong object type' do
-    it 'raises' do
-      expect { post.comments << Post.new }.to raise_error NoBrainer::Error::InvalidType
     end
   end
 end

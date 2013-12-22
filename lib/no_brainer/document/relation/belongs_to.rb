@@ -40,7 +40,6 @@ class NoBrainer::Document::Relation::BelongsTo
 
   def write(new_parent)
     assert_target_type(new_parent)
-    new_parent.save! if new_parent && !new_parent.persisted?
     instance.write_attribute(foreign_key, new_parent.try(:id))
     @parent = new_parent
   end

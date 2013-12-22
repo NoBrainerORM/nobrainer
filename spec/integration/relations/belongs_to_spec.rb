@@ -56,15 +56,15 @@ describe 'belongs_to' do
   end
 
   context 'when the association is set with a non persisted object' do
-    let(:post)    { Post.new }
+    let(:post)    { Post.create }
     let(:comment) { Comment.create(:post => post) }
 
-    it 'persists when saved' do
+    it 'does not persist the target' do
       comment.reload
       comment.post.should == post
       post2 = Post.new
       comment.post = post2
-      post2.should be_persisted
+      post2.should_not be_persisted
       comment.post.should == post2
     end
   end
@@ -92,7 +92,7 @@ describe 'belongs_to' do
     before { NoBrainer::Config.cache_documents = false }
     after  { NoBrainer::Config.cache_documents = true }
 
-    let!(:post)    { Post.new }
+    let!(:post)    { Post.create }
     let!(:comment) { Comment.create(:post => post) }
 
     it 'does not use the cache' do

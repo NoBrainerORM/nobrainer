@@ -23,7 +23,7 @@ class NoBrainer::Document::Relation::HasMany
 
       if options[:dependent] && !@added_destroy_callback
         metadata = self
-        owner_klass.before_destroy { relation(metadata).destroy_callback }
+        owner_klass.before_destroy { relation(metadata).before_destroy_callback }
         @added_destroy_callback = true
       end
     end
@@ -47,8 +47,9 @@ class NoBrainer::Document::Relation::HasMany
   end
 
   def write(new_children)
-    destroy_callback(:destroy)
-    new_children.each { |child| self << child }
+    raise "You can't assign the array of #{target_name}. Instead, you must modify delete and create #{target_klass} manually."
+    # Because it's a huge mess when the target class has a default scope as
+    # things get inconsistent very quickly.
   end
 
   def children_criteria
@@ -58,23 +59,21 @@ class NoBrainer::Document::Relation::HasMany
     end
   end
 
-  def destroy_callback(how=nil)
+  def before_destroy_callback
     criteria = children_criteria.unscoped
-    case how || metadata.options[:dependent]
-    when nil       then
+    case metadata.options[:dependent]
+    when nil       then criteria.destroy_all
     when :destroy  then criteria.destroy_all
     when :delete   then criteria.delete_all
     when :nullify  then criteria.update_all(foreign_key => nil)
     when :restrict then raise NoBrainer::Error::ChildrenExist unless criteria.count.zero?
-    else raise "Unrecognized dependent option"
+    else raise "Unrecognized dependent option: #{metadata.options[:dependent]}"
     end
     true
   end
 
   def <<(child)
-    assert_target_type(child)
-    child.update_attributes(foreign_key => instance.id)
-    self
+    raise "You must modify #{target_name} by creating #{target_klass}"
   end
 
   def build(attrs={})
