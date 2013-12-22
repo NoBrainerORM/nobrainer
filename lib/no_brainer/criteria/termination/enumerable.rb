@@ -1,6 +1,8 @@
 module NoBrainer::Criteria::Termination::Enumerable
-  def each(&block)
-    return enum_for(:each) unless block
+  extend ActiveSupport::Concern
+
+  def each(options={}, &block)
+    return enum_for(:each, options) unless block
 
     self.run.each do |attrs|
       yield klass.new_from_db(attrs)

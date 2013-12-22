@@ -31,6 +31,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
     # rules at the end.
     self.order.reject! { |k,v| k.in? criteria.order.keys }
     self.order.merge! criteria.order
+    self
   end
 
   def reverse_order

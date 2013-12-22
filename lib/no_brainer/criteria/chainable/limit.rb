@@ -16,6 +16,7 @@ module NoBrainer::Criteria::Chainable::Limit
     super
     self._skip = criteria._skip if criteria._skip
     self._limit = criteria._limit if criteria._limit
+    self
   end
 
   private

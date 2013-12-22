@@ -2,7 +2,7 @@ module NoBrainer::Document::Criteria
   extend ActiveSupport::Concern
 
   def selector
-    @selector ||= self.class.selector_for(id)
+    self.class.selector_for(id)
   end
 
   included do

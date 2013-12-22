@@ -39,6 +39,7 @@ module NoBrainer::Criteria::Chainable::Where
     clauses = self.where_ast.clauses + criteria.where_ast.clauses
     self.where_ast = MultiOperator.new(:and, clauses).simplify
     self.with_index_name = criteria.with_index_name unless criteria.with_index_name.nil?
+    self
   end
 
   private

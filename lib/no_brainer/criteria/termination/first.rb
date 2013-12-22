@@ -1,4 +1,6 @@
 module NoBrainer::Criteria::Termination::First
+  extend ActiveSupport::Concern
+
   def first(options={})
     return get_one(ordered? ? self : order_by(:id => :asc), options)
   end

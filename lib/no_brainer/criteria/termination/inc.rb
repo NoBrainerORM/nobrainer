@@ -1,4 +1,6 @@
 module NoBrainer::Criteria::Termination::Inc
+  extend ActiveSupport::Concern
+
   def inc_all(field, value=1)
     # TODO The useful inc() is on a model instance.
     # But then do we want to postpone the inc() to the next save?

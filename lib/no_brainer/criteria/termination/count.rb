@@ -1,4 +1,6 @@
 module NoBrainer::Criteria::Termination::Count
+  extend ActiveSupport::Concern
+
   def count
     run(to_rql.count)
   end

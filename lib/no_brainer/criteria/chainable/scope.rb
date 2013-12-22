@@ -14,6 +14,7 @@ module NoBrainer::Criteria::Chainable::Scope
   def merge!(criteria)
     super
     self.use_default_scope = criteria.use_default_scope unless criteria.use_default_scope.nil?
+    self
   end
 
   def respond_to?(name, include_private = false)

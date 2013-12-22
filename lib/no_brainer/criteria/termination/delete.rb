@@ -1,4 +1,6 @@
 module NoBrainer::Criteria::Termination::Delete
+  extend ActiveSupport::Concern
+
   def delete_all
     run(to_rql.delete)
   end

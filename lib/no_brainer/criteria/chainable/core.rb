@@ -26,6 +26,7 @@ module NoBrainer::Criteria::Chainable::Core
 
   def merge!(criteria)
     self.options = self.options.merge(criteria.options)
+    self
   end
 
   def merge(criteria)
