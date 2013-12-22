@@ -10,7 +10,7 @@ module NoBrainer::Document::Criteria
   end
 
   module ClassMethods
-    delegate :count, :first, :last, :scoped, :unscoped,
+    delegate :count, :first, :last, :first!, :last!, :scoped, :unscoped,
              :with_index, :without_index, :used_index, :indexed?, :where, :order_by,
              :update_all, :delete_all, :destroy_all,
              :inc_all, :dec_all, :to => :all

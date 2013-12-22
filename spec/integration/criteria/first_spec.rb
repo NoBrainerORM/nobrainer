@@ -87,4 +87,16 @@ describe 'first' do
       Parent.first.class.should == Child
     end
   end
+
+  context 'when using the bang version' do
+    let!(:docs) { 2.times.map { |i| SimpleDocument.create(:field1 => i) } }
+
+    it 'raises when the document is not present' do
+      SimpleDocument.first!.should == docs.first
+      SimpleDocument.last!.should == docs.last
+      SimpleDocument.delete_all
+      expect { SimpleDocument.first! }.to raise_error NoBrainer::Error::DocumentNotFound
+      expect { SimpleDocument.last! }.to raise_error NoBrainer::Error::DocumentNotFound
+    end
+  end
 end

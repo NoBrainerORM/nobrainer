@@ -9,6 +9,14 @@ module NoBrainer::Criteria::Termination::First
     get_one(self.reverse_order)
   end
 
+  def first!
+    first.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+  end
+
+  def last!
+    last.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+  end
+
   private
 
   def get_one(criteria)
