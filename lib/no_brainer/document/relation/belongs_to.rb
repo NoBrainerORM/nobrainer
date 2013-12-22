@@ -32,8 +32,9 @@ class NoBrainer::Document::Relation::BelongsTo
   end
 
   def read
+    return @parent if @parent && NoBrainer::Config.cache_documents
     if fk = instance.read_attribute(foreign_key)
-      @parent ||= target_klass.find(fk)
+      @parent = target_klass.find(fk)
     end
   end
 

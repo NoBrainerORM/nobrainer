@@ -2,7 +2,7 @@ module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
                    :auto_create_database, :auto_create_tables,
-                   :max_reconnection_tries
+                   :cache_documents, :max_reconnection_tries
 
     def cleanup!
       NoBrainer.disconnect
@@ -14,6 +14,7 @@ module NoBrainer::Config
       self.warn_on_active_record  = true
       self.auto_create_database   = true
       self.auto_create_tables     = true
+      self.cache_documents        = true
       self.max_reconnection_tries = 10
 
       block.call(self) if block

@@ -27,6 +27,7 @@ NoBrainer.configure do |config|
   config.warn_on_active_record  = true
   config.auto_create_database   = true
   config.auto_create_tables     = true
+  config.cache_documents        = true
   config.max_reconnection_tries = 10
 end
 

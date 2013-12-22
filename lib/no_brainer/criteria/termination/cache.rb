@@ -1,21 +1,25 @@
 module NoBrainer::Criteria::Termination::Cache
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_without_cache }
+  included { attr_accessor :_with_cache }
+
+  def with_cache
+    chain { |criteria| criteria._with_cache = true }
+  end
 
   def without_cache
-    chain { |criteria| criteria._without_cache = true }
+    chain { |criteria| criteria._with_cache = false }
   end
 
   def merge!(criteria)
     super
-    self._without_cache = criteria._without_cache unless criteria._without_cache.nil?
+    self._with_cache = criteria._with_cache unless criteria._with_cache.nil?
     self.reload
     self
   end
 
-  def without_cache?
-    !!@_without_cache
+  def with_cache?
+    @_with_cache.nil? ?  NoBrainer::Config.cache_documents : @_with_cache
   end
 
   def reload
@@ -23,7 +27,7 @@ module NoBrainer::Criteria::Termination::Cache
   end
 
   def each(options={}, &block)
-    return super if without_cache? || options[:no_cache] || !block
+    return super unless with_cache? && !options[:no_cache] && block
 
     cache = []
     super(:no_cache => true) do |instance|
