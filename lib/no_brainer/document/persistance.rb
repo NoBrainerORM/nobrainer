@@ -34,7 +34,7 @@ module NoBrainer::Document::Persistance
   end
 
   def reload
-    assign_attributes(selector.first(:raw => true), :pristine => true, :from_db => true)
+    assign_attributes(selector.first_raw, :pristine => true, :from_db => true)
     self
   end
 

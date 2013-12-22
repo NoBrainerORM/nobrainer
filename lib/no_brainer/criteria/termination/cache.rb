@@ -34,35 +34,22 @@ module NoBrainer::Criteria::Termination::Cache
     self
   end
 
-  def first(options={})
-    @cache && options.empty? ? @cache.first : super
+  def self.reload_on(*methods)
+    methods.each do |method|
+      define_method(method) do |*args, &block|
+        super(*args, &block).tap { reload }
+      end
+    end
   end
 
-  def last(options={})
-    @cache && options.empty? ? @cache.last : super
+  def self.use_cache_for(*methods)
+    methods.each do |method|
+      define_method(method) do |*args, &block|
+        @cache ?  @cache.__send__(method, *args, &block) : super(*args, &block)
+      end
+    end
   end
 
-  def count
-    @cache ? @cache.count : super
-  end
-
-  def empty?
-    @cache ? @cache.empty? : super
-  end
-
-  def any?(&block)
-    @cache ? @cache.any?(&block) : super
-  end
-
-  def update_all(*args, &block)
-    super.tap { reload }
-  end
-
-  def destroy_all
-    super.tap { reload }
-  end
-
-  def delete_all
-    super.tap { reload }
-  end
+  use_cache_for :first, :last, :count, :empty?, :any?
+  reload_on :update_all, :destroy_all, :delete_all
 end

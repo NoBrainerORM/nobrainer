@@ -1,12 +1,16 @@
 module NoBrainer::Criteria::Termination::First
   extend ActiveSupport::Concern
 
-  def first(options={})
-    return get_one(self, options)
+  def first
+    get_one(self, options)
   end
 
-  def last(options={})
-    return get_one(self.reverse_order, options)
+  def last
+    get_one(self.reverse_order, options)
+  end
+
+  def first_raw
+    get_one(self, :raw => true)
   end
 
   private
