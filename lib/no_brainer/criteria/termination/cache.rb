@@ -28,6 +28,7 @@ module NoBrainer::Criteria::Termination::Cache
 
   def each(options={}, &block)
     return super unless with_cache? && !options[:no_cache] && block
+    return @cache.each(&block) if @cache
 
     cache = []
     super(:no_cache => true) do |instance|
@@ -40,6 +41,7 @@ module NoBrainer::Criteria::Termination::Cache
   def self.reload_on(*methods)
     methods.each do |method|
       define_method(method) do |*args, &block|
+        reload
         super(*args, &block).tap { reload }
       end
     end

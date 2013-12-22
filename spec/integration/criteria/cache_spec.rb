@@ -9,7 +9,9 @@ describe 'cache' do
     it 'uses the cache' do
       criteria = SimpleDocument.all
       criteria.to_a
-      SimpleDocument.destroy_all
+      SimpleDocument.delete_all
+      criteria.each.to_a.size.should == 2
+      criteria.size.should == 2
       criteria.count.should == 2
       criteria.first.should == docs.first
       criteria.last.should == docs.last
@@ -35,8 +37,10 @@ describe 'cache' do
     it 'reloads the cache' do
       criteria = SimpleDocument.all
       criteria.to_a
+      SimpleDocument.create
       criteria.destroy_all
       criteria.count.should == 0
+      SimpleDocument.all.count.should == 0
     end
   end
 
