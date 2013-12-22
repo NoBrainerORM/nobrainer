@@ -24,6 +24,12 @@ class NoBrainer::Document::Relation::BelongsTo
       owner_klass.field foreign_key, :index => options[:index]
 
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
+
+      if !@added_before_save_callback
+        metadata = self
+        owner_klass.before_save { relation(metadata).before_save_callback }
+        @added_before_save_callback = true
+      end
     end
   end
 
@@ -42,5 +48,12 @@ class NoBrainer::Document::Relation::BelongsTo
     assert_target_type(new_parent)
     instance.write_attribute(foreign_key, new_parent.try(:id))
     @parent = new_parent
+  end
+
+  def before_save_callback
+    if @parent
+      raise NoBrainer::Error::ParentNotSaved.new("#{target_name} must be saved first") unless @parent.persisted?
+    end
+    true
   end
 end

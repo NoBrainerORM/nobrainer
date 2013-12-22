@@ -6,4 +6,5 @@ module NoBrainer::Error
   class ChildrenExist    < StandardError; end
   class CannotUseIndex   < StandardError; end
   class InvalidType      < StandardError; end
+  class ParentNotSaved   < StandardError; end
 end

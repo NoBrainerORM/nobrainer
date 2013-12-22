@@ -66,6 +66,9 @@ describe 'belongs_to' do
       comment.post = post2
       post2.should_not be_persisted
       comment.post.should == post2
+      expect { comment.save }.to raise_error NoBrainer::Error::ParentNotSaved
+      post2.save
+      comment.save
     end
   end
 
@@ -78,7 +81,7 @@ describe 'belongs_to' do
   end
 
   context 'when enabling the cache globally' do
-    let!(:post)    { Post.new }
+    let!(:post)    { Post.create }
     let!(:comment) { Comment.create(:post => post) }
 
     it 'uses the cache' do
