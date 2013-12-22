@@ -22,12 +22,8 @@ module NoBrainer::Criteria::Chainable::Where
     with_index(false)
   end
 
-  def without_index?
-    self.with_index_name == false
-  end
-
   def used_index
-    IndexFinder.new(self).tap { |finder| finder.find_index }.index_name
+    IndexFinder.new(compile_criteria).tap { |finder| finder.find_index }.index_name
   end
 
   def indexed?
@@ -126,6 +122,10 @@ module NoBrainer::Criteria::Chainable::Where
     end
   end
 
+  def without_index?
+    self.with_index_name == false
+  end
+
   class IndexFinder < Struct.new(:criteria, :index_name, :indexed_values, :ast)
     def get_candidate_clauses(*types)
       Hash[criteria.where_ast.clauses
@@ -170,7 +170,7 @@ module NoBrainer::Criteria::Chainable::Where
     end
 
     def find_index
-      return false if criteria.without_index?
+      return false if criteria.__send__(:without_index?)
       could_find_index = find_index_canonical || find_index_compound
       if criteria.with_index_name && !could_find_index
         raise NoBrainer::Error::CannotUseIndex.new("Cannot use index #{criteria.with_index_name}")

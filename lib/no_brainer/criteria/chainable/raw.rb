@@ -7,10 +7,6 @@ module NoBrainer::Criteria::Chainable::Raw
     chain { |criteria| criteria._raw = true }
   end
 
-  def raw?
-    !!_raw
-  end
-
   def merge!(criteria)
     super
     self._raw = criteria._raw unless criteria._raw.nil?
@@ -18,6 +14,10 @@ module NoBrainer::Criteria::Chainable::Raw
   end
 
   private
+
+  def raw?
+    !!_raw
+  end
 
   def instantiate_doc(attrs)
     raw? ? attrs : klass.new_from_db(attrs)

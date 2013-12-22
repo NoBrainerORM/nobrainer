@@ -4,8 +4,8 @@ describe 'order_by' do
   before { load_simple_document }
 
   let!(:docs) do
-    2.times do |i|
-      2.times do |j|
+    2.times.to_a.shuffle.each do |i|
+      2.times.to_a.shuffle.each do |j|
         SimpleDocument.create(:field1 => i+1, :field2 => j+1)
       end
     end
@@ -167,6 +167,23 @@ describe 'order_by' do
       SimpleDocument.all.order_by(:field2 => :desc).order_by(:field1 => :asc)
         .map { |doc| [doc.field1, doc.field2] }
         .should == [[1,2],[2,2],[1,1],[2,1]]
+    end
+  end
+
+  context 'when using a scope' do
+    before do
+      SimpleDocument.class_eval do
+        default_scope { order_by(:field1 => :desc) }
+      end
+    end
+
+    it 'uses the scope properly' do
+      SimpleDocument.first.field1.should == 2
+      SimpleDocument.last.field1.should == 1
+    end
+
+    it 'applies the default scope first' do
+      SimpleDocument.order_by(:field1 => :asc).first.field1.should == 1
     end
   end
 end

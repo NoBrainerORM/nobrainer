@@ -1,7 +1,7 @@
 module NoBrainer::Criteria::Chainable::OrderBy
   extend ActiveSupport::Concern
 
-  included { attr_accessor :order }
+  included { attr_accessor :order, :_reverse_order }
 
   def initialize(options={})
     super
@@ -29,17 +29,14 @@ module NoBrainer::Criteria::Chainable::OrderBy
     super
     # Being careful to keep the original order, and appending the new
     # rules at the end.
-    self.order.reject! { |k,v| k.in? criteria.order.keys }
-    self.order.merge! criteria.order
+    self.order = self.order.reject { |k,v| k.in? criteria.order.keys }
+    self.order = self.order.merge(criteria.order)
+    self._reverse_order = criteria._reverse_order unless criteria._reverse_order.nil?
     self
   end
 
   def reverse_order
-    rules = effective_order.map do |k,v|
-      v == :asc ? { k => :desc } : { k => :asc }
-    end.reduce(:merge)
-
-    chain { |criteria| criteria.order = rules }
+    chain { |criteria| criteria._reverse_order = !self._reverse_order }
   end
 
   private
@@ -48,11 +45,15 @@ module NoBrainer::Criteria::Chainable::OrderBy
     self.order.present? ? self.order : {:id => :asc}
   end
 
+  def reverse_order?
+    !!self._reverse_order
+  end
+
   def compile_rql
     rql_rules = effective_order.map do |k,v|
       case v
-      when :asc  then RethinkDB::RQL.new.asc(k)
-      when :desc then RethinkDB::RQL.new.desc(k)
+      when :asc  then reverse_order? ? RethinkDB::RQL.new.desc(k) : RethinkDB::RQL.new.asc(k)
+      when :desc then reverse_order? ? RethinkDB::RQL.new.asc(k)  : RethinkDB::RQL.new.desc(k)
       end
     end
 

@@ -205,4 +205,18 @@ describe 'NoBrainer index' do
       expect { SimpleDocument.index :field_name, [:field1, :field2] }.to raise_error
     end
   end
+
+  context 'with a scope' do
+    before do
+      SimpleDocument.class_eval do
+        SimpleDocument.index :field1
+        default_scope { where(:field1 => 123) }
+      end
+    end
+
+    it 'reports the index to be used' do
+      SimpleDocument.indexed?.should == true
+      SimpleDocument.used_index.should == :field1
+    end
+  end
 end
