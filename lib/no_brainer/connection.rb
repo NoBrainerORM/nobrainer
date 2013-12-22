@@ -12,8 +12,9 @@ class NoBrainer::Connection
     @raw ||= RethinkDB::Connection.new(:host => host, :port => port, :db => database_name)
   end
 
-  alias_method :connect, :raw
   delegate :reconnect, :close, :run, :to => :raw
+  alias_method :connect, :raw
+  alias_method :disconnect, :close
 
   [:db_create, :db_drop, :db_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1

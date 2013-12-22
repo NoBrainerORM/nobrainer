@@ -13,8 +13,12 @@ class NoBrainer::Railtie < Rails::Railtie
   end
 
   config.after_initialize do
-    if defined?(ActiveRecord)
-      STDERR.puts "[NoBrainer] WARN: ActiveRecord is loaded, which is probably not what you want"
+    NoBrainer::Config.configure unless NoBrainer::Config.configured?
+
+    if defined?(ActiveRecord) && NoBrainer::Config.warn_on_active_record
+      STDERR.puts "[NoBrainer] WARNING: ActiveRecord is loaded which is probably not what you want."
+      STDERR.puts "[NoBrainer] Follow the instructions on http://todo/ to learn how to remove ActiveRecord."
+      STDERR.puts "[NoBrainer] Configure NoBrainer with 'config.warn_on_active_record = false' to disable with warning."
     end
 
     ActionDispatch::Reloader.to_cleanup do
