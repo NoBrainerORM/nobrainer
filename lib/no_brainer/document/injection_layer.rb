@@ -2,10 +2,11 @@ module NoBrainer::Document::InjectionLayer
   extend ActiveSupport::Concern
 
   module ClassMethods
-    def inject_in_layer(name, code, file, line)
-      class_eval <<-RUBY, file, line
-        include module NoBrainerLayer; module #{name.to_s.camelize}; #{code}; self; end; end
-      RUBY
+    def inject_in_layer(name, code=nil, file=nil, line=nil, &block)
+      mod = class_eval "module NoBrainer; module #{name.to_s.camelize}; self; end; end"
+      mod.module_eval(code, file, line) if code
+      mod.module_exec(&block) if block
+      include mod
     end
   end
 end

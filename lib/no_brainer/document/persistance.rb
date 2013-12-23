@@ -26,7 +26,7 @@ module NoBrainer::Document::Persistance
 
   def _create
     run_callbacks :create do
-      result = NoBrainer.run { self.class.table.insert(attributes) }
+      result = NoBrainer.run { self.class.rql_table.insert(attributes) }
       self.id ||= result['generated_keys'].first
       @new_record = false
       true
@@ -34,13 +34,13 @@ module NoBrainer::Document::Persistance
   end
 
   def reload
-    assign_attributes(selector.run, :pristine => true, :from_db => true)
+    assign_attributes(selector.raw.first, :pristine => true, :from_db => true)
     self
   end
 
   def update(&block)
     run_callbacks :update do
-      selector.update(&block)
+      selector.update_all(&block)
       true
     end
   end
@@ -57,8 +57,10 @@ module NoBrainer::Document::Persistance
   end
 
   def delete
-    selector.delete
-    @destroyed = true
+    unless @destroyed
+      selector.delete_all
+      @destroyed = true
+    end
     # TODO freeze attributes
     true
   end

@@ -1,7 +1,7 @@
 module NoBrainer::Criteria::Chainable::OrderBy
   extend ActiveSupport::Concern
 
-  included { attr_accessor :order }
+  included { attr_accessor :order, :_reverse_order }
 
   def initialize(options={})
     super
@@ -17,6 +17,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
         raise_bad_rule(bad_rule) if bad_rule
         rule
       when Symbol then { rule => :asc }
+      when Proc   then { rule => :asc }
       else raise_bad_rule(rule)
       end
     end.reduce(:merge)
@@ -28,39 +29,47 @@ module NoBrainer::Criteria::Chainable::OrderBy
     super
     # Being careful to keep the original order, and appending the new
     # rules at the end.
-    self.order.reject! { |k,v| k.in? criteria.order.keys }
-    self.order.merge! criteria.order
+    self.order = self.order.reject { |k,v| k.in? criteria.order.keys }
+    self.order = self.order.merge(criteria.order)
+    self._reverse_order = criteria._reverse_order unless criteria._reverse_order.nil?
+    self
   end
 
   def reverse_order
-    raise "No ordering set" unless ordered?
-
-    rules = self.order.map do |k,v|
-      v == :asc ? { k => :desc } : { k => :asc }
-    end.reduce(:merge)
-
-    chain { |criteria| criteria.order = rules }
+    chain { |criteria| criteria._reverse_order = !self._reverse_order }
   end
 
-  def ordered?
-    self.order.present?
+  private
+
+  def effective_order
+    self.order.present? ? self.order : {:id => :asc}
+  end
+
+  def reverse_order?
+    !!self._reverse_order
   end
 
   def compile_rql
-    rql = super
-    if self.ordered?
-      rql_rules = self.order.map do |k,v|
-        case v
-        when :asc  then RethinkDB::RQL.new.asc(k)
-        when :desc then RethinkDB::RQL.new.desc(k)
-        end
+    rql_rules = effective_order.map do |k,v|
+      case v
+      when :asc  then reverse_order? ? RethinkDB::RQL.new.desc(k) : RethinkDB::RQL.new.asc(k)
+      when :desc then reverse_order? ? RethinkDB::RQL.new.asc(k)  : RethinkDB::RQL.new.desc(k)
       end
-      rql = rql.order_by(*rql_rules)
     end
-    rql
+
+    options = {}
+    unless without_index?
+      first_key = effective_order.first[0]
+      first_key = nil if first_key == :id # FIXME For some reason, using the id index doesn't work.
+      if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
+        options[:index] = rql_rules.shift
+      end
+    end
+
+    super.order_by(*rql_rules, options)
   end
 
   def raise_bad_rule(rule)
-    raise "Please pass something like ':field1=> :desc, :field2 => :asc', not #{rule}"
+    raise "Please pass something like ':field1 => :desc, :field2 => :asc', not #{rule}"
   end
 end

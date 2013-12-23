@@ -18,9 +18,18 @@ Here is a quick example of what NoBrainer can do:
 ```ruby
 require 'nobrainer'
 
-# Connecting to the database can be done either by using NoBrainer.connect()
-# or by exporting a RETHINKDB_URL environment variable.
-NoBrainer.connect 'rethinkdb://localhost/blog'
+
+# Configuring NoBrainer is typically done in an initializer.
+# The defaults are shown when using a Rails app:
+NoBrainer.configure do |config|
+  config.rethinkdb_url          = "rethinkdb://localhost/#{Rails.app.name}_#{Rails.env}"
+  config.logger                 = Rails.logger
+  config.warn_on_active_record  = true
+  config.auto_create_database   = true
+  config.auto_create_tables     = true
+  config.cache_documents        = true
+  config.max_reconnection_tries = 10
+end
 
 class Post
   include NoBrainer::Document
@@ -52,20 +61,20 @@ NoBrainer.purge!
 
 post = Post.create!(:title => 'ohai', :body  => 'yummy')
 
-puts post.comments.create(:author => 'dude').
+puts Comment.create(:post => post, :author => 'dude').
   errors.full_messages == ["Body can't be blank"]
 
-post.comments.create(:author => 'dude', :body => 'burp')
-post.comments.create(:author => 'dude', :body => 'wut')
-post.comments.create(:author => 'joe',  :body => 'sir')
+Comment.create(:post => post, :author => 'dude', :body => 'burp')
+Comment.create(:post => post, :author => 'dude', :body => 'wut')
+Comment.create(:post => post, :author => 'joe',  :body => 'sir')
 Comment.all.each { |comment| puts comment.body }
 
 post.comments.where(:author => 'dude').destroy
 puts post.comments.count == 1
 
 # Handles Regex as a condition
-post.comments.create(:author => 'dude', :body => 'hello')
-post.comments.create(:author => 'dude', :body => 'ohai')
+Comment.create(:post => post, :author => 'dude', :body => 'hello')
+Comment.create(:post => post, :author => 'dude', :body => 'ohai')
 
 post.comments.where(:body => /^h/).map{|comment| comment.body } # => ["hello"]
 post.comments.where(:body => /h/).map{|comment| comment.body } # => ["ohai", "hello"]
@@ -114,7 +123,7 @@ class Person
   index :full_name, [:first_name, :last_name]
 
   # Arbitrary Indexes
-  index :full_name2, ->(doc){ doc['first_name'] + "_" + doc['last_name'] }
+  index :full_name_lambda, ->(doc){ doc['first_name'] + "_" + doc['last_name'] }
 end
 
 # Index creation on the database.
@@ -123,15 +132,29 @@ NoBrainer.update_indexes # can also use rake db:update_indexes
 
 Person.create(:first_name => 'John', :last_name => 'Doe', :job => 'none')
 
-Person.indexed_where(:job => 'none') # Explicitely use the job index
 Person.where(:job => 'none') # Implicitely use the job index
 Person.without_index.where(:job => 'none') # Not using the job index
 
-Person.indexed_where(:full_name => ['John', 'Doe']) # Explicitely using the compound index
+Person.where(:full_name => ['John', 'Doe']) # Using the compound index
 Person.where(:first_name => 'John', :last_name => 'Doe') # Implicitely using the compound index
 Person.without_index.where(:first_name => 'John', :last_name => 'Doe') # Not using the comound index
 
-Person.indexed_where(:full_name2 => 'John_Doe') # Using the custom index
+Person.where(:full_name_lambda => 'John_Doe') # Using the compound index
+
+# You can use .use_index(:index_name) to force NoBrainer to use a specific index
+# in case multiple indexes could be used. An error will be raised if the index
+# cannot be used.
+
+# Indexes are also autmatically used in order_by() queries, but won't figure out
+# what compound index to use, it's your job to pass the name of the index if desired.
+
+# Multi tenancy support:
+# 1) Globally switch database with:
+NoBrainer.with_database('db_name') do
+  ...
+end
+# 2) Per model database/table name usage:
+Model.store_in :database => ->{ 'db_name' }, :table => ->{ 'table_name' }
 ```
 
 Features

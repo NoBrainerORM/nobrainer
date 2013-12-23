@@ -17,14 +17,4 @@ module NoBrainer::Document::Core
   end
 
   def initialize(attrs={}, options={}); end
-
-  module ClassMethods
-    def table_name
-      root_class.name.underscore.gsub('/', '__').pluralize
-    end
-
-    def table
-      RethinkDB::RQL.new.table(table_name)
-    end
-  end
 end

@@ -7,21 +7,33 @@ module NoBrainer::Criteria::Chainable::Core
     self.options = options
   end
 
-  def root_rql
-    options[:root_rql]
-  end
-
   def klass
     options[:klass]
   end
 
+  def to_rql
+    compile_criteria.__send__(:compile_rql)
+  end
+
+  def inspect
+    # rescue super because sometimes klass is not set.
+    to_rql.inspect rescue super
+  end
+
+  def run(rql=nil)
+    NoBrainer.run { rql || to_rql }
+  end
+
   def merge!(criteria)
     self.options = self.options.merge(criteria.options)
+    self
   end
 
   def merge(criteria)
     dup.tap { |new_criteria| new_criteria.merge!(criteria) }
   end
+
+  private
 
   def chain(&block)
     tmp = self.class.new(options) # we might want to optimize that thing
@@ -29,33 +41,16 @@ module NoBrainer::Criteria::Chainable::Core
     merge(tmp)
   end
 
-  def compile_criteria_pass1
+  def compile_criteria
     # This method is overriden by other modules.
     # compile_criteria returns a criteria that will be used to generate the RQL.
     # This is useful to apply the class default scope at the very end of the chain.
     self
   end
 
-  def compile_criteria_pass2
-    self
-  end
-
   def compile_rql
     # This method is overriden by other modules.
-    raise "Criteria not bound" unless root_rql
-    root_rql
-  end
-
-  def to_rql
-    compile_criteria_pass1.compile_criteria_pass2.compile_rql
-  end
-
-  def inspect
-    # rescue super because sometimes root_rql is not set.
-    to_rql.inspect rescue super
-  end
-
-  def run
-    NoBrainer.run { to_rql }
+    raise "Criteria not bound to a class" unless klass
+    klass.rql_table
   end
 end

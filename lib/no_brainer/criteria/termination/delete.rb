@@ -1,9 +1,11 @@
 module NoBrainer::Criteria::Termination::Delete
-  def delete
-    NoBrainer.run { to_rql.delete }
+  extend ActiveSupport::Concern
+
+  def delete_all
+    run(to_rql.delete)['deleted']
   end
 
-  def destroy
+  def destroy_all
     each { |doc| doc.destroy }
   end
 end

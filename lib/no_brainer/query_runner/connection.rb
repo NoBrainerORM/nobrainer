@@ -10,7 +10,7 @@ class NoBrainer::QueryRunner::Connection < NoBrainer::QueryRunner::Middleware
       # Check the semantics of the db
 
       # TODO Unit test
-      retry if (env[:connection_retries] += 1) < 10
+      retry if (env[:connection_retries] += 1) < NoBrainer::Config.max_reconnection_tries
     end
     raise e
   end

@@ -70,6 +70,17 @@ describe 'NoBrainer callbacks' do
 
 
   context 'when validating a unique field' do
+    context 'with validates_uniqueness_of' do
+      before { SimpleDocument.validates_uniqueness_of :field1 }
+      let!(:doc) { SimpleDocument.create!(:field1 => 'ohai') }
+
+      it 'cannot save a non-unique value' do
+        doc2 = SimpleDocument.new field1: 'ohai'
+        doc2.valid?.should == false
+        expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      end
+    end
+
     context 'without a scope' do
       before { SimpleDocument.validates :field1, :uniqueness => true }
       let!(:doc) { SimpleDocument.create!(:field1 => 'ohai') }

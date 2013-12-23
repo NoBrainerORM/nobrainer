@@ -11,8 +11,8 @@ module NoBrainer
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
-  autoload :Document, :Connection, :Database, :Error, :QueryRunner, :Criteria, :Relation,
-           :DecoratedSymbol, :IndexManager, :Loader, :Config
+  autoload :Config, :Document, :Connection, :Database, :Error, :QueryRunner,
+           :Criteria, :Relation, :DecoratedSymbol, :IndexManager, :Loader
 
   DecoratedSymbol.hook
 
@@ -20,29 +20,17 @@ module NoBrainer
     # Note: we always access the connection explicitly, so that in the future,
     # we can refactor to return a connection depending on the context.
     # Note that a connection is tied to a database in NoBrainer.
-    attr_accessor :config
-
-    def connect(uri)
-      @connection = Connection.new(uri).tap { |c| c.connect }
+    def connection
+      @connection ||= begin
+        url = NoBrainer::Config.rethinkdb_url
+        raise "Please specify a database connection to RethinkDB" unless url
+        Connection.new(url).tap { |c| c.connect }
+      end
     end
 
-    def connection
-      return @connection if @connection
-      return connect(ENV['RETHINKDB_URL']) if ENV['RETHINKDB_URL']
-
-      if defined?(Rails)
-        app_name = Rails.application.class.parent_name.underscore
-        app_name += '_#{Rails.env}'
-        initializer_file = 'config/initializers/nobrainer.rb'
-      else
-        app_name = 'app_name'
-        initializer_file = 'an initializer file'
-      end
-
-      raise "NoBrainer is not connected.\n" +
-            "Please add the following in #{initializer_file}:\n" +
-            "  NoBrainer.connect \"rethinkdb://localhost/#{app_name}\"\n" +
-            "You can also set the RETHINKDB_URL environment variable instead."
+    def disconnect
+      @connection.try(:disconnect)
+      @connection = nil
     end
 
     # No not use modules to extend, it's nice to see the NoBrainer module API here.
@@ -51,6 +39,8 @@ module NoBrainer
              :drop!, :purge!, :to => :database
     delegate :run, :to => QueryRunner
     delegate :update_indexes, :to => IndexManager
+    delegate :with_database, :to => QueryRunner::DatabaseSelector
+    delegate :configure, :logger, :to => Config
 
     def rails3?
       return @rails3 unless @rails3.nil?
@@ -58,11 +48,5 @@ module NoBrainer
                 Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
     end
 
-    def configure
-      yield @config
-    end
   end
-
-  self.config = NoBrainer::Config.new
-
 end

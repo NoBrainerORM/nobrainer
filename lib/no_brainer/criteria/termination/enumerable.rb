@@ -1,11 +1,13 @@
 module NoBrainer::Criteria::Termination::Enumerable
-  def each(&block)
-    return enum_for(:each) unless block
+  extend ActiveSupport::Concern
 
-    self.run.each do |attrs|
-      yield klass.new_from_db(attrs)
-    end
-    self
+  def each(options={}, &block)
+    return enum_for(:each, options) unless block
+    self.run.each { |attrs| block.call(instantiate_doc(attrs)) }
+  end
+
+  def to_a
+    each.to_a.freeze
   end
 
   # TODO test that
@@ -16,6 +18,6 @@ module NoBrainer::Criteria::Termination::Enumerable
   # TODO Make something a bit more efficent ?
   def method_missing(name, *args, &block)
     return super unless [].respond_to?(name)
-    each.to_a.__send__(name, *args, &block)
+    to_a.__send__(name, *args, &block)
   end
 end

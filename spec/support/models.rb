@@ -10,12 +10,21 @@ module ModelsHelper
   end
 
   def load_blog_models
+    define_constant :Author do
+      include NoBrainer::Document
+
+      field :author
+
+      has_many :posts
+    end
+
     define_constant :Post do
       include NoBrainer::Document
 
       field :title
       field :body
 
+      belongs_to :author
       has_many :comments
     end
 

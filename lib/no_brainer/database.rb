@@ -1,6 +1,9 @@
 class NoBrainer::Database
   attr_accessor :connection
 
+  # FIXME This class is a bit weird as we don't use it to represent the current
+  # database.
+
   delegate :database_name, :to => :connection
 
   def initialize(connection)
@@ -12,7 +15,7 @@ class NoBrainer::Database
   end
 
   def drop!
-    connection.db_drop(database_name)
+    connection.db_drop(Thread.current[:nobrainer_database] || database_name)
   end
 
   # Note that truncating each table (purge) is much faster than dropping the
@@ -28,7 +31,7 @@ class NoBrainer::Database
   [:table_create, :table_drop, :table_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{cmd}(*args)
-        NoBrainer.run { raw.#{cmd}(*args) }
+        NoBrainer.run { RethinkDB::RQL.new.#{cmd}(*args) }
       end
     RUBY
   end

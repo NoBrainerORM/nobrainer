@@ -14,6 +14,7 @@ module NoBrainer::Criteria::Chainable::Scope
   def merge!(criteria)
     super
     self.use_default_scope = criteria.use_default_scope unless criteria.use_default_scope.nil?
+    self
   end
 
   def respond_to?(name, include_private = false)
@@ -25,10 +26,13 @@ module NoBrainer::Criteria::Chainable::Scope
     merge(self.klass.method(name).call(*args, &block))
   end
 
-  def compile_criteria_pass1
+  private
+
+  def compile_criteria
     criteria = super
     if klass.default_scope_proc && use_default_scope != false
-      criteria = criteria.merge(klass.default_scope_proc.call)
+      criteria = klass.default_scope_proc.call.merge(criteria)
+      # XXX If default_scope.class != criteria.class, oops
     end
     criteria
   end

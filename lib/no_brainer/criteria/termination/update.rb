@@ -1,6 +1,8 @@
 module NoBrainer::Criteria::Termination::Update
-  def update(attrs={}, &block)
+  extend ActiveSupport::Concern
+
+  def update_all(attrs={}, &block)
     block = proc { attrs } unless block_given?
-    NoBrainer.run { to_rql.update(&block) }
+    run(to_rql.update(&block))['replaced']
   end
 end

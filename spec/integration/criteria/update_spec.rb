@@ -7,18 +7,16 @@ describe 'update' do
 
   context 'when passing a hash of attributes' do
     it 'updates documents' do
-      SimpleDocument.all.update(:field1 => 2)
+      SimpleDocument.update_all(:field1 => 2).should == 2
       SimpleDocument.where(:field1 => 2).count.should == 2
     end
   end
 
   context 'when passing a block' do
     it 'updates documents' do
-      # RethinkDB doesn't have a great syntax
-      # We'll fix that later
-      SimpleDocument.all.update do |doc|
+      SimpleDocument.update_all do |doc|
         {:field1 => doc[:field1] * 2}
-      end
+      end.should == 2
 
       SimpleDocument.where(:field1 => 20).count.should == 2
     end

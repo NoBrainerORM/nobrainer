@@ -4,34 +4,52 @@ module NoBrainer::Document::Index
   included do
     class_attribute :indexes
     self.indexes = {}
+    self.index :id
   end
 
   module ClassMethods
     def index(name, *args)
+      name = name.to_sym
       options = args.extract_options!
+      options.assert_valid_keys(:multi)
+
       raise "Too many arguments: #{args}" if args.size > 1
+
       kind, what = case args.first
         when nil   then [:single,   name.to_sym]
         when Array then [:compound, args.first.map(&:to_sym)]
         when Proc  then [:proc,     args.first]
         else raise "Index argument must be a lambda or a list of fields"
       end
-      indexes[name.to_sym] = {:kind => kind, :what => what, :options => options}
+
+      # FIXME Primary key may not always be :id
+      if name.in?(NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS)
+        raise "Cannot use a reserved field name: #{name}"
+      end
+      if has_field?(name) && kind != :single
+        raise "Cannot reuse field name #{name}"
+      end
+
+      indexes[name] = {:kind => kind, :what => what, :options => options}
     end
 
     def remove_index(name)
       indexes.delete(name.to_sym)
     end
 
-    def field(name, options={})
-      super
-      index(name) if options[:index]
+    def has_index?(name)
+      !!indexes[name.to_sym]
     end
 
-    def belongs_to(target, options={})
-      super.tap do |relation|
-        index relation.foreign_key if options[:index]
+    def field(name, options={})
+      name = name.to_sym
+
+      if has_index?(name) && indexes[name][:kind] != :single
+        raise "Cannot reuse index name #{name}"
       end
+
+      super
+      index(name, options[:index].is_a?(Hash) ? options[:index] : {}) if options[:index]
     end
 
     def remove_field(name)
@@ -49,26 +67,28 @@ module NoBrainer::Document::Index
         when :proc     then index_args[:what]
       end
 
-      NoBrainer.run { self.table.index_create(index_name, index_args[:options], &index_proc) }
-      NoBrainer.run { self.table.index_wait(index_name) } if options[:wait]
+      NoBrainer.run { self.rql_table.index_create(index_name, index_args[:options], &index_proc) }
+      NoBrainer.run { self.rql_table.index_wait(index_name) } if options[:wait]
       STDERR.puts "Created index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_drop_index(index_name, options={})
-      NoBrainer.run { self.table.index_drop(index_name) }
+      NoBrainer.run { self.rql_table.index_drop(index_name) }
       STDERR.puts "Dropped index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_update_indexes(options={})
-      current_indexes = NoBrainer.run { self.table.index_list }.map(&:to_sym)
+      current_indexes = NoBrainer.run { self.rql_table.index_list }.map(&:to_sym)
+      wanted_indexes = self.indexes.keys - [:id] # XXX Primary key?
 
-      (current_indexes - self.indexes.keys).each do |index_name|
+      (current_indexes - wanted_indexes).each do |index_name|
         perform_drop_index(index_name, options)
       end
 
-      (self.indexes.keys - current_indexes).each do |index_name|
+      (wanted_indexes - current_indexes).each do |index_name|
         perform_create_index(index_name, options)
       end
     end
+    alias_method :update_indexes, :perform_update_indexes
   end
 end

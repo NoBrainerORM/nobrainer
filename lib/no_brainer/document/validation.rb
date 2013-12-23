@@ -26,6 +26,12 @@ module NoBrainer::Document::Validation
     RUBY
   end
 
+  module ClassMethods
+    def validates_uniqueness_of(*attr_names)
+      validates_with UniquenessValidator, _merge_attributes(attr_names)
+    end
+  end
+
   class UniquenessValidator < ActiveModel::EachValidator
     # Validate the document for uniqueness violations.
     #
