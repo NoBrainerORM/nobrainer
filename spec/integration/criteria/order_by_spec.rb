@@ -82,9 +82,6 @@ describe 'order_by' do
         it 'orders documents properly' do
           SimpleDocument.without_index.order_by(:field1)
             .map(&:field1).should == [1,1,2,2]
-          SimpleDocument.without_index.order_by(:field12)
-            .map { |doc| [doc.field1, doc.field2] }
-            .should_not == [[1,1],[1,2],[2,1],[2,2]]
         end
       end
     end
@@ -104,9 +101,6 @@ describe 'order_by' do
         it 'orders documents properly' do
           SimpleDocument.without_index.order_by(:field1 => :asc)
             .map(&:field1).should == [1,1,2,2]
-          SimpleDocument.without_index.order_by(:field12 => :asc)
-            .map { |doc| [doc.field1, doc.field2] }
-            .should_not == [[1,1],[1,2],[2,1],[2,2]]
         end
       end
     end
@@ -126,9 +120,6 @@ describe 'order_by' do
         it 'orders documents properly' do
           SimpleDocument.without_index.order_by(:field1 => :desc)
             .map(&:field1).should == [2,2,1,1]
-          SimpleDocument.without_index.order_by(:field12 => :desc)
-            .map { |doc| [doc.field1, doc.field2] }
-            .should_not == [[2,2],[2,1],[1,2],[1,1]]
         end
       end
     end
