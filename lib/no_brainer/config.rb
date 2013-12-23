@@ -26,6 +26,7 @@ module NoBrainer::Config
     end
 
     def guess_rethinkdb_url
+      return ENV['RDB_URL'] if ENV['RDB_URL']
       return ENV['RETHINKDB_URL'] if ENV['RETHINKDB_URL']
 
       if defined?(Rails)
