@@ -21,6 +21,12 @@ class NoBrainer::Railtie < Rails::Railtie
       STDERR.puts "[NoBrainer] Configure NoBrainer with 'config.warn_on_active_record = false' to disable with warning."
     end
 
+    if defined?(Mongoid)
+      STDERR.puts "[NoBrainer] WARNING: Mongoid is loaded, and we conflict on the symbol decorations"
+      STDERR.puts "[NoBrainer] They are used in queries like Model.where(:tags.in => ['fun', 'stuff'])"
+      STDERR.puts "[NoBrainer] This is a problem!"
+    end
+
     ActionDispatch::Reloader.to_cleanup do
       NoBrainer::Loader.cleanup
     end
