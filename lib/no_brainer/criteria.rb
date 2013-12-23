@@ -9,7 +9,8 @@ class NoBrainer::Criteria
   module Termination
     extend NoBrainer::Autoload
     extend ActiveSupport::Concern
-    autoload_and_include :Count, :Delete, :Enumerable, :First, :Inc, :Update, :Cache
+    autoload_and_include :Count, :Delete, :Enumerable, :EagerLoading, :First,
+                         :Inc, :Update, :Cache
   end
 
   include Chainable

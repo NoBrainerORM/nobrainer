@@ -176,6 +176,7 @@ Features
 * Polymorphism
 * Dirty tracking
 * Secondary indexes + transparent usage of indexes when using where()
+* Eager loading with `includes`, does not support nested eager loading yet.
 
 Contributors
 ------------

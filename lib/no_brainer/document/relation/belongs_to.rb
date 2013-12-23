@@ -6,7 +6,7 @@ class NoBrainer::Document::Relation::BelongsTo
 
     def foreign_key
       # TODO test :foreign_key
-      @foreign_key ||= options[:foreign_key] || :"#{target_name}_id"
+      @foreign_key ||= options[:foreign_key].try(:to_sym) || :"#{target_name}_id"
     end
 
     def target_klass
@@ -31,6 +31,13 @@ class NoBrainer::Document::Relation::BelongsTo
         @added_before_save_callback = true
       end
     end
+
+    def eager_load(docs)
+      docs_fks = Hash[docs.map { |doc| [doc, doc.read_attribute(foreign_key)] }]
+      fks = docs_fks.values.compact.uniq
+      fk_targets = Hash[target_klass.where(:id.in => fks).map { |doc| [doc.id, doc] }]
+      docs_fks.each { |doc, fk| doc.relation(self)._write(fk_targets[fk]) if fk_targets[fk] }
+    end
   end
 
   def assign_foreign_key(value)
@@ -44,10 +51,14 @@ class NoBrainer::Document::Relation::BelongsTo
     end
   end
 
+  def _write(new_parent)
+    @parent = new_parent
+  end
+
   def write(new_parent)
     assert_target_type(new_parent)
     instance.write_attribute(foreign_key, new_parent.try(:id))
-    @parent = new_parent
+    _write(new_parent)
   end
 
   def before_save_callback

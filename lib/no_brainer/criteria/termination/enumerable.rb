@@ -4,6 +4,7 @@ module NoBrainer::Criteria::Termination::Enumerable
   def each(options={}, &block)
     return enum_for(:each, options) unless block
     self.run.each { |attrs| block.call(instantiate_doc(attrs)) }
+    self
   end
 
   def to_a

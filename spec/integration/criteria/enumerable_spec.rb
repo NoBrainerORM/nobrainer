@@ -7,8 +7,8 @@ describe "each" do
     let!(:documents) { 5.times.map { |i| SimpleDocument.create(:field1 => i) } }
 
     describe 'each' do
-      it 'returns the enumerated array' do
-        SimpleDocument.all.each { }.should == documents
+      it 'returns self' do
+        SimpleDocument.all.each { }.to_a.should == documents
       end
 
       it 'gets automatically called' do

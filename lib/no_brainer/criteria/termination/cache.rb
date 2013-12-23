@@ -31,10 +31,15 @@ module NoBrainer::Criteria::Termination::Cache
     return @cache.each(&block) if @cache
 
     cache = []
-    super(:no_cache => true) do |instance|
+    super(options.merge(:no_cache => true)) do |instance|
       block.call(instance)
       cache << instance
     end
+    @cache = cache
+    self
+  end
+
+  def _override_cache(cache)
     @cache = cache
   end
 
