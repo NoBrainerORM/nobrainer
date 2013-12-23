@@ -20,6 +20,7 @@ RSpec.configure do |config|
     NoBrainer.configure do |c|
       c.reset!
       c.rethinkdb_url = "rethinkdb://#{database_host}/#{database_name}"
+      c.logger.level = Logger::DEBUG if ENV['DEBUG']
     end
 
     NoBrainer.purge!
