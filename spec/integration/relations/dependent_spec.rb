@@ -13,6 +13,17 @@ describe 'dependents' do
       Post.has_many :comments, :dependent => dependent_type
     end
 
+    context 'when using a no dependent type' do
+      let(:dependent_type) { nil }
+
+      it 'does nothing' do
+        author.destroy
+        Post.count.should == 2
+        Comment.count.should == 4
+        Post.first.author_id.should == author.id
+      end
+    end
+
     context 'when using a delete dependent type' do
       let(:dependent_type) { :delete }
 

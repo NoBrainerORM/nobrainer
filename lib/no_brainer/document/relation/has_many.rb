@@ -64,7 +64,7 @@ class NoBrainer::Document::Relation::HasMany
   def before_destroy_callback
     criteria = children_criteria.unscoped
     case metadata.options[:dependent]
-    when nil       then criteria.destroy_all
+    when nil       then
     when :destroy  then criteria.destroy_all
     when :delete   then criteria.delete_all
     when :nullify  then criteria.update_all(foreign_key => nil)
