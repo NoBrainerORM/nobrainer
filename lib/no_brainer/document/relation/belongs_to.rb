@@ -32,10 +32,12 @@ class NoBrainer::Document::Relation::BelongsTo
       end
     end
 
-    def eager_load(docs)
+    def eager_load(docs, criteria=nil)
+      target_criteria = target_klass.all
+      target_criteria = target_criteria.merge(criteria) if criteria
       docs_fks = Hash[docs.map { |doc| [doc, doc.read_attribute(foreign_key)] }]
       fks = docs_fks.values.compact.uniq
-      fk_targets = Hash[target_klass.where(:id.in => fks).map { |doc| [doc.id, doc] }]
+      fk_targets = Hash[target_criteria.where(:id.in => fks).map { |doc| [doc.id, doc] }]
       docs_fks.each { |doc, fk| doc.relation(self)._write(fk_targets[fk]) if fk_targets[fk] }
       fk_targets.values
     end

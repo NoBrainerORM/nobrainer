@@ -38,17 +38,25 @@ module NoBrainer::Criteria::Termination::EagerLoading
     super.tap { |doc| eager_load([doc], self._includes) if should_eager_load? }
   end
 
-  def eager_load_relation(docs, relation_name)
+  def eager_load_relation(docs, relation_name, criteria=nil)
     docs = docs.compact
     return if docs.empty?
     relation = docs.first.root_class.relation_metadata[relation_name.to_sym]
     raise "Unknown relation #{relation_name}" unless relation
-    relation.eager_load(docs)
+    relation.eager_load(docs, criteria)
   end
 
   def eager_load(docs, includes)
     case includes
-    when Hash  then includes.each { |k,v| eager_load(eager_load_relation(docs, k), v) }
+    when Hash  then includes.each do |k,v|
+      if v.is_a?(NoBrainer::Criteria)
+        v = v.dup
+        nested_includes, v._includes = v._includes, []
+        eager_load(eager_load_relation(docs, k, v), nested_includes)
+      else
+        eager_load(eager_load_relation(docs, k), v)
+      end
+    end
     when Array then includes.each { |v| eager_load(docs, v) }
     else eager_load_relation(docs, includes)
     end

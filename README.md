@@ -155,6 +155,18 @@ NoBrainer.with_database('db_name') do
 end
 # 2) Per model database/table name usage:
 Model.store_in :database => ->{ 'db_name' }, :table => ->{ 'table_name' }
+
+# Eager Loading:
+# Support nested relations. Example with an author that has many posts which
+# have many comments and categories:
+author.includes(:posts => [:comments, :categories])
+
+# If you want to provide additional rules, you may use criteria.
+# Note that the default scopes are used by default.
+# You may use .unscoped to get rid of them.
+author.includes(:posts => Post.order_by(:created_at).includes(
+                  :comments, :categories => Category.where(:tags.in => ['fun', 'stuff'])))
+
 ```
 
 Features
@@ -176,7 +188,8 @@ Features
 * Polymorphism
 * Dirty tracking
 * Secondary indexes + transparent usage of indexes when using where()
-* Eager loading with `includes`, does not support nested eager loading yet.
+* Multi tenancy (global, and per model)
+* Eager loading with `includes`
 
 Contributors
 ------------

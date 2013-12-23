@@ -28,9 +28,11 @@ class NoBrainer::Document::Relation::HasMany
       end
     end
 
-    def eager_load(docs)
+    def eager_load(docs, criteria=nil)
+      target_criteria = target_klass.all
+      target_criteria = target_criteria.merge(criteria) if criteria
       docs_ids = Hash[docs.map { |doc| [doc, doc.id] }]
-      fk_targets = target_klass
+      fk_targets = target_criteria
         .where(foreign_key.in => docs_ids.values)
         .reduce({}) do |hash, doc|
           fk = doc.read_attribute(foreign_key)
