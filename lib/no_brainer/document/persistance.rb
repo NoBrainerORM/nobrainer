@@ -45,9 +45,16 @@ module NoBrainer::Document::Persistance
     end
   end
 
+  def replace(&block)
+    run_callbacks :update do
+      selector.replace_all(&block)
+      true
+    end
+  end
+
   def save(options={})
     run_callbacks :save do
-      new_record? ? _create : update { attributes }
+      new_record? ? _create : replace { attributes }
     end
   end
 
