@@ -10,7 +10,7 @@ module NoBrainer::QueryRunner
   end
 
   autoload :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
-           :Connection, :Selection, :DatabaseSelector
+           :Connection, :Selection, :Logging, :DatabaseSelector
 
   class << self
     attr_accessor :stack
@@ -26,6 +26,7 @@ module NoBrainer::QueryRunner
     use Connection
     use WriteError
     use DatabaseOnDemand
+    use Logging
     use TableOnDemand
     use Driver
   end

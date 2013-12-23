@@ -47,5 +47,6 @@ module NoBrainer
       @rails3 = Gem.loaded_specs['activemodel'].version >= Gem::Version.new('3') &&
                 Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
     end
+
   end
 end
