@@ -39,6 +39,7 @@ class NoBrainer::Document::Relation::HasMany
           hash
         end
       docs_ids.each { |doc, id| doc.relation(self)._write(fk_targets[id]) if fk_targets[id] }
+      fk_targets.values.flatten(1)
     end
   end
 

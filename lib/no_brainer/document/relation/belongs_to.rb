@@ -37,6 +37,7 @@ class NoBrainer::Document::Relation::BelongsTo
       fks = docs_fks.values.compact.uniq
       fk_targets = Hash[target_klass.where(:id.in => fks).map { |doc| [doc.id, doc] }]
       docs_fks.each { |doc, fk| doc.relation(self)._write(fk_targets[fk]) if fk_targets[fk] }
+      fk_targets.values
     end
   end
 

@@ -20,7 +20,20 @@ describe 'eager_loading' do
     it 'eagers load' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
       Post.includes(:comments).each do |post|
-        post.comments.to_a.should =~ comments.select { |c| c.post == post }
+        post.comments.to_a.should == comments.select { |c| c.post == post }
+      end
+    end
+  end
+
+  context 'when eager loading nested relations' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      a = Author.includes(:posts => [:author, :comments]).first
+      a.should == author
+      a.posts.to_a.should == posts
+      a.posts.each do |post|
+        post.author.should == author
+        post.comments.to_a.should == comments.select { |c| c.post == post }
       end
     end
   end
