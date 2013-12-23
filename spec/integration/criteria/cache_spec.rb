@@ -83,7 +83,6 @@ describe 'cache' do
 
   context 'when disabling the cache globally' do
     before { NoBrainer::Config.cache_documents = false }
-    after  { NoBrainer::Config.cache_documents = true }
 
     it 'does not use the cache' do
       criteria = SimpleDocument.all
@@ -95,7 +94,6 @@ describe 'cache' do
 
   context 'when disabling the cache globally but forcing the cache use' do
     before { NoBrainer::Config.cache_documents = false }
-    after  { NoBrainer::Config.cache_documents = true }
 
     it 'uses the cache' do
       criteria = SimpleDocument.all.with_cache

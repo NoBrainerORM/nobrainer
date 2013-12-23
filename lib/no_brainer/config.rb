@@ -4,11 +4,7 @@ module NoBrainer::Config
                    :auto_create_database, :auto_create_tables,
                    :cache_documents, :max_reconnection_tries
 
-    def cleanup!
-      NoBrainer.disconnect
-    end
-
-    def configure(&block)
+    def apply_defaults
       self.rethinkdb_url          = guess_rethinkdb_url
       self.logger                 = guess_logger
       self.warn_on_active_record  = true
@@ -16,9 +12,19 @@ module NoBrainer::Config
       self.auto_create_tables     = true
       self.cache_documents        = true
       self.max_reconnection_tries = 10
+    end
 
+    def reset!
+      @configured = false
+      apply_defaults
+    end
+
+    def configure(&block)
+      apply_defaults unless configured?
       block.call(self) if block
       @configured = true
+
+      NoBrainer.disconnect_if_url_changed
     end
 
     def configured?

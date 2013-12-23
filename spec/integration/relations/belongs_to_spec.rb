@@ -93,7 +93,6 @@ describe 'belongs_to' do
 
   context 'when disabling the cache globally' do
     before { NoBrainer::Config.cache_documents = false }
-    after  { NoBrainer::Config.cache_documents = true }
 
     let!(:post)    { Post.create }
     let!(:comment) { Comment.create(:post => post) }

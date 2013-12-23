@@ -33,6 +33,12 @@ module NoBrainer
       @connection = nil
     end
 
+    def disconnect_if_url_changed
+      if @connection && @connection.uri != NoBrainer::Config.rethinkdb_url
+        disconnect
+      end
+    end
+
     # No not use modules to extend, it's nice to see the NoBrainer module API here.
     delegate :db_create, :db_drop, :db_list, :database, :to => :connection
     delegate :table_create, :table_drop, :table_list,
