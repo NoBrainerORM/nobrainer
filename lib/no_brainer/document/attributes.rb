@@ -2,11 +2,6 @@ module NoBrainer::Document::Attributes
   extend ActiveSupport::Concern
 
   included do
-    if NoBrainer.rails3?
-      include ActiveModel::MassAssignmentSecurity
-    end
-    attr_accessor :attributes
-
     # Not using class_attribute because we want to
     # use our custom logic
     class << self; attr_accessor :fields; end
@@ -55,10 +50,6 @@ module NoBrainer::Document::Attributes
       # also we should start thinking about custom serializer/deserializer.
       @attributes.merge! attrs
     else
-      if NoBrainer.rails3? && !options[:without_protection]
-        # TODO What's up with rails4?
-        attrs = sanitize_for_mass_assignment(attrs, options[:as])
-      end
       attrs.each { |k,v| self.write_attribute(k, v) }
     end
 

@@ -47,11 +47,5 @@ module NoBrainer
     delegate :update_indexes, :to => IndexManager
     delegate :with_database, :to => QueryRunner::DatabaseSelector
     delegate :configure, :logger, :to => Config
-
-    def rails3?
-      return @rails3 unless @rails3.nil?
-      @rails3 = Gem.loaded_specs['activemodel'].version >= Gem::Version.new('3') &&
-                Gem.loaded_specs['activemodel'].version <  Gem::Version.new('4')
-    end
   end
 end
