@@ -34,17 +34,16 @@ module NoBrainer::Document::Dirty
   end
 
   def changes
-    Hash[changed_attributes.map { |k,v| [k, [v, __send__(k)]] }]
+    Hash[changed_attributes.map { |k,v| [k, [v, read_attribute(k)]] }]
   end
 
   def attribute_will_change!(attr, new_value)
     return if changed_attributes.include?(attr)
 
-    begin
-      value = __send__(attr)
-      value = value.duplicable? ? value.clone : value
-    rescue TypeError, NoMethodError
-    end
+    # ActiveModel ignores TypeError and NoMethodError exception as if nothng
+    # happened. Why is that?
+    value = read_attribute(attr)
+    value = value.clone if value.duplicable?
 
     return if value == new_value
 

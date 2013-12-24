@@ -6,6 +6,7 @@ module NoBrainer::Document::DynamicAttributes
   end
 
   def write_attribute(name, value)
+    attribute_will_change!(name, value)
     self.respond_to?("#{name}=") ? super : @attributes[name.to_s] = value
   end
 end

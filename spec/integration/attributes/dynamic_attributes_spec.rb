@@ -25,4 +25,12 @@ describe 'NoBrainer::Document::DynamicAttributes' do
     doc.reload
     doc['dynamic_field2'].should == 'world'
   end
+
+  it 'tracks dynamic attributes' do
+    doc['dynamic_field'] = 'hello'
+    doc.changes.should == {'dynamic_field' => [nil, 'hello']}
+    doc.save
+    doc['dynamic_field'] = 'world'
+    doc.changes.should == {'dynamic_field' => ['hello', 'world']}
+  end
 end
