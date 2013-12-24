@@ -19,6 +19,10 @@ module NoBrainer::Document::Attributes
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
+  def attributes
+    @attributes.dup.freeze
+  end
+
   def read_attribute(name)
     __send__("#{name}")
   end
@@ -31,7 +35,7 @@ module NoBrainer::Document::Attributes
 
   def assign_defaults
     self.class.fields.each do |name, field_options|
-      if field_options.has_key?(:default) && !attributes.has_key?(name.to_s)
+      if field_options.has_key?(:default) && !@attributes.has_key?(name.to_s)
         default_value = field_options[:default]
         default_value = default_value.call if default_value.is_a?(Proc)
         self.write_attribute(name, default_value)
@@ -42,14 +46,14 @@ module NoBrainer::Document::Attributes
   def assign_attributes(attrs, options={})
     # XXX We don't save field that are not explicitly set. The row will
     # therefore not contain nil for unset attributes.
-    self.attributes.clear if options[:pristine]
+    @attributes.clear if options[:pristine]
 
     if options[:from_db]
       # TODO Should we reject undeclared fields ?
       #
       # TODO Not using the getter/setters, the dirty tracking won't notice it,
       # also we should start thinking about custom serializer/deserializer.
-      attributes.merge! attrs
+      @attributes.merge! attrs
     else
       if NoBrainer.rails3? && !options[:without_protection]
         # TODO What's up with rails4?
@@ -65,7 +69,7 @@ module NoBrainer::Document::Attributes
 
   # TODO test that thing
   def inspect
-    attrs = self.class.fields.keys.map { |f| "#{f}: #{attributes[f.to_s].inspect}" }
+    attrs = self.class.fields.keys.map { |f| "#{f}: #{@attributes[f.to_s].inspect}" }
     "#<#{self.class} #{attrs.join(', ')}>"
   end
 
@@ -95,11 +99,11 @@ module NoBrainer::Document::Attributes
       # Using a layer so the user can use super when overriding these methods
       inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}=(value)
-          attributes['#{name}'] = value
+          @attributes['#{name}'] = value
         end
 
         def #{name}
-          attributes['#{name}']
+          @attributes['#{name}']
         end
       RUBY
     end
