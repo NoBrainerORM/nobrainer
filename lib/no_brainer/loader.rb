@@ -1,5 +1,5 @@
 module NoBrainer::Loader
   def self.cleanup
-    NoBrainer::Document.models.clear
+    NoBrainer::Document.all.clear
   end
 end

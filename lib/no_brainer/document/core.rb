@@ -1,8 +1,8 @@
 module NoBrainer::Document::Core
   extend ActiveSupport::Concern
 
-  class << self; attr_accessor :models; end
-  self.models = []
+  class << self; attr_accessor :all; end
+  self.all = []
 
   # TODO This assume the primary key is id.
   # RethinkDB can have a custom primary key. careful.
@@ -13,7 +13,7 @@ module NoBrainer::Document::Core
     extend ActiveModel::Naming
     extend ActiveModel::Translation
 
-    NoBrainer::Document::Core.models << self
+    NoBrainer::Document::Core.all << self
   end
 
   def initialize(attrs={}, options={}); end

@@ -8,5 +8,5 @@ module NoBrainer::Document
 
   autoload :DynamicAttributes
 
-  singleton_class.delegate :models, :to => Core
+  singleton_class.delegate :all, :to => Core
 end
