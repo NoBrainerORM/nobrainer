@@ -14,7 +14,8 @@ module NoBrainer::Document::Criteria
              :with_index, :without_index, :used_index, :indexed?, :where, :order_by,
              :with_cache, :without_cache,
              :update_all, :delete_all, :destroy_all,
-             :inc_all, :dec_all, :to => :all
+             :inc_all, :dec_all,
+             :limit, :offset, :skip, :to => :all
 
     def all
       NoBrainer::Criteria.new(:klass => self)

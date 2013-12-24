@@ -11,6 +11,7 @@ module NoBrainer::Criteria::Chainable::Limit
   def skip(value)
     chain { |criteria| criteria._skip = value }
   end
+  alias_method :offset, :skip
 
   def merge!(criteria)
     super
