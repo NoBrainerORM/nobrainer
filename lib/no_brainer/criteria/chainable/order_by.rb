@@ -20,7 +20,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
       when Proc   then { rule => :asc }
       else raise_bad_rule(rule)
       end
-    end.reduce(:merge)
+    end.reduce({}, :merge)
 
     chain { |criteria| criteria.order = rules }
   end
