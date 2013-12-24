@@ -1,14 +1,14 @@
 module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
-                   :auto_create_database, :auto_create_tables,
+                   :auto_create_databases, :auto_create_tables,
                    :cache_documents, :max_reconnection_tries
 
     def apply_defaults
       self.rethinkdb_url          = guess_rethinkdb_url
       self.logger                 = guess_logger
       self.warn_on_active_record  = true
-      self.auto_create_database   = true
+      self.auto_create_databases  = true
       self.auto_create_tables     = true
       self.cache_documents        = true
       self.max_reconnection_tries = 10

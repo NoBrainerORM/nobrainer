@@ -25,7 +25,7 @@ NoBrainer.configure do |config|
   config.rethinkdb_url          = "rethinkdb://localhost/#{Rails.app.name}_#{Rails.env}"
   config.logger                 = Rails.logger
   config.warn_on_active_record  = true
-  config.auto_create_database   = true
+  config.auto_create_databases  = true
   config.auto_create_tables     = true
   config.cache_documents        = true
   config.max_reconnection_tries = 10

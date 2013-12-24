@@ -2,7 +2,7 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
   def call(env)
     @runner.call(env)
   rescue RuntimeError => e
-    if NoBrainer::Config.auto_create_database &&
+    if NoBrainer::Config.auto_create_databases &&
        e.message =~ /^Database `(.+)` does not exist\.$/
       # RethinkDB may return an FIND_DB not found immediately
       # after having created the new database, Be patient.
