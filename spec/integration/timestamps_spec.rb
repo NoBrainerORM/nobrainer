@@ -1,9 +1,8 @@
 require 'spec_helper'
 
 describe "NoBrainer timestamps" do
-  before { load_simple_document }
-
   context 'when using timestamps' do
+    before { load_simple_document }
     # The default behavior is to always include timestamps
     let(:doc) { SimpleDocument.create }
 
@@ -27,8 +26,20 @@ describe "NoBrainer timestamps" do
     end
   end
 
-  context 'when not using timestamps' do
+  context 'when not using timestamps with disable_timestamps' do
+    before { load_simple_document }
     before { SimpleDocument.disable_timestamps }
+
+    it 'does not make any created_at/updated_at fields visible' do
+      expect { SimpleDocument.new.created_at }.to raise_error NoMethodError
+      expect { SimpleDocument.new.updated_at }.to raise_error NoMethodError
+      expect { SimpleDocument.create }.not_to raise_error
+    end
+  end
+
+  context 'when not using timestamps through the config' do
+    before { NoBrainer::Config.auto_include_timestamps = false }
+    before { load_simple_document }
 
     it 'does not make any created_at/updated_at fields visible' do
       expect { SimpleDocument.new.created_at }.to raise_error NoMethodError

@@ -4,9 +4,13 @@ module NoBrainer::Document
 
   autoload_and_include :Core, :StoreIn, :InjectionLayer, :Attributes, :Persistance, :Dirty,
                        :Id, :Relation, :Serialization, :Criteria, :Validation,
-                       :Polymorphic, :Timestamps, :Index
+                       :Polymorphic, :Index
 
-  autoload :DynamicAttributes
+  autoload :DynamicAttributes, :Timestamps
+
+  included do
+    include Timestamps if NoBrainer::Config.auto_include_timestamps
+  end
 
   singleton_class.delegate :all, :to => Core
 end

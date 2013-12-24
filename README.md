@@ -22,13 +22,14 @@ require 'nobrainer'
 # Configuring NoBrainer is typically done in an initializer.
 # The defaults are shown when using a Rails app:
 NoBrainer.configure do |config|
-  config.rethinkdb_url          = "rethinkdb://localhost/#{Rails.app.name}_#{Rails.env}"
-  config.logger                 = Rails.logger
-  config.warn_on_active_record  = true
-  config.auto_create_databases  = true
-  config.auto_create_tables     = true
-  config.cache_documents        = true
-  config.max_reconnection_tries = 10
+  config.rethinkdb_url           = "rethinkdb://localhost/#{Rails.app.name}_#{Rails.env}"
+  config.logger                  = Rails.logger
+  config.warn_on_active_record   = true
+  config.auto_create_databases   = true
+  config.auto_create_tables      = true
+  config.cache_documents         = true
+  config.auto_include_timestamps = true
+  config.max_reconnection_tries  = 10
 end
 
 class Post
