@@ -30,34 +30,36 @@ module NoBrainer::Document::Validation
     def validates_uniqueness_of(*attr_names)
       validates_with UniquenessValidator, _merge_attributes(attr_names)
     end
+
+    def validates_presence_of(*attr_names)
+      validates_with PresenceValidator, _merge_attributes(attr_names)
+    end
   end
 
   class UniquenessValidator < ActiveModel::EachValidator
-    # Validate the document for uniqueness violations.
-    #
-    # @example Validate the document.
-    #   validate_each(person, :title, "Sir")
-    #
-    # @param [ Document ] document The document to validate.
-    # @param [ Symbol ] attribute The field to validate on.
-    # @param [ Object ] value The value of the field.
-    #
-    # @return [ Boolean ] true if the attribute is unique.
-    def validate_each(document, attribute, value)
-      criteria = document.root_class.unscoped.where(attribute => value)
-      criteria = apply_scopes(criteria, document)
-      criteria = exclude_document(criteria, document) if document.persisted?
+    def validate_each(doc, attr, value)
+      criteria = doc.root_class.unscoped.where(attr => value)
+      criteria = apply_scopes(criteria, doc)
+      criteria = exclude_doc(criteria, doc) if doc.persisted?
       is_unique = criteria.count == 0
-      document.errors.add(attribute, 'is already taken') unless is_unique
+      doc.errors.add(attr, :taken, options.except(:scope).merge(:value => value)) unless is_unique
       is_unique
     end
 
-    def apply_scopes(criteria, document)
-      criteria.where([*options[:scope]].map { |k| {k => document.read_attribute(k)} })
+    def apply_scopes(criteria, doc)
+      criteria.where([*options[:scope]].map { |k| {k => doc.read_attribute(k)} })
     end
 
-    def exclude_document(criteria, document)
-      criteria.where(:id.ne => document.id)
+    def exclude_doc(criteria, doc)
+      criteria.where(:id.ne => doc.id)
     end
   end
+
+  class PresenceValidator < ActiveModel::EachValidator
+    def validate_each(doc, attr, value)
+      value = nil if value.respond_to?(:persisted?) && !value.persisted?
+      doc.errors.add(attr, :blank, options) if value.blank?
+    end
+  end
+
 end
