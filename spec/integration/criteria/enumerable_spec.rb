@@ -37,6 +37,28 @@ describe "each" do
     end
   end
 
+  context 'when using ==' do
+    let!(:documents) { 2.times.map { |i| SimpleDocument.create(:field1 => i) } }
+
+    context 'when comparing criteria' do
+      it 'uses the regular behavior' do
+        SimpleDocument.all.should_not == SimpleDocument.all.limit(100)
+      end
+    end
+
+    context 'when comparing to an enumerable' do
+      it 'casts to array' do
+        SimpleDocument.all.should == documents
+      end
+    end
+
+    context 'when comparing to some random stuff' do
+      it 'casts to array' do
+        SimpleDocument.all.should_not == "hello"
+      end
+    end
+  end
+
   context 'when there are no documents' do
     describe 'each' do
       it 'gets automatically called' do

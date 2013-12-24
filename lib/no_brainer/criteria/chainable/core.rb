@@ -33,6 +33,12 @@ module NoBrainer::Criteria::Chainable::Core
     dup.tap { |new_criteria| new_criteria.merge!(criteria) }
   end
 
+  def ==(other)
+    return super if other.is_a?(NoBrainer::Criteria)
+    return to_a == other if other.is_a?(Enumerable)
+    super
+  end
+
   private
 
   def chain(&block)
