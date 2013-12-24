@@ -4,11 +4,11 @@ describe "NoBrainer serialization" do
   before { load_simple_document }
   before { SimpleDocument.disable_timestamps }
 
-  let(:doc) { SimpleDocument.create(:field1 => 'hello') }
+  let(:doc) { SimpleDocument.create(:field1 => 'hello', :field2 => nil) }
 
   it 'serializes to json' do
-    JSON::parse(doc.to_json).should ==
-      {'id' => doc.id, 'field1' => 'hello', 'field2' => nil, 'field3' => nil}
+    # field3 remains unset.
+    JSON::parse(doc.to_json).should == {'id' => doc.id, 'field1' => 'hello', 'field2' => nil }
   end
 
   it 'serializes to xml' do

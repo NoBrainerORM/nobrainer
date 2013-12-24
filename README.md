@@ -30,6 +30,7 @@ NoBrainer.configure do |config|
   config.cache_documents         = true
   config.auto_include_timestamps = true
   config.max_reconnection_tries  = 10
+  config.include_root_in_json    = false
 end
 
 class Post
