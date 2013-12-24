@@ -14,11 +14,6 @@ module NoBrainer::Document::Relation
     @relations[metadata] ||= metadata.new(self)
   end
 
-  def assign_attributes(*args)
-    @relations = nil
-    super
-  end
-
   module ClassMethods
     def inherited(subclass)
       super

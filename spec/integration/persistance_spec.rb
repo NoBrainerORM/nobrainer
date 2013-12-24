@@ -46,10 +46,31 @@ describe 'NoBrainer persistance' do
     SimpleDocument.find(doc.id).should == nil
   end
 
-  it 'reloads' do
-    doc.field2 = 'brave world'
-    doc.reload.should be_kind_of(SimpleDocument)
-    doc.field2.should == 'world'
+  context 'when using default reload' do
+    it 'reloads and cleans up ivars' do
+      doc.instance_eval { @some_ivar = true }
+      doc.field2 = 'brave world'
+      doc.reload.should == doc
+      doc.field2.should == 'world'
+      doc.instance_eval { @some_ivar }.should == nil
+    end
+  end
+
+  context 'when using reload with keep_ivars' do
+    it 'reloads and cleans up ivars' do
+      doc.instance_eval { @some_ivar = true }
+      doc.field2 = 'brave world'
+      doc.reload(:keep_ivars => true).should == doc
+      doc.field2.should == 'world'
+      doc.instance_eval { @some_ivar }.should == true
+    end
+  end
+
+  context 'when the document is gone' do
+    it 'raises when reloading' do
+      SimpleDocument.delete_all
+      expect {doc.reload }.to raise_error(NoBrainer::Error::DocumentNotFound)
+    end
   end
 
   it 'destroys' do

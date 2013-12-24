@@ -13,7 +13,7 @@ module NoBrainer::Document::Persistance
   end
 
   def new_record?
-    @new_record
+    !!@new_record
   end
 
   def destroyed?
@@ -33,8 +33,14 @@ module NoBrainer::Document::Persistance
     end
   end
 
-  def reload
-    assign_attributes(selector.raw.first, :pristine => true, :from_db => true)
+  def reload(options={})
+    unless options[:keep_ivars]
+      id = self.id
+      instance_variables.each { |ivar| remove_instance_variable(ivar) }
+      @attributes = {}
+      self.id = id
+    end
+    assign_attributes(selector.raw.first!, :pristine => true, :from_db => true)
     self
   end
 
