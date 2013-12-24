@@ -13,6 +13,13 @@ describe 'NoBrainer callbacks' do
       doc.valid?.should == true
     end
 
+    it 'responds to invalid?' do
+      doc = SimpleDocument.new
+      doc.invalid?.should == true
+      doc.field1 = 'hey'
+      doc.invalid?.should == false
+    end
+
     it 'adds errors' do
       SimpleDocument.create.errors.should be_present
     end
