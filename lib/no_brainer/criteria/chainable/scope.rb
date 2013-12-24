@@ -23,7 +23,9 @@ module NoBrainer::Criteria::Chainable::Scope
 
   def method_missing(name, *args, &block)
     return super unless self.klass.respond_to?(name)
-    merge(self.klass.method(name).call(*args, &block))
+    criteria = self.klass.method(name).call(*args, &block)
+    raise "#{name} did not return a criteria" unless criteria.is_a?(NoBrainer::Criteria)
+    merge(criteria)
   end
 
   private
