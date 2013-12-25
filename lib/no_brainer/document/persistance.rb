@@ -83,12 +83,12 @@ module NoBrainer::Document::Persistance
   end
 
   module ClassMethods
-    def create(*args)
-      new(*args).tap { |doc| doc.save }
+    def create(attrs={}, options={})
+      new(attrs, options).tap { |doc| doc.save(options) }
     end
 
-    def create!(*args)
-      new(*args).tap { |doc| doc.save! }
+    def create!(attrs={}, options={})
+      new(attrs, options).tap { |doc| doc.save!(options) }
     end
   end
 end
