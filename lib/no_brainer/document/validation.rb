@@ -3,16 +3,6 @@ module NoBrainer::Document::Validation
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
 
-  def save(options={})
-    options = options.reverse_merge(:validate => true)
-
-    if options[:validate]
-      valid? ? super : false
-    else
-      super
-    end
-  end
-
   # TODO Test that thing
   def valid?(context=nil)
     super(context || (new_record? ? :create : :update))

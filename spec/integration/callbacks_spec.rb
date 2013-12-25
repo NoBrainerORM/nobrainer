@@ -10,8 +10,9 @@ describe 'NoBrainer callbacks' do
     context 'when creating' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.should ==
-          [:before_validation, :after_validation,
-           :before_save, :before_create, :after_create, :after_save]
+          [ :before_save, :before_create,
+            :before_validation, :after_validation,
+            :after_create, :after_save]
       end
     end
 
@@ -28,8 +29,9 @@ describe 'NoBrainer callbacks' do
         SimpleDocument.callbacks.clear
         doc.update_attributes(:field1 => 'hello')
         SimpleDocument.callbacks.should == 
-          [:before_validation, :after_validation,
-           :before_save, :before_update, :after_update, :after_save]
+          [ :before_save, :before_update,
+            :before_validation, :after_validation,
+            :after_update, :after_save]
       end
     end
 

@@ -24,8 +24,9 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
-  def _create
+  def _create(options={})
     run_callbacks :create do
+      return false if options[:validate] && !valid?
       result = NoBrainer.run { self.class.rql_table.insert(attributes) }
       self.id ||= result['generated_keys'].first
       @new_record = false
@@ -44,24 +45,26 @@ module NoBrainer::Document::Persistance
     self
   end
 
-  def update(&block)
+  def update(options={}, &block)
     run_callbacks :update do
+      return false if options[:validate] && !valid?
       selector.update_all(&block)
       true
     end
   end
 
-  def replace(&block)
+  def replace(options={}, &block)
     run_callbacks :update do
+      return false if options[:validate] && !valid?
       selector.replace_all(&block)
       true
     end
   end
 
   def save(options={})
-    # overriden by validation.rb
+    options = options.reverse_merge(:validate => true)
     run_callbacks :save do
-      new_record? ? _create : replace { attributes }
+      new_record? ? _create(options) : replace(options) { attributes }
     end
   end
 
