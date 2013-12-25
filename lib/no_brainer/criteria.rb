@@ -1,3 +1,5 @@
+require 'rethinkdb'
+
 class NoBrainer::Criteria
   # The disctinction between Chainable and Termination is purely cosmetic.
   module Chainable

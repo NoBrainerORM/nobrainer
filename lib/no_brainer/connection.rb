@@ -1,3 +1,5 @@
+require 'rethinkdb'
+
 class NoBrainer::Connection
   # A connection is bound to a specific database.
 

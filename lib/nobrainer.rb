@@ -1,5 +1,3 @@
-require 'rethinkdb'
-require 'active_model'
 require 'active_support/core_ext'
 
 if Gem::Version.new(RUBY_VERSION.dup) < Gem::Version.new('1.9')
@@ -43,10 +41,10 @@ module NoBrainer
     delegate :db_create, :db_drop, :db_list, :database, :to => :connection
     delegate :table_create, :table_drop, :table_list,
              :drop!, :purge!, :to => :database
-    delegate :run, :to => QueryRunner
-    delegate :update_indexes, :to => IndexManager
-    delegate :with_database, :to => QueryRunner::DatabaseSelector
-    delegate :configure, :logger, :to => Config
+    delegate :run, :to => 'NoBrainer::QueryRunner'
+    delegate :update_indexes, :to => 'NoBrainer::IndexManager'
+    delegate :with_database, :to => 'NoBrainer::QueryRunner::DatabaseSelector'
+    delegate :configure, :logger, :to => 'NoBrainer::Config'
   end
 end
 

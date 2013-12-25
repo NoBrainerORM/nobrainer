@@ -1,3 +1,5 @@
+require 'active_model'
+
 module NoBrainer::Document
   extend ActiveSupport::Concern
   extend NoBrainer::Autoload

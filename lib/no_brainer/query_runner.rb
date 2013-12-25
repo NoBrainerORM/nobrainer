@@ -1,4 +1,5 @@
 require 'middleware'
+require 'rethinkdb'
 
 module NoBrainer::QueryRunner
   extend NoBrainer::Autoload
