@@ -18,14 +18,6 @@ module NoBrainer::Document::Validation
     super(context || (new_record? ? :create : :update))
   end
 
-  [:save, :update_attributes].each do |method|
-    class_eval <<-RUBY, __FILE__, __LINE__ + 1
-      def #{method}!(*args)
-        #{method}(*args) or raise NoBrainer::Error::DocumentInvalid, errors
-      end
-    RUBY
-  end
-
   module ClassMethods
     def validates_uniqueness_of(*attr_names)
       validates_with UniquenessValidator, _merge_attributes(attr_names)

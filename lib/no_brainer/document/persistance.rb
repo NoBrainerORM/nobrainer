@@ -65,9 +65,17 @@ module NoBrainer::Document::Persistance
     end
   end
 
+  def save!(*args)
+    save(*args) or raise NoBrainer::Error::DocumentInvalid, errors
+  end
+
   def update_attributes(attrs, options={})
     assign_attributes(attrs, options)
     save(options)
+  end
+
+  def update_attributes!(*args)
+    update_attributes(*args) or raise NoBrainer::Error::DocumentInvalid, errors
   end
 
   def delete
