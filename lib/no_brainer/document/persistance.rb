@@ -3,7 +3,7 @@ module NoBrainer::Document::Persistance
 
   included do
     extend ActiveModel::Callbacks
-    define_model_callbacks :create, :update, :save, :destroy
+    define_model_callbacks :create, :update, :save, :destroy, :terminator => 'false'
   end
 
   # TODO after_initialize, after_find callback
@@ -59,6 +59,7 @@ module NoBrainer::Document::Persistance
   end
 
   def save(options={})
+    # overriden by validation.rb
     run_callbacks :save do
       new_record? ? _create : replace { attributes }
     end

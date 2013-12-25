@@ -51,33 +51,33 @@ describe 'NoBrainer callbacks' do
   end
 
   context 'when a before_ callback returns false' do
-    it 'halts create' do
+    it 'does not halt create' do
       SimpleDocument.before_create { false }
-      SimpleDocument.create(:field1 => 'hello').persisted?.should == false
+      SimpleDocument.create(:field1 => 'hello').persisted?.should == true
     end
 
-    it 'halts save' do
+    it 'does no halt save' do
       SimpleDocument.before_save { new_record? }
       doc = SimpleDocument.create(:field1 => 'hello')
       doc.field1 = 'hi'
       doc.save
       doc.reload
-      doc.field1.should == 'hello'
+      doc.field1.should == 'hi'
     end
 
-    it 'halts updates' do
+    it 'does not halt updates' do
       SimpleDocument.before_update { new_record? }
       doc = SimpleDocument.create(:field1 => 'hello')
       doc.update_attributes(:field1 => 'hi')
       doc.reload
-      doc.field1.should == 'hello'
+      doc.field1.should == 'hi'
     end
 
-    it 'halts destroy' do
+    it 'does not halt destroy' do
       SimpleDocument.before_destroy { false }
       doc = SimpleDocument.create(:field1 => 'hello')
       doc.destroy
-      SimpleDocument.find(doc.id).should == doc
+      SimpleDocument.find(doc.id).should == nil
     end
   end
 end
