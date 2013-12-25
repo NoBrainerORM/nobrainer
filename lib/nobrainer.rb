@@ -49,3 +49,7 @@ module NoBrainer
     delegate :configure, :logger, :to => Config
   end
 end
+
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/no_brainer/locale/en.yml'
+end

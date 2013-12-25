@@ -87,6 +87,12 @@ describe 'NoBrainer callbacks' do
         doc2.valid?.should == false
         expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
+
+      it 'uses the proper locale' do
+        doc2 = SimpleDocument.new field1: 'ohai'
+        doc2.valid?.should == false
+        doc2.errors.full_messages.first.should == "Field1 is already taken"
+      end
     end
 
     context 'without a scope' do

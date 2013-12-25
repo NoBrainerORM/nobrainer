@@ -8,8 +8,7 @@ Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f }
 database_host = ENV['DB_HOST'] || 'localhost'
 database_name = ENV['DB_NAME'] || 'nobrainer_test'
 
-# Silence some warning in I18n
-I18n.enforce_available_locales = false rescue nil
+I18n.enforce_available_locales = true rescue nil
 
 RSpec.configure do |config|
   config.color_enabled = true
