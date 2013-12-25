@@ -205,6 +205,7 @@ describe 'NoBrainer callbacks' do
 
   context 'when validating presence on a belongs_to relation' do
     before { load_blog_models }
+    before { NoBrainer::Config.logger.level = Logger::FATAL }
 
     context 'when using validates' do
       before { Post.validates :author, :presence => true }

@@ -39,7 +39,11 @@ module NoBrainer::Document::Validation
 
   class PresenceValidator < ActiveModel::EachValidator
     def validate_each(doc, attr, value)
-      value = nil if value.respond_to?(:persisted?) && !value.persisted?
+      if value.respond_to?(:persisted?) && !value.persisted?
+        NoBrainer.logger.warn "Validating the presence of '#{attr}' in a #{doc.class} failed because '#{attr}' was not persisted"
+        NoBrainer.logger.warn "This can be fixed by saving '#{attr}' before the #{doc.class}."
+        value = nil
+      end
       doc.errors.add(attr, :blank, options) if value.blank?
     end
   end
