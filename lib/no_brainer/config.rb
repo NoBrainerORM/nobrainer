@@ -3,7 +3,8 @@ module NoBrainer::Config
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
                    :cache_documents, :auto_include_timestamps,
-                   :max_reconnection_tries, :include_root_in_json
+                   :max_reconnection_tries, :include_root_in_json,
+                   :durability
 
     def apply_defaults
       self.rethinkdb_url           = guess_rethinkdb_url
@@ -15,6 +16,7 @@ module NoBrainer::Config
       self.auto_include_timestamps = true
       self.max_reconnection_tries  = 10
       self.include_root_in_json    = false
+      self.durability              = (defined?(Rails) && Rails.env.test?) ? :soft : :hard
     end
 
     def reset!
