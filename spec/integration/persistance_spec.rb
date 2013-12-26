@@ -84,3 +84,16 @@ describe 'NoBrainer persistance' do
     end
   end
 end
+
+describe 'NoBrainer bulk inserts' do
+  before { load_simple_document }
+
+  context 'when using insert_all' do
+    it 'inserts a bunch of documents' do
+      keys = SimpleDocument.insert_all(100.times.map { |i| {:field1 => i+1} })
+      SimpleDocument.where(:id => keys.first).count.should == 1
+      SimpleDocument.count.should == 100
+      SimpleDocument.where(:field1.gt 50).count.should == 50
+    end
+  end
+end

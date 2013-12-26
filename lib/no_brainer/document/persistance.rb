@@ -27,8 +27,8 @@ module NoBrainer::Document::Persistance
   def _create(options={})
     run_callbacks :create do
       return false if options[:validate] && !valid?
-      result = NoBrainer.run { self.class.rql_table.insert(attributes) }
-      self.id ||= result['generated_keys'].first
+      keys = self.class.insert_all(attributes)
+      self.id ||= keys.first
       @new_record = false
       true
     end
@@ -101,6 +101,11 @@ module NoBrainer::Document::Persistance
 
     def create!(attrs={}, options={})
       new(attrs, options).tap { |doc| doc.save!(options) }
+    end
+
+    def insert_all(*attrs)
+      result = NoBrainer.run { rql_table.insert(*attrs) }
+      result['generated_keys'].to_a
     end
   end
 end
