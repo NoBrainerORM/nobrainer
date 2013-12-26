@@ -7,8 +7,8 @@ module NoBrainer::Config
                    :durability
 
     def apply_defaults
-      self.rethinkdb_url           = guess_rethinkdb_url
-      self.logger                  = guess_logger
+      self.rethinkdb_url           = default_rethinkdb_url
+      self.logger                  = default_logger
       self.warn_on_active_record   = true
       self.auto_create_databases   = true
       self.auto_create_tables      = true
@@ -16,7 +16,7 @@ module NoBrainer::Config
       self.auto_include_timestamps = true
       self.max_reconnection_tries  = 10
       self.include_root_in_json    = false
-      self.durability              = (defined?(Rails) && Rails.env.test?) ? :soft : :hard
+      self.durability              = default_durability
     end
 
     def reset!
@@ -36,7 +36,7 @@ module NoBrainer::Config
       !!@configured
     end
 
-    def guess_rethinkdb_url
+    def default_rethinkdb_url
       return ENV['RDB_URL'] if ENV['RDB_URL']
       return ENV['RETHINKDB_URL'] if ENV['RETHINKDB_URL']
 
@@ -45,8 +45,12 @@ module NoBrainer::Config
       end
     end
 
-    def guess_logger
+    def default_logger
       defined?(Rails) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
+    end
+
+    def default_durability
+      (defined?(Rails) && (Rails.env.test? || Rails.env.development?)) ? :soft : :hard
     end
   end
 end
