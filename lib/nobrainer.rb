@@ -5,7 +5,6 @@ if Gem::Version.new(RUBY_VERSION.dup) < Gem::Version.new('1.9')
 end
 
 module NoBrainer
-  require 'no_brainer/railtie' if defined?(Rails)
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
@@ -51,3 +50,5 @@ end
 ActiveSupport.on_load(:i18n) do
   I18n.load_path << File.dirname(__FILE__) + '/no_brainer/locale/en.yml'
 end
+
+require 'no_brainer/railtie' if defined?(Rails)
