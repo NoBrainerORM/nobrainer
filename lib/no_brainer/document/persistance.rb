@@ -37,27 +37,36 @@ module NoBrainer::Document::Persistance
 
   def _create(options={})
     run_callbacks :create do
-      return false if options[:validate] && !valid?
-      keys = self.class.insert_all(attributes)
-      self.id ||= keys.first
-      @new_record = false
-      true
+      if options[:validate] && !valid?
+        false
+      else
+        keys = self.class.insert_all(attributes)
+        self.id ||= keys.first
+        @new_record = false
+        true
+      end
     end
   end
 
   def update(options={}, &block)
     run_callbacks :update do
-      return false if options[:validate] && !valid?
-      selector.update_all(&block)
-      true
+      if options[:validate] && !valid?
+        false
+      else
+        selector.update_all(&block)
+        true
+      end
     end
   end
 
   def replace(options={}, &block)
     run_callbacks :update do
-      return false if options[:validate] && !valid?
-      selector.replace_all(&block)
-      true
+      if options[:validate] && !valid?
+        false
+      else
+        selector.replace_all(&block)
+        true
+      end
     end
   end
 
