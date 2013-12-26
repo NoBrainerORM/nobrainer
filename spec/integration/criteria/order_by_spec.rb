@@ -150,14 +150,29 @@ describe 'order_by' do
   end
 
   context 'when mixing the two by chaining two order_by calls' do
-    it 'orders documents properly' do
-      SimpleDocument.all.order_by(:field1 => :asc,).order_by(:field2 => :desc)
+    it 'the latest wins' do
+      SimpleDocument.order_by(:field1 => :asc).order_by(:field2 => :desc)
+        .map(&:field2).should == [2,2,1,1]
+
+      SimpleDocument.order_by(:field2 => :desc).order_by(:field1 => :asc)
+        .map(&:field1).should == [1,1,2,2]
+    end
+  end
+
+  context 'when using reverse_order' do
+    it 'reverses the order' do
+      SimpleDocument.all.order_by(:field1 => :asc, :field2 => :desc)
         .map { |doc| [doc.field1, doc.field2] }
         .should == [[1,2],[1,1],[2,2],[2,1]]
 
-      SimpleDocument.all.order_by(:field2 => :desc).order_by(:field1 => :asc)
+      SimpleDocument.all.order_by(:field1 => :asc, :field2 => :desc).reverse_order
         .map { |doc| [doc.field1, doc.field2] }
-        .should == [[1,2],[2,2],[1,1],[2,1]]
+        .should == [[1,2],[1,1],[2,2],[2,1]].reverse
+    end
+
+    it 'gets reset by order_by' do
+      SimpleDocument.reverse_order.order_by(:field1 => :desc)
+        .map(&:field1).should == [2,2,1,1]
     end
   end
 

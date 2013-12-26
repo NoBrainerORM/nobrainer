@@ -22,15 +22,16 @@ module NoBrainer::Criteria::Chainable::OrderBy
       end
     end.reduce({}, :merge)
 
-    chain { |criteria| criteria.order = rules }
+    chain do |criteria|
+      criteria.order = rules
+      criteria._reverse_order = false
+    end
   end
 
   def merge!(criteria)
     super
-    # Being careful to keep the original order, and appending the new
-    # rules at the end.
-    self.order = self.order.reject { |k,v| k.in? criteria.order.keys }
-    self.order = self.order.merge(criteria.order)
+    # The latest wins
+    self.order = criteria.order if criteria.order.present?
     self._reverse_order = criteria._reverse_order unless criteria._reverse_order.nil?
     self
   end

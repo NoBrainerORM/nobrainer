@@ -10,12 +10,20 @@ module NoBrainer::Document::Criteria
   end
 
   module ClassMethods
-    delegate :count, :first, :last, :first!, :last!, :scoped, :unscoped, :includes,
-             :with_index, :without_index, :used_index, :indexed?, :where, :order_by,
-             :with_cache, :without_cache,
-             :update_all, :delete_all, :destroy_all,
-             :inc_all, :dec_all,
-             :limit, :offset, :skip, :to => :all
+    delegate :to_rql,                        # Core
+             :limit, :offset, :skip,         # Limit
+             :order_by, :reverse_order,      # OrderBy
+             :scoped, :unscoped,             # Scope
+             :where, :with_index, :without_index, :used_index, :indexed?, # Where
+             :with_cache, :without_cache,    # Cache
+             :count, :empty?, :any?,         # Count
+             :delete_all, :destroy_all,      # Delete
+             :includes,                      # EagerLoading
+             :each,                          # Enumerable
+             :first, :last, :first!, :last!, # First
+             :inc_all, :dec_all,             # Inc
+             :update_all, :replace_all,      # Update
+             :to => :all
 
     def all
       NoBrainer::Criteria.new(:klass => self)
