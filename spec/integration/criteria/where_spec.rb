@@ -146,6 +146,12 @@ describe 'complex where queries' do
         SimpleDocument.where { |doc| (doc[:field1] * 2).eq(16) }.count.should == 1
       end
     end
+
+    context 'when using a keyword without =>' do
+      it 'filters documents' do
+        SimpleDocument.where(:field1.in [3,5,9,33]).count.should == 3
+      end
+    end
   end
 
   context 'when using dates' do

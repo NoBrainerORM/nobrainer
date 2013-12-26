@@ -97,6 +97,11 @@ module NoBrainer::Criteria::Chainable::Where
     when Array then MultiOperator.new(:and, clause.map { |c| parse_clause(c) })
     when Hash  then MultiOperator.new(:and, clause.map { |k,v| parse_clause_stub(k,v) })
     when Proc  then Lambda.new(clause)
+    when NoBrainer::DecoratedSymbol
+      case clause.args.size
+      when 1 then parse_clause_stub(clause, clause.args.first)
+      else raise "Invalid argument: #{clause}"
+      end
     else raise "Invalid clause: #{clause}"
     end
   end
