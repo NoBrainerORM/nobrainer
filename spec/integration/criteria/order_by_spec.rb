@@ -37,6 +37,14 @@ describe 'order_by' do
   context 'when using lambdas' do
     context 'when not specifying orders' do
       it 'orders documents in ascending order' do
+        SimpleDocument.all.order_by { |doc| doc[:field1] + doc[:field2]  }
+          .map { |doc| [doc.field1, doc.field2] }
+          .should be_in [[[1,1],[1,2],[2,1],[2,2]], [[1,1],[2,1],[1,2],[2,2]]]
+      end
+    end
+
+    context 'when not specifying orders' do
+      it 'orders documents in ascending order' do
         SimpleDocument.all.order_by(->(doc) { doc[:field1] + doc[:field2] })
           .map { |doc| [doc.field1, doc.field2] }
           .should be_in [[[1,1],[1,2],[2,1],[2,2]], [[1,1],[2,1],[1,2],[2,2]]]

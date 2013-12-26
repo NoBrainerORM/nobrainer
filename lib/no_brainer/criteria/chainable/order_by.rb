@@ -8,9 +8,9 @@ module NoBrainer::Criteria::Chainable::OrderBy
     self.order = {}
   end
 
-  def order_by(*rules)
+  def order_by(*rules, &block)
     # Note: We are relying on the fact that Hashes are ordered (since 1.9)
-    rules = rules.map do |rule|
+    rules = [*rules, block].compact.map do |rule|
       case rule
       when Hash then
         bad_rule = rule.values.reject { |v| v.in? [:asc, :desc] }.first
@@ -30,7 +30,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
 
   def merge!(criteria)
     super
-    # The latest wins
+    # The latest order_by() wins
     self.order = criteria.order if criteria.order.present?
     self._reverse_order = criteria._reverse_order unless criteria._reverse_order.nil?
     self
