@@ -24,16 +24,6 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
-  def _create(options={})
-    run_callbacks :create do
-      return false if options[:validate] && !valid?
-      keys = self.class.insert_all(attributes)
-      self.id ||= keys.first
-      @new_record = false
-      true
-    end
-  end
-
   def reload(options={})
     unless options[:keep_ivars]
       id = self.id
@@ -43,6 +33,16 @@ module NoBrainer::Document::Persistance
     end
     assign_attributes(selector.raw.first!, :pristine => true, :from_db => true)
     self
+  end
+
+  def _create(options={})
+    run_callbacks :create do
+      return false if options[:validate] && !valid?
+      keys = self.class.insert_all(attributes)
+      self.id ||= keys.first
+      @new_record = false
+      true
+    end
   end
 
   def update(options={}, &block)
@@ -69,7 +69,7 @@ module NoBrainer::Document::Persistance
   end
 
   def save!(*args)
-    save(*args) or raise NoBrainer::Error::DocumentInvalid, errors
+    save(*args) or raise NoBrainer::Error::DocumentInvalid, self
   end
 
   def update_attributes(attrs, options={})
@@ -78,7 +78,7 @@ module NoBrainer::Document::Persistance
   end
 
   def update_attributes!(*args)
-    update_attributes(*args) or raise NoBrainer::Error::DocumentInvalid, errors
+    update_attributes(*args) or raise NoBrainer::Error::DocumentInvalid, self
   end
 
   def delete

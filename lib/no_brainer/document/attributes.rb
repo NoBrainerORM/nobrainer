@@ -64,6 +64,10 @@ module NoBrainer::Document::Attributes
     "#<#{self.class} #{attrs.join(', ')}>"
   end
 
+  def to_s
+    inspect
+  end
+
   module ClassMethods
     def new_from_db(attrs, options={})
       klass_from_attrs(attrs).new(attrs, options.reverse_merge(:from_db => true)) if attrs

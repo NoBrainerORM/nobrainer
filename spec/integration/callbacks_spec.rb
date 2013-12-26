@@ -52,6 +52,32 @@ describe 'NoBrainer callbacks' do
     end
   end
 
+  context 'when validation fails on create' do
+    it 'does not call the after callbacks' do
+      SimpleDocument.after_create { raise "oh no" }
+      SimpleDocument.validates_presence_of :field1
+      SimpleDocument.create.persisted?.should == false
+    end
+  end
+
+  context 'when validation fails on update' do
+    it 'does not call the after callbacks' do
+      SimpleDocument.after_update { raise "oh no" }
+      SimpleDocument.validates_presence_of :field1
+      doc = SimpleDocument.create(:field1 => 'hello')
+      doc.update_attributes(:field1 => nil).should == false
+    end
+  end
+
+  context 'when validation fails on save' do
+    it 'does not call the after callbacks' do
+      SimpleDocument.validates_presence_of :field1
+      doc = SimpleDocument.create(:field1 => 'hello')
+      SimpleDocument.after_save { raise "oh no" }
+      doc.update_attributes(:field1 => nil).should == false
+    end
+  end
+
   context 'when a before_ callback returns false' do
     it 'does not halt create' do
       SimpleDocument.before_create { false }
