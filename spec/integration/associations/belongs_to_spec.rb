@@ -66,7 +66,7 @@ describe 'belongs_to' do
       comment.post = post2
       post2.should_not be_persisted
       comment.post.should == post2
-      expect { comment.save }.to raise_error NoBrainer::Error::ParentNotSaved
+      expect { comment.save }.to raise_error NoBrainer::Error::AssociationNotSaved
       post2.save
       comment.save
     end

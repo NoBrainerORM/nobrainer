@@ -16,18 +16,11 @@ class NoBrainer::Document::Association::BelongsTo
 
     def hook
       super
-
       options.assert_valid_keys(:foreign_key, :class_name, :index)
 
       owner_klass.field foreign_key, :index => options[:index]
-
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
-
-      if !@added_before_save_callback
-        metadata = self
-        owner_klass.before_save { association(metadata).before_save_callback }
-        @added_before_save_callback = true
-      end
+      add_callback_for(:before_save)
     end
 
     def eager_load(docs, criteria=nil)
@@ -42,30 +35,29 @@ class NoBrainer::Document::Association::BelongsTo
   end
 
   def assign_foreign_key(value)
-    @parent = nil
+    @target = nil
   end
 
   def read
-    return @parent if @parent && NoBrainer::Config.cache_documents
+    return @target if @target && NoBrainer::Config.cache_documents
     if fk = instance.read_attribute(foreign_key)
-      @parent = target_klass.find(fk)
+      @target = target_klass.find(fk)
     end
   end
 
-  def _write(new_parent)
-    @parent = new_parent
+  def _write(target)
+    @target = target
   end
 
-  def write(new_parent)
-    assert_target_type(new_parent)
-    instance.write_attribute(foreign_key, new_parent.try(:id))
-    _write(new_parent)
+  def write(target)
+    assert_target_type(target)
+    instance.write_attribute(foreign_key, target.try(:id))
+    _write(target)
   end
 
   def before_save_callback
-    if @parent
-      raise NoBrainer::Error::ParentNotSaved.new("#{target_name} must be saved first") unless @parent.persisted?
+    if @target && !@target.persisted?
+      raise NoBrainer::Error::AssociationNotSaved.new("#{target_name} must be saved first")
     end
-    true
   end
 end

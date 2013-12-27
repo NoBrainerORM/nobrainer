@@ -16,14 +16,8 @@ class NoBrainer::Document::Association::HasMany
 
     def hook
       super
-
       options.assert_valid_keys(:foreign_key, :class_name, :dependent)
-
-      if options[:dependent] && !@added_destroy_callback
-        metadata = self
-        owner_klass.before_destroy { association(metadata).before_destroy_callback }
-        @added_destroy_callback = true
-      end
+      add_callback_for(:before_destroy)
     end
 
     def eager_load(docs, criteria=nil)
@@ -53,8 +47,6 @@ class NoBrainer::Document::Association::HasMany
 
   def write(new_children)
     raise "You can't assign the array of #{target_name}. Instead, you must modify delete and create #{target_klass} manually."
-    # Because it's a huge mess when the target class has a default scope as
-    # things get inconsistent very quickly.
   end
 
   def _write(new_children)
@@ -71,6 +63,5 @@ class NoBrainer::Document::Association::HasMany
     when :restrict then raise NoBrainer::Error::ChildrenExist unless criteria.count.zero?
     else raise "Unrecognized dependent option: #{metadata.options[:dependent]}"
     end
-    true
   end
 end

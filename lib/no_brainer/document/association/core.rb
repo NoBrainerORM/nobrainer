@@ -34,6 +34,16 @@ module NoBrainer::Document::Association::Core
       delegate("#{target_name}=", :write)
       delegate("#{target_name}", :read)
     end
+
+    def add_callback_for(what)
+      instance_eval <<-RUBY, __FILE__, __LINE__+1
+        if !@added_#{what}
+          metadata = self
+          owner_klass.#{what} { association(metadata).#{what}_callback }
+          @added_#{what} = true
+        end
+      RUBY
+    end
   end
 
   included { attr_accessor :metadata, :instance }
