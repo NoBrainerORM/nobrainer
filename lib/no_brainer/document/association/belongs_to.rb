@@ -6,18 +6,16 @@ class NoBrainer::Document::Association::BelongsTo
 
     def foreign_key
       # TODO test :foreign_key
-      @foreign_key ||= options[:foreign_key].try(:to_sym) || :"#{target_name}_id"
+      options[:foreign_key].try(:to_sym) || :"#{target_name}_id"
     end
 
     def target_klass
       # TODO test :class_name
-      @target_klass ||= (options[:class_name] || target_name.to_s.camelize).constantize
+      (options[:class_name] || target_name.to_s.camelize).constantize
     end
 
     def hook
       super
-      @foreign_key = nil
-      @target_klass = nil
 
       options.assert_valid_keys(:foreign_key, :class_name, :index)
 
