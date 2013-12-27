@@ -113,7 +113,7 @@ module NoBrainer::Document::Persistance
     end
 
     def insert_all(*attrs)
-      result = NoBrainer.run { rql_table.insert(*attrs) }
+      result = NoBrainer.run(rql_table.insert(*attrs))
       result['generated_keys'].to_a
     end
   end

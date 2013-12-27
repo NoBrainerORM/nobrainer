@@ -21,7 +21,7 @@ class NoBrainer::Connection
   [:db_create, :db_drop, :db_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{cmd}(*args)
-        NoBrainer.run { RethinkDB::RQL.new.#{cmd}(*args) }
+        NoBrainer.run { |r| r.#{cmd}(*args) }
       end
     RUBY
   end

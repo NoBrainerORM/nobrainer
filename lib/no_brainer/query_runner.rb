@@ -16,8 +16,11 @@ module NoBrainer::QueryRunner
   class << self
     attr_accessor :stack
 
-    def run(options={}, &block)
-      stack.call(:query => yield, :options => options)
+    def run(*args, &block)
+      options = args.extract_options!
+      raise ArgumentError unless args.size == 1 || block
+      query = args.first || block.call(RethinkDB::RQL.new)
+      stack.call(:query => query, :options => options)
     end
   end
 

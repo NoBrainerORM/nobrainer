@@ -74,18 +74,18 @@ module NoBrainer::Document::Index
         when :proc     then index_args[:what]
       end
 
-      NoBrainer.run { self.rql_table.index_create(index_name, index_args[:options], &index_proc) }
-      NoBrainer.run { self.rql_table.index_wait(index_name) } if options[:wait]
+      NoBrainer.run(self.rql_table.index_create(index_name, index_args[:options], &index_proc))
+      NoBrainer.run(self.rql_table.index_wait(index_name)) if options[:wait]
       STDERR.puts "Created index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_drop_index(index_name, options={})
-      NoBrainer.run { self.rql_table.index_drop(index_name) }
+      NoBrainer.run(self.rql_table.index_drop(index_name))
       STDERR.puts "Dropped index #{self}.#{index_name}" if options[:verbose]
     end
 
     def perform_update_indexes(options={})
-      current_indexes = NoBrainer.run { self.rql_table.index_list }.map(&:to_sym)
+      current_indexes = NoBrainer.run(self.rql_table.index_list).map(&:to_sym)
       wanted_indexes = self.indexes.keys - [:id] # XXX Primary key?
 
       (current_indexes - wanted_indexes).each do |index_name|

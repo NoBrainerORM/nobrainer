@@ -31,12 +31,12 @@ class NoBrainer::Database
   [:table_create, :table_drop, :table_list].each do |cmd|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{cmd}(*args)
-        NoBrainer.run { RethinkDB::RQL.new.#{cmd}(*args) }
+        NoBrainer.run { |r| r.#{cmd}(*args) }
       end
     RUBY
   end
 
   def self.truncate_table!(table_name)
-    NoBrainer.run { RethinkDB::RQL.new.table(table_name).delete }
+    NoBrainer.run { |r| r.table(table_name).delete }
   end
 end
