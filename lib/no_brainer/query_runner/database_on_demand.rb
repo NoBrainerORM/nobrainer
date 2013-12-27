@@ -4,14 +4,23 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
   rescue RuntimeError => e
     if NoBrainer::Config.auto_create_databases &&
        e.message =~ /^Database `(.+)` does not exist\.$/
-      # RethinkDB may return an FIND_DB not found immediately
-      # after having created the new database, Be patient.
-      # TODO Unit test that thing
-      # Also, should we be counter based, or time based for the timeout ?
-      NoBrainer.db_create $1 unless env[:db_find_retries]
-      env[:db_find_retries] ||= 0
-      retry if (env[:db_find_retries] += 1) < 10
+      auto_create_database(env, $1)
+      retry
     end
-    raise e
+    raise
+  end
+
+  private
+
+  def auto_create_database(env, database_name)
+    if env[:auto_create_database] == database_name
+      raise "Auto database creation is not working with #{database_name}"
+    end
+    env[:auto_create_database] = database_name
+
+    NoBrainer.db_create(database_name)
+  rescue RuntimeError => e
+    # We might have raced with another db_create
+    raise unless e.message =~ /Database `#{database_name}` already exists/
   end
 end

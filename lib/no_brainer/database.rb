@@ -15,17 +15,18 @@ class NoBrainer::Database
   end
 
   def drop!
-    # FIXME Weird hack.
+    # FIXME Sad hack.
     db = (Thread.current[:nobrainer_options] || {})[:db] || database_name
-    connection.db_drop(db)
+    connection.db_drop(db)['dropped'] == 1
   end
 
   # Note that truncating each table (purge) is much faster than dropping the
   # database (drop)
   def purge!(options={})
     table_list.each do |table_name|
-      self.class.truncate_table!(table_name)
+      NoBrainer.run { |r| r.table(table_name).delete }
     end
+    true
   rescue RuntimeError => e
     raise e unless e.message =~ /No entry with that name/
   end
@@ -36,9 +37,5 @@ class NoBrainer::Database
         NoBrainer.run { |r| r.#{cmd}(*args) }
       end
     RUBY
-  end
-
-  def self.truncate_table!(table_name)
-    NoBrainer.run { |r| r.table(table_name).delete }
   end
 end

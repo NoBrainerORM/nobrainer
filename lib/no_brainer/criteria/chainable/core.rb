@@ -17,7 +17,11 @@ module NoBrainer::Criteria::Chainable::Core
 
   def inspect
     # rescue super because sometimes klass is not set.
-    to_rql.inspect rescue super
+    str = to_rql.inspect rescue super
+    if str =~ /Erroneous_Portion_Constructed/
+      str = "the rethinkdb gem is flipping out with Erroneous_Portion_Constructed"
+    end
+    str
   end
 
   def run(rql=nil)
