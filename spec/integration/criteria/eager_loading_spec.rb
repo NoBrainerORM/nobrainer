@@ -7,7 +7,7 @@ describe 'eager_loading' do
   let!(:posts)    { 3.times.map { |i| Post.create(:author => author, :title => i) } }
   let!(:comments) { 3.times.map { |i| 3.times.map { |j| Comment.create(:post => author.posts[i], :body => j) } }.flatten }
 
-  context 'when eager loading on a belongs_to relation' do
+  context 'when eager loading on a belongs_to association' do
     it 'eagers load' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
       Comment.includes(:post).each do |comment|
@@ -16,7 +16,7 @@ describe 'eager_loading' do
     end
   end
 
-  context 'when eager loading on a has_many relation' do
+  context 'when eager loading on a has_many association' do
     it 'eagers load' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
       Post.includes(:comments).each do |post|
@@ -25,7 +25,7 @@ describe 'eager_loading' do
     end
   end
 
-  context 'when eager loading nested relations' do
+  context 'when eager loading nested associations' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
       a = Author.includes(:posts => [:author, :comments]).first
@@ -38,7 +38,7 @@ describe 'eager_loading' do
     end
   end
 
-  context 'when eager loading nested relations with criterias' do
+  context 'when eager loading nested associations with criterias' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
       a = Author.includes(:posts => Post.where(:title.gte => 1).includes(

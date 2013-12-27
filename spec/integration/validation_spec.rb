@@ -209,20 +209,20 @@ describe 'NoBrainer callbacks' do
     end
   end
 
-  context 'when validating presence on a belongs_to relation' do
+  context 'when validating presence on a belongs_to association' do
     before { load_blog_models }
     before { NoBrainer::Config.logger.level = Logger::FATAL }
 
     context 'when using validates' do
       before { Post.validates :author, :presence => true }
 
-      context 'when the relation is not persisted' do
+      context 'when the association is not persisted' do
         it 'fails the validation' do
           Post.new(:author => Author.new).valid?.should == false
         end
       end
 
-      context 'when the relation is persisted' do
+      context 'when the association is persisted' do
         it 'passes the validation' do
           Post.new(:author => Author.create).valid?.should == true
         end
@@ -232,13 +232,13 @@ describe 'NoBrainer callbacks' do
     context 'when using validates_presence_of' do
       before { Post.validates_presence_of :author }
 
-      context 'when the relation is not persisted' do
+      context 'when the association is not persisted' do
         it 'fails the validation' do
           Post.new(:author => Author.new).valid?.should == false
         end
       end
 
-      context 'when the relation is persisted' do
+      context 'when the association is persisted' do
         it 'passes the validation' do
           Post.new(:author => Author.create).valid?.should == true
         end

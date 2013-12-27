@@ -1,4 +1,4 @@
-module NoBrainer::Document::Relation::Core
+module NoBrainer::Document::Association::Core
   extend ActiveSupport::Concern
 
   module Metadata
@@ -12,20 +12,20 @@ module NoBrainer::Document::Relation::Core
       @options = options
     end
 
-    def relation_klass
-      @relation_klass ||= self.class.name.deconstantize.constantize
+    def association_klass
+      @association_klass ||= self.class.name.deconstantize.constantize
     end
 
     def new(instance)
-      relation_klass.new(self, instance)
+      association_klass.new(self, instance)
     end
 
     def delegate(method_name, target, options={})
       metadata = self
-      owner_klass.inject_in_layer :relations do
+      owner_klass.inject_in_layer :associations do
         define_method(method_name) do |*args, &block|
           super(*args, &block) if options[:call_super]
-          relation(metadata).__send__(target, *args, &block)
+          association(metadata).__send__(target, *args, &block)
         end
       end
     end

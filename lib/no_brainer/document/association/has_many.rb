@@ -1,8 +1,8 @@
-class NoBrainer::Document::Relation::HasMany
-  include NoBrainer::Document::Relation::Core
+class NoBrainer::Document::Association::HasMany
+  include NoBrainer::Document::Association::Core
 
   class Metadata
-    include NoBrainer::Document::Relation::Core::Metadata
+    include NoBrainer::Document::Association::Core::Metadata
 
     def foreign_key
       # TODO test :foreign_key
@@ -23,7 +23,7 @@ class NoBrainer::Document::Relation::HasMany
 
       if options[:dependent] && !@added_destroy_callback
         metadata = self
-        owner_klass.before_destroy { relation(metadata).before_destroy_callback }
+        owner_klass.before_destroy { association(metadata).before_destroy_callback }
         @added_destroy_callback = true
       end
     end
@@ -40,7 +40,7 @@ class NoBrainer::Document::Relation::HasMany
           hash[fk] << doc
           hash
         end
-      docs_ids.each { |doc, id| doc.relation(self)._write(fk_targets[id]) if fk_targets[id] }
+      docs_ids.each { |doc, id| doc.association(self)._write(fk_targets[id]) if fk_targets[id] }
       fk_targets.values.flatten(1)
     end
   end

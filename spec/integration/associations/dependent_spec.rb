@@ -7,7 +7,7 @@ describe 'dependents' do
   let!(:posts)    { 2.times { Post.create(:author => author) } }
   let!(:comments) { 2.times { |i| 2.times { Comment.create(:post => author.posts[i]) } } }
 
-  context 'when deleting an object with a has_many relation' do
+  context 'when deleting an object with a has_many association' do
     before do
       Author.has_many :posts, :dependent => dependent_type
       Post.has_many :comments, :dependent => dependent_type

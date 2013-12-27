@@ -159,7 +159,7 @@ end
 Model.store_in :database => ->{ 'db_name' }, :table => ->{ 'table_name' }
 
 # Eager Loading:
-# Support nested relations. Example with an author that has many posts which
+# Support nested associations. Example with an author that has many posts which
 # have many comments and categories:
 author.includes(:posts => [:comments, :categories])
 

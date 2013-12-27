@@ -1,8 +1,8 @@
-class NoBrainer::Document::Relation::BelongsTo
-  include NoBrainer::Document::Relation::Core
+class NoBrainer::Document::Association::BelongsTo
+  include NoBrainer::Document::Association::Core
 
   class Metadata
-    include NoBrainer::Document::Relation::Core::Metadata
+    include NoBrainer::Document::Association::Core::Metadata
 
     def foreign_key
       # TODO test :foreign_key
@@ -27,7 +27,7 @@ class NoBrainer::Document::Relation::BelongsTo
 
       if !@added_before_save_callback
         metadata = self
-        owner_klass.before_save { relation(metadata).before_save_callback }
+        owner_klass.before_save { association(metadata).before_save_callback }
         @added_before_save_callback = true
       end
     end
@@ -38,7 +38,7 @@ class NoBrainer::Document::Relation::BelongsTo
       docs_fks = Hash[docs.map { |doc| [doc, doc.read_attribute(foreign_key)] }]
       fks = docs_fks.values.compact.uniq
       fk_targets = Hash[target_criteria.where(:id.in => fks).map { |doc| [doc.id, doc] }]
-      docs_fks.each { |doc, fk| doc.relation(self)._write(fk_targets[fk]) if fk_targets[fk] }
+      docs_fks.each { |doc, fk| doc.association(self)._write(fk_targets[fk]) if fk_targets[fk] }
       fk_targets.values
     end
   end
