@@ -42,7 +42,7 @@ module NoBrainer
              :drop!, :purge!, :to => :database
     delegate :run, :to => 'NoBrainer::QueryRunner'
     delegate :update_indexes, :to => 'NoBrainer::IndexManager'
-    delegate :with_database, :to => 'NoBrainer::QueryRunner::DatabaseSelector'
+    delegate :with_options, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
     delegate :configure, :logger, :to => 'NoBrainer::Config'
   end
 end

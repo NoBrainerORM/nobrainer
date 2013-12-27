@@ -15,7 +15,9 @@ class NoBrainer::Database
   end
 
   def drop!
-    connection.db_drop(Thread.current[:nobrainer_database] || database_name)
+    # FIXME Weird hack.
+    db = (Thread.current[:nobrainer_options] || {})[:db] || database_name
+    connection.db_drop(db)
   end
 
   # Note that truncating each table (purge) is much faster than dropping the
