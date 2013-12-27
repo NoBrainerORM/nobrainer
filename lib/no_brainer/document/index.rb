@@ -49,7 +49,14 @@ module NoBrainer::Document::Index
       end
 
       super
-      index(name, options[:index].is_a?(Hash) ? options[:index] : {}) if options[:index]
+
+      case options[:index]
+      when nil    then
+      when Hash   then index(name, options[:index])
+      when Symbol then index(name, options[:index] => true)
+      when true   then index(name)
+      when false  then remove_index(name)
+      end
     end
 
     def remove_field(name)
