@@ -19,7 +19,7 @@ module NoBrainer::Document::Criteria
              :count, :empty?, :any?,         # Count
              :delete_all, :destroy_all,      # Delete
              :includes,                      # EagerLoading
-             :each,                          # Enumerable
+             :each, :to_a,                   # Enumerable
              :first, :last, :first!, :last!, # First
              :inc_all, :dec_all,             # Inc
              :update_all, :replace_all,      # Update

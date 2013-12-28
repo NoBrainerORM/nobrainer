@@ -19,6 +19,7 @@ module NoBrainer::Criteria::Chainable::Core
     # rescue super because sometimes klass is not set.
     str = to_rql.inspect rescue super
     if str =~ /Erroneous_Portion_Constructed/
+      # Need to fix the rethinkdb gem.
       str = "the rethinkdb gem is flipping out with Erroneous_Portion_Constructed"
     end
     str
