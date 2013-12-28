@@ -11,6 +11,12 @@ module NoBrainer::Criteria::Termination::Cache
     chain { |criteria| criteria._with_cache = false }
   end
 
+  def inspect
+    msg = super
+    msg = "#{msg} \e[1;37m# #{@cache.size} results cached\e[0m" if @cache && with_cache?
+    msg
+  end
+
   def merge!(criteria)
     super
     self._with_cache = criteria._with_cache unless criteria._with_cache.nil?
