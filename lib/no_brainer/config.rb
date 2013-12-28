@@ -4,7 +4,7 @@ module NoBrainer::Config
                    :auto_create_databases, :auto_create_tables,
                    :cache_documents, :auto_include_timestamps,
                    :max_reconnection_tries, :include_root_in_json,
-                   :durability
+                   :durability, :colorize_logger
 
     def apply_defaults
       self.rethinkdb_url           = default_rethinkdb_url
@@ -17,6 +17,7 @@ module NoBrainer::Config
       self.max_reconnection_tries  = 10
       self.include_root_in_json    = false
       self.durability              = default_durability
+      self.colorize_logger         = true
     end
 
     def reset!

@@ -25,7 +25,8 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
     end
 
     if env[:options][:db] && !env[:options][:db].is_a?(RethinkDB::RQL)
-      env[:options][:db] = RethinkDB::RQL.new.db(env[:options][:db].to_s)
+      env[:db_name] = env[:options][:db].to_s
+      env[:options][:db] = RethinkDB::RQL.new.db(env[:db_name])
     end
 
     @runner.call(env)

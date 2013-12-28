@@ -9,7 +9,7 @@ module NoBrainer
   extend NoBrainer::Autoload
 
   autoload :Config, :Document, :Connection, :Database, :Error, :QueryRunner,
-           :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging
+           :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging, :Util
 
   DecoratedSymbol.hook
 
