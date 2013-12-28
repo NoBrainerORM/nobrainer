@@ -97,3 +97,12 @@ describe 'NoBrainer bulk inserts' do
     end
   end
 end
+
+describe 'sync' do
+  before { load_simple_document }
+
+  it 'syncs' do
+    # This one is a little hard to test...
+    SimpleDocument.sync.should == true
+  end
+end

@@ -116,5 +116,9 @@ module NoBrainer::Document::Persistance
       result = NoBrainer.run(rql_table.insert(*attrs))
       result['generated_keys'].to_a
     end
+
+    def sync
+      NoBrainer.run(rql_table.sync)['synced'] == 1
+    end
   end
 end
