@@ -9,9 +9,10 @@ module NoBrainer
   extend NoBrainer::Autoload
 
   autoload :Config, :Document, :Connection, :Database, :Error, :QueryRunner,
-           :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging, :Util
+           :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging, :Util, :Fork
 
   DecoratedSymbol.hook
+  Fork.hook
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,
