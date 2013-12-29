@@ -1,7 +1,7 @@
-No Brainer
+NoBrainer
 ===========
 
-No Brainer is a Ruby ORM for [RethinkDB](http://www.rethinkdb.com/).
+NoBrainer is a Ruby ORM for [RethinkDB](http://www.rethinkdb.com/).
 
 Documentation
 -------------
