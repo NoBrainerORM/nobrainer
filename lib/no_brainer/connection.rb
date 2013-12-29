@@ -3,7 +3,7 @@ require 'rethinkdb'
 class NoBrainer::Connection
   # A connection is bound to a specific database.
 
-  attr_accessor :uri, :host, :port, :database_name
+  attr_accessor :uri, :host, :port, :database_name, :auth_key
 
   def initialize(uri)
     self.uri = uri
@@ -11,7 +11,7 @@ class NoBrainer::Connection
   end
 
   def raw
-    @raw ||= RethinkDB::Connection.new(:host => host, :port => port, :db => database_name)
+    @raw ||= RethinkDB::Connection.new(:host => host, :port => port, :db => database_name, :auth_key => auth_key)
   end
 
   delegate :reconnect, :close, :run, :to => :raw
@@ -48,5 +48,6 @@ class NoBrainer::Connection
     self.host = uri.host
     self.port = uri.port || 28015
     self.database_name = uri.path.gsub(/^\//, '')
+    self.auth_key = uri.password.to_s
   end
 end
