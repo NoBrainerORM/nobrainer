@@ -20,7 +20,7 @@ class NoBrainer::Document::Association::BelongsTo
 
       owner_klass.field foreign_key, :index => options[:index]
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
-      add_callback_for(:before_save)
+      add_callback_for(:after_validation)
     end
 
     def eager_load(docs, criteria=nil)
@@ -55,7 +55,7 @@ class NoBrainer::Document::Association::BelongsTo
     _write(target)
   end
 
-  def before_save_callback
+  def after_validation_callback
     if @target && !@target.persisted?
       raise NoBrainer::Error::AssociationNotSaved.new("#{target_name} must be saved first")
     end
