@@ -11,9 +11,6 @@ module NoBrainer
   autoload :Config, :Document, :Connection, :Database, :Error, :QueryRunner,
            :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging, :Util, :Fork
 
-  DecoratedSymbol.hook
-  Fork.hook
-
   class << self
     # Note: we always access the connection explicitly, so that in the future,
     # we can refactor to return a connection depending on the context.
@@ -45,7 +42,14 @@ module NoBrainer
     delegate :update_indexes, :to => 'NoBrainer::IndexManager'
     delegate :with_options, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
     delegate :configure, :logger, :to => 'NoBrainer::Config'
+
+    def jruby?
+      RUBY_PLATFORM == 'java'
+    end
   end
+
+  DecoratedSymbol.hook
+  Fork.hook unless jruby?
 end
 
 ActiveSupport.on_load(:i18n) do
