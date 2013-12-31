@@ -2,6 +2,7 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
+    VALID_BELONGS_TO_OPTIONS = [:foreign_key, :class_name, :index]
     include NoBrainer::Document::Association::Core::Metadata
 
     def foreign_key
@@ -16,7 +17,7 @@ class NoBrainer::Document::Association::BelongsTo
 
     def hook
       super
-      options.assert_valid_keys(:foreign_key, :class_name, :index)
+      options.assert_valid_keys(*VALID_BELONGS_TO_OPTIONS)
 
       owner_klass.field foreign_key, :index => options[:index]
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)

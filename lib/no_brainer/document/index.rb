@@ -1,4 +1,5 @@
 module NoBrainer::Document::Index
+  VALID_INDEX_OPTIONS = [:multi]
   extend ActiveSupport::Concern
 
   included do
@@ -11,7 +12,7 @@ module NoBrainer::Document::Index
     def index(name, *args)
       name = name.to_sym
       options = args.extract_options!
-      options.assert_valid_keys(:multi)
+      options.assert_valid_keys(*NoBrainer::Document::Index::VALID_INDEX_OPTIONS)
 
       raise "Too many arguments: #{args}" if args.size > 1
 

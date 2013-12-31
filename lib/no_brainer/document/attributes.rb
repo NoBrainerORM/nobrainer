@@ -1,4 +1,5 @@
 module NoBrainer::Document::Attributes
+  VALID_FIELD_OPTIONS = [:index, :default]
   extend ActiveSupport::Concern
 
   included do
@@ -81,7 +82,7 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
-      options.assert_valid_keys(:index, :default)
+      options.assert_valid_keys(*NoBrainer::Document::Attributes::VALID_FIELD_OPTIONS)
       if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
         raise "Cannot use a reserved field name: #{name}"
       end
