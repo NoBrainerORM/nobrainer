@@ -81,7 +81,7 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
-      options.assert_valid_keys(:index, :default)
+      options.assert_valid_keys(:index, :default, :type)
       if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
         raise "Cannot use a reserved field name: #{name}"
       end
