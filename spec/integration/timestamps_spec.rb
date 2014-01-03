@@ -36,15 +36,4 @@ describe "NoBrainer timestamps" do
       expect { SimpleDocument.create }.not_to raise_error
     end
   end
-
-  context 'when not using timestamps through the config' do
-    before { NoBrainer::Config.auto_include_timestamps = false }
-    before { load_simple_document }
-
-    it 'does not make any created_at/updated_at fields visible' do
-      expect { SimpleDocument.new.created_at }.to raise_error NoMethodError
-      expect { SimpleDocument.new.updated_at }.to raise_error NoMethodError
-      expect { SimpleDocument.create }.not_to raise_error
-    end
-  end
 end

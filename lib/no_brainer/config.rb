@@ -2,8 +2,7 @@ module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
-                   :cache_documents, :auto_include_timestamps,
-                   :max_reconnection_tries, :include_root_in_json,
+                   :cache_documents, :max_reconnection_tries,
                    :durability, :colorize_logger
 
     def apply_defaults
@@ -13,9 +12,7 @@ module NoBrainer::Config
       self.auto_create_databases   = true
       self.auto_create_tables      = true
       self.cache_documents         = true
-      self.auto_include_timestamps = true
       self.max_reconnection_tries  = 10
-      self.include_root_in_json    = false
       self.durability              = default_durability
       self.colorize_logger         = true
     end
