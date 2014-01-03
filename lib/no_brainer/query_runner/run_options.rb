@@ -1,6 +1,5 @@
 class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
   # XXX NoBrainer::Database#drop() uses Thread.current[:nobrainer_options]
-  # We should fix that hack.
 
   def self.with_database(db_name, &block)
     with_options(:db => db_name, &block)

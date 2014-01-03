@@ -7,7 +7,7 @@ class NoBrainer::Document::Association::HasMany
 
     def foreign_key
       # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{owner_klass.name.underscore}_id"
+      options[:foreign_key].try(:to_sym) || owner_klass.name.foreign_key.to_sym
     end
 
     def target_klass

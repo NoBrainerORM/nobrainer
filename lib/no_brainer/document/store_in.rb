@@ -20,7 +20,7 @@ module NoBrainer::Document::StoreIn
     def table_name
       table = store_in_options[:table]
       table_name = table.is_a?(Proc) ? table.call : table
-      table_name || root_class.name.underscore.gsub('/', '__').pluralize
+      table_name || root_class.name.tableize.gsub('/', '__')
     end
 
     def rql_table

@@ -43,7 +43,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
   private
 
   def effective_order
-    self.order.present? ? self.order : {:id => :asc}
+    self.order.presence || {:id => :asc}
   end
 
   def reverse_order?
