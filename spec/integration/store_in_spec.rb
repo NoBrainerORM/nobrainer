@@ -83,7 +83,7 @@ describe 'NoBrainer store_in' do
       @table = 'table1'
       SimpleDocument.count.should == 1
 
-      NoBrainer.database.table_list.should =~ ['table1', 'table2']
+      NoBrainer.table_list.should =~ ['table1', 'table2']
     end
   end
 

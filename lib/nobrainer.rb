@@ -34,10 +34,10 @@ module NoBrainer
       end
     end
 
-    # No not use modules to extend, it's nice to see the NoBrainer module API here.
-    delegate :db_create, :db_drop, :db_list, :database, :to => :connection
-    delegate :table_create, :table_drop, :table_list,
-             :drop!, :purge!, :to => :database
+    # Not using modules to extend, it's nicer to see the NoBrainer module API here.
+    delegate :db_create, :db_drop, :db_list,
+             :table_create, :table_drop, :table_list,
+             :drop!, :purge!, :to => :connection
     delegate :run, :to => 'NoBrainer::QueryRunner'
     delegate :update_indexes, :to => 'NoBrainer::IndexManager'
     delegate :with_options, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
