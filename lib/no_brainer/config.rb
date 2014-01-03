@@ -38,16 +38,14 @@ module NoBrainer::Config
     end
 
     def default_rethinkdb_url
-      return ENV['RETHINKDB_URL'] if ENV['RETHINKDB_URL']
-
-      if defined?(Rails)
-        host = ENV['RETHINKDB_HOST'] || 'localhost'
-        port = ENV['RETHINKDB_PORT']
-        auth = ENV['RETHINKDB_AUTH']
-        db_name = "#{Rails.application.class.parent_name.underscore}_#{Rails.env}"
-
-        "rethinkdb://#{":#{auth}@" if auth}#{host}#{":#{port}" if port}/#{db_name}"
-      end
+      db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
+      db ||= "#{Rails.application.class.parent_name.underscore}_#{Rails.env}" if defined?(Rails)
+      host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
+      port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
+      auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
+      url = ENV['RETHINKDB_URL'] || ENV['RDB_URL']
+      url ||= "rethinkdb://#{":#{auth}@" if auth}#{host}#{":#{port}" if port}/#{db}" if db
+      url
     end
 
     def default_logger
