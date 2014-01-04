@@ -13,7 +13,7 @@ module NoBrainer::Criteria::Chainable::Limit
   end
   alias_method :offset, :skip
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     self._skip = criteria._skip if criteria._skip
     self._limit = criteria._limit if criteria._limit

@@ -10,12 +10,17 @@ module NoBrainer::Criteria::Termination::EagerLoading
 
   def includes(*values)
     raise "Please enable caching with NoBrainer::Config.cache_documents = true" unless NoBrainer::Config.cache_documents
-    chain { |criteria| criteria._includes = values }
+    chain(:keep_cache => true) { |criteria| criteria._includes = values }
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     self._includes = self._includes + criteria._includes
+
+    # XXX Not pretty hack
+    if criteria._includes.present? && cached?
+      perform_eager_loading(@cache)
+    end
   end
 
   def each(options={}, &block)
@@ -23,7 +28,7 @@ module NoBrainer::Criteria::Termination::EagerLoading
 
     docs = []
     super(options.merge(:no_eager_loading => true)) { |doc| docs << doc }
-    eager_load(docs, self._includes)
+    perform_eager_loading(docs)
     docs.each(&block)
     self
   end
@@ -35,30 +40,12 @@ module NoBrainer::Criteria::Termination::EagerLoading
   end
 
   def get_one(criteria)
-    super.tap { |doc| eager_load([doc], self._includes) if should_eager_load? }
+    super.tap { |doc| perform_eager_loading([doc]) }
   end
 
-  def eager_load_association(docs, association_name, criteria=nil)
-    docs = docs.compact
-    return if docs.empty?
-    association = docs.first.root_class.association_metadata[association_name.to_sym]
-    raise "Unknown association #{association_name}" unless association
-    association.eager_load(docs, criteria)
-  end
-
-  def eager_load(docs, includes)
-    case includes
-    when Hash  then includes.each do |k,v|
-      if v.is_a?(NoBrainer::Criteria)
-        v = v.dup
-        nested_includes, v._includes = v._includes, []
-        eager_load(eager_load_association(docs, k, v), nested_includes)
-      else
-        eager_load(eager_load_association(docs, k), v)
-      end
-    end
-    when Array then includes.each { |v| eager_load(docs, v) }
-    else eager_load_association(docs, includes)
+  def perform_eager_loading(docs)
+    if should_eager_load? && docs.present?
+      NoBrainer::Document::Association::EagerLoader.new.eager_load(docs, self._includes)
     end
   end
 end

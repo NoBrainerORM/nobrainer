@@ -4,6 +4,7 @@ class NoBrainer::Document::Association::HasMany
   class Metadata
     VALID_HAS_MANY_OPTIONS = [:foreign_key, :class_name, :dependent]
     include NoBrainer::Document::Association::Core::Metadata
+    extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       # TODO test :foreign_key
@@ -21,41 +22,31 @@ class NoBrainer::Document::Association::HasMany
       add_callback_for(:before_destroy)
     end
 
-    def eager_load(docs, criteria=nil)
-      target_criteria = target_klass.all
-      target_criteria = target_criteria.merge(criteria) if criteria
-      docs_ids = Hash[docs.map { |doc| [doc, doc.id] }]
-      fk_targets = target_criteria
-        .where(foreign_key.in => docs_ids.values)
-        .reduce({}) do |hash, doc|
-          fk = doc.read_attribute(foreign_key)
-          hash[fk] ||= []
-          hash[fk] << doc
-          hash
-        end
-      docs_ids.each { |doc, id| doc.association(self)._write(fk_targets[id]) if fk_targets[id] }
-      fk_targets.values.flatten(1)
-    end
+    eager_load_with :owner_key => ->{ :id }, :target_key => ->{ foreign_key }
   end
 
-  def children_criteria
-    @children_criteria ||= target_klass.where(foreign_key => instance.id)
+  def target_criteria
+    @target_criteria ||= target_klass.where(foreign_key => instance.id)
   end
 
   def read
-    children_criteria
+    target_criteria
   end
 
   def write(new_children)
     raise "You can't assign the array of #{target_name}. Instead, you must modify delete and create #{target_klass} manually."
   end
 
-  def _write(new_children)
-    children_criteria._override_cache(new_children)
+  def loaded?
+    target_criteria.cached?
+  end
+
+  def preload(new_children)
+    target_criteria._override_cache(new_children)
   end
 
   def before_destroy_callback
-    criteria = children_criteria.unscoped
+    criteria = target_criteria.unscoped.without_cache
     case metadata.options[:dependent]
     when nil       then
     when :destroy  then criteria.destroy_all

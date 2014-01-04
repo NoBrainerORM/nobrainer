@@ -17,10 +17,10 @@ module NoBrainer::Criteria::Termination::Cache
     msg
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     self._with_cache = criteria._with_cache unless criteria._with_cache.nil?
-    self.reload
+    self.reload unless options[:keep_cache]
     self
   end
 
@@ -32,6 +32,10 @@ module NoBrainer::Criteria::Termination::Cache
     @cache = nil
   end
 
+  def cached?
+    !!@cache
+  end
+
   def each(options={}, &block)
     return super unless with_cache? && !options[:no_cache] && block
     return @cache.each(&block) if @cache
@@ -41,7 +45,7 @@ module NoBrainer::Criteria::Termination::Cache
       block.call(instance)
       cache << instance
     end
-    @cache = cache
+    @cache = cache.freeze
     self
   end
 
@@ -49,19 +53,19 @@ module NoBrainer::Criteria::Termination::Cache
     @cache = cache
   end
 
+  def self.use_cache_for(*methods)
+    methods.each do |method|
+      define_method(method) do |*args, &block|
+        @cache ? @cache.__send__(method, *args, &block) : super(*args, &block)
+      end
+    end
+  end
+
   def self.reload_on(*methods)
     methods.each do |method|
       define_method(method) do |*args, &block|
         reload
         super(*args, &block).tap { reload }
-      end
-    end
-  end
-
-  def self.use_cache_for(*methods)
-    methods.each do |method|
-      define_method(method) do |*args, &block|
-        @cache ?  @cache.__send__(method, *args, &block) : super(*args, &block)
       end
     end
   end

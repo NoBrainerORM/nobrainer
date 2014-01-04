@@ -1,6 +1,6 @@
 module NoBrainer::Document::Association
   extend NoBrainer::Autoload
-  autoload :Core, :BelongsTo, :HasMany
+  autoload :Core, :BelongsTo, :HasMany, :EagerLoader
 
   extend ActiveSupport::Concern
 

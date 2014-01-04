@@ -38,6 +38,45 @@ describe 'eager_loading' do
     end
   end
 
+  context 'when eager loading nested associations with multiple includes' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      a = Author.includes(:posts => :author).includes(:posts => :comments).first
+      a.should == author
+      a.posts.to_a.should == posts
+      a.posts.each do |post|
+        post.author.should == author
+        post.comments.to_a.should == comments.select { |c| c.post == post }
+      end
+    end
+  end
+
+  context 'when eager loading after the fact' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      a = Author.includes(:posts => :comments).first
+      a.should == author
+      a.posts.to_a.should == posts
+      a.posts.includes(:author).each do |post|
+        post.author.should == author
+        post.comments.to_a.should == comments.select { |c| c.post == post }
+      end
+    end
+  end
+
+  context 'when eager loading after the fact on top of an existing eager load' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      a = Author.includes(:posts => [:author, :comments]).first
+      a.should == author
+      a.posts.to_a.should == posts
+      a.posts.includes(:comments).each do |post|
+        post.author.should == author
+        post.comments.to_a.should == comments.select { |c| c.post == post }
+      end
+    end
+  end
+
   context 'when eager loading nested associations with criterias' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times

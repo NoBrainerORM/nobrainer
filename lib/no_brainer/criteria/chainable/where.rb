@@ -30,7 +30,7 @@ module NoBrainer::Criteria::Chainable::Where
     index_finder.could_find_index?
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     clauses = self.where_ast.clauses + criteria.where_ast.clauses
     self.where_ast = MultiOperator.new(:and, clauses).simplify
@@ -58,6 +58,7 @@ module NoBrainer::Criteria::Chainable::Where
 
   class BinaryOperator < Struct.new(:key, :op, :value)
     def simplify
+      # TODO Simplify the in uniq
       self
     end
 

@@ -1,14 +1,14 @@
 module NoBrainer::Criteria::Chainable::Core
   extend ActiveSupport::Concern
 
-  included { attr_accessor :options }
+  included { attr_accessor :init_options }
 
   def initialize(options={})
-    self.options = options
+    self.init_options = options
   end
 
   def klass
-    options[:klass]
+    init_options[:klass]
   end
 
   def to_rql
@@ -29,13 +29,13 @@ module NoBrainer::Criteria::Chainable::Core
     NoBrainer.run(rql || to_rql)
   end
 
-  def merge!(criteria)
-    self.options = self.options.merge(criteria.options)
+  def merge!(criteria, options={})
+    self.init_options = self.init_options.merge(criteria.init_options)
     self
   end
 
-  def merge(criteria)
-    dup.tap { |new_criteria| new_criteria.merge!(criteria) }
+  def merge(criteria, options={})
+    dup.tap { |new_criteria| new_criteria.merge!(criteria, options) }
   end
 
   def ==(other)
@@ -46,10 +46,10 @@ module NoBrainer::Criteria::Chainable::Core
 
   private
 
-  def chain(&block)
-    tmp = self.class.new(options) # we might want to optimize that thing
+  def chain(options={}, &block)
+    tmp = self.class.new(self.init_options) # we might want to optimize that thing
     block.call(tmp)
-    merge(tmp)
+    merge(tmp, options)
   end
 
   def compile_rql_pass1

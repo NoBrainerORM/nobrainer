@@ -28,7 +28,7 @@ module NoBrainer::Criteria::Chainable::OrderBy
     end
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     # The latest order_by() wins
     self.order = criteria.order if criteria.order.present?

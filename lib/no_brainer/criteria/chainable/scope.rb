@@ -11,7 +11,7 @@ module NoBrainer::Criteria::Chainable::Scope
     chain { |criteria| criteria.use_default_scope = false }
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     self.use_default_scope = criteria.use_default_scope unless criteria.use_default_scope.nil?
     self

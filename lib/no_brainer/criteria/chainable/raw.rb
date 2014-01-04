@@ -7,7 +7,7 @@ module NoBrainer::Criteria::Chainable::Raw
     chain { |criteria| criteria._raw = true }
   end
 
-  def merge!(criteria)
+  def merge!(criteria, options={})
     super
     self._raw = criteria._raw unless criteria._raw.nil?
     self
