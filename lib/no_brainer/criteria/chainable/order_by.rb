@@ -50,7 +50,9 @@ module NoBrainer::Criteria::Chainable::OrderBy
     !!self._reverse_order
   end
 
-  def compile_rql
+  def compile_rql_pass1
+    rql = super
+
     rql_rules = effective_order.map do |k,v|
       case v
       when :asc  then reverse_order? ? RethinkDB::RQL.new.desc(k) : RethinkDB::RQL.new.asc(k)
@@ -58,16 +60,31 @@ module NoBrainer::Criteria::Chainable::OrderBy
       end
     end
 
-    options = {}
-    unless without_index?
+    # We can only apply an index order_by on a table() term.
+    # We are going to try to go so and if we cannot, we'll simply apply
+    # the ordering in pass2, which will happen after a potential filter().
+
+    if rql.body.type == Term::TermType::TABLE && !without_index?
+      options = {}
       first_key = effective_order.first[0]
-      first_key = nil if first_key == :id # FIXME For some reason, using the id index doesn't work.
       if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
         options[:index] = rql_rules.shift
       end
+
+      rql = rql.order_by(*rql_rules, options)
+    else
+      # Stashing @rql_rules for pass2, which is a pretty gross hack.
+      # We should really use more of a middleware pattern to build the RQL.
+      @rql_rules_pass2 = rql_rules
     end
 
-    super.order_by(*rql_rules, options)
+    rql
+  end
+
+  def compile_rql_pass2
+    rql = super
+    rql = rql.order_by(*@rql_rules_pass2) if @rql_rules_pass2
+    rql
   end
 
   def raise_bad_rule(rule)

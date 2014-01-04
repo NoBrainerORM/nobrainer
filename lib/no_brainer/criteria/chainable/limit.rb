@@ -22,7 +22,7 @@ module NoBrainer::Criteria::Chainable::Limit
 
   private
 
-  def compile_rql
+  def compile_rql_pass2
     rql = super
     rql = rql.skip(_skip) if _skip
     rql = rql.limit(_limit) if _limit

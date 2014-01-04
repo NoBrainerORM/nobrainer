@@ -23,11 +23,11 @@ module NoBrainer::Criteria::Chainable::Where
   end
 
   def used_index
-    IndexFinder.new(compile_criteria).tap { |finder| finder.find_index }.index_name
+    index_finder.index_name
   end
 
   def indexed?
-    !!used_index
+    index_finder.could_find_index?
   end
 
   def merge!(criteria)
@@ -132,6 +132,17 @@ module NoBrainer::Criteria::Chainable::Where
   end
 
   class IndexFinder < Struct.new(:criteria, :index_name, :indexed_values, :ast)
+    def initialize(*args)
+      super
+      find_index
+    end
+
+    def could_find_index?
+      !!self.index_name
+    end
+
+    private
+
     def get_candidate_clauses(*types)
       Hash[criteria.where_ast.clauses
         .select { |c| c.is_a?(BinaryOperator) && types.include?(c.op) }
@@ -175,23 +186,30 @@ module NoBrainer::Criteria::Chainable::Where
     end
 
     def find_index
-      return false if criteria.__send__(:without_index?)
-      could_find_index = find_index_canonical || find_index_compound
-      if criteria.with_index_name && !could_find_index
+      return if criteria.__send__(:without_index?)
+      find_index_canonical || find_index_compound
+      if criteria.with_index_name && !could_find_index?
         raise NoBrainer::Error::CannotUseIndex.new("Cannot use index #{criteria.with_index_name}")
       end
-      !!could_find_index
     end
   end
 
-  def compile_rql
+  def index_finder
+    return with_default_scope_applied.__send__(:index_finder) if should_apply_default_scope?
+    @index_finder ||= IndexFinder.new(self)
+  end
+
+  def compile_rql_pass1
     rql = super
-    ast = self.where_ast
-    finder = IndexFinder.new(self)
-    if finder.find_index
-      ast = finder.ast
-      rql = rql.get_all(*finder.indexed_values, :index => finder.index_name)
+    if index_finder.could_find_index?
+      rql = rql.get_all(*index_finder.indexed_values, :index => index_finder.index_name)
     end
+    rql
+  end
+
+  def compile_rql_pass2
+    rql = super
+    ast = index_finder.could_find_index? ? index_finder.ast : self.where_ast
     rql = rql.filter { |doc| ast.to_rql(doc) } if ast.clauses.present?
     rql
   end

@@ -12,7 +12,7 @@ module NoBrainer::Criteria::Chainable::Core
   end
 
   def to_rql
-    compile_criteria.__send__(:compile_rql)
+    with_default_scope_applied.__send__(:compile_rql_pass2)
   end
 
   def inspect
@@ -52,16 +52,14 @@ module NoBrainer::Criteria::Chainable::Core
     merge(tmp)
   end
 
-  def compile_criteria
-    # This method is overriden by other modules.
-    # compile_criteria returns a criteria that will be used to generate the RQL.
-    # This is useful to apply the class default scope at the very end of the chain.
-    self
-  end
-
-  def compile_rql
+  def compile_rql_pass1
     # This method is overriden by other modules.
     raise "Criteria not bound to a class" unless klass
     klass.rql_table
+  end
+
+  def compile_rql_pass2
+    # This method is overriden by other modules.
+    compile_rql_pass1
   end
 end

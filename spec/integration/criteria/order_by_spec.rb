@@ -143,6 +143,13 @@ describe 'order_by' do
           .should == [[1,1],[1,2],[2,1],[2,2]]
       end
     end
+
+    context 'when using a filter' do
+      it 'orders documents properly' do
+        SimpleDocument.where(:field2 => 1).order_by(:field1)
+          .map(&:field1).should == [1,2]
+      end
+    end
   end
 
   context 'when mixing the two with on order_by call' do
