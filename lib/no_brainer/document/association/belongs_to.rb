@@ -38,7 +38,7 @@ class NoBrainer::Document::Association::BelongsTo
   end
 
   def read
-    return @target_container.first if loaded? && NoBrainer::Config.cache_documents
+    return @target_container.first if loaded?
 
     if fk = instance.read_attribute(foreign_key)
       preload(target_klass.find(fk))

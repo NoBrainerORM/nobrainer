@@ -9,7 +9,6 @@ module NoBrainer::Criteria::Termination::EagerLoading
   end
 
   def includes(*values)
-    raise "Please enable caching with NoBrainer::Config.cache_documents = true" unless NoBrainer::Config.cache_documents
     chain(:keep_cache => true) { |criteria| criteria._includes = values }
   end
 

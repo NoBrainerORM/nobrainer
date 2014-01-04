@@ -25,7 +25,7 @@ module NoBrainer::Criteria::Termination::Cache
   end
 
   def with_cache?
-    @_with_cache.nil? ?  NoBrainer::Config.cache_documents : @_with_cache
+    @_with_cache != false
   end
 
   def reload

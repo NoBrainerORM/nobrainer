@@ -79,28 +79,4 @@ describe 'belongs_to' do
       expect { Comment.create(:post => Comment.new) }.to raise_error NoBrainer::Error::InvalidType
     end
   end
-
-  context 'when enabling the cache globally' do
-    let!(:post)    { Post.create }
-    let!(:comment) { Comment.create(:post => post) }
-
-    it 'uses the cache' do
-      comment.post.should == post
-      Post.delete_all
-      comment.post.should == post
-    end
-  end
-
-  context 'when disabling the cache globally' do
-    before { NoBrainer::Config.cache_documents = false }
-
-    let!(:post)    { Post.create }
-    let!(:comment) { Comment.create(:post => post) }
-
-    it 'does not use the cache' do
-      comment.post.should == post
-      Post.delete_all
-      comment.post.should == nil
-    end
-  end
 end
