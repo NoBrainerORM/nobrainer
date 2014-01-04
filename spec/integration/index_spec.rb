@@ -64,6 +64,15 @@ describe 'NoBrainer index' do
     end
   end
 
+  context 'when indexing a field normally, but without creating the index' do
+    before { SimpleDocument.index :field1 }
+
+    it 'raises' do
+      SimpleDocument.where(:field1 => 'ohai').indexed?.should == true
+      expect { SimpleDocument.where(:field1 => 'ohai').count }.to raise_error NoBrainer::Error::MissingIndex
+    end
+  end
+
   context 'when indexing a field normally' do
     before do
       SimpleDocument.index :field1

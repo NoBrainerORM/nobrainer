@@ -5,6 +5,7 @@ module NoBrainer::Error
   class DocumentNotSaved    < StandardError; end
   class ChildrenExist       < StandardError; end
   class CannotUseIndex      < StandardError; end
+  class MissingIndex        < StandardError; end
   class InvalidType         < StandardError; end
   class AssociationNotSaved < StandardError; end
 end

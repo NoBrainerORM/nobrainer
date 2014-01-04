@@ -11,7 +11,7 @@ module NoBrainer::QueryRunner
   end
 
   autoload :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
-           :Connection, :Selection, :RunOptions, :Logger
+           :Connection, :Selection, :RunOptions, :Logger, :MissingIndex
 
   class << self
     attr_accessor :stack
@@ -29,6 +29,7 @@ module NoBrainer::QueryRunner
     use RunOptions
     use Connection
     use WriteError
+    use MissingIndex
     use DatabaseOnDemand
     use TableOnDemand
     use Logger
