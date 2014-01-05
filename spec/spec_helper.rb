@@ -26,7 +26,4 @@ RSpec.configure do |config|
     NoBrainer.purge!
     NoBrainer::Loader.cleanup
   end
-
-  config.after do
-  end
 end

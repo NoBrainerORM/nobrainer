@@ -2,7 +2,7 @@ class NoBrainer::Document::Association::HasMany
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_HAS_MANY_OPTIONS = [:foreign_key, :class_name, :dependent]
+    VALID_OPTIONS = [:foreign_key, :class_name, :dependent]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
@@ -31,7 +31,6 @@ class NoBrainer::Document::Association::HasMany
 
     def hook
       super
-      options.assert_valid_keys(*VALID_HAS_MANY_OPTIONS)
       add_callback_for(:before_destroy) if options[:dependent]
     end
 

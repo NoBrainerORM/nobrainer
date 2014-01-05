@@ -31,6 +31,7 @@ module NoBrainer::Document::Association::Core
     end
 
     def hook
+      options.assert_valid_keys(*self.class.const_get(:VALID_OPTIONS))
       delegate("#{target_name}=", :write)
       delegate("#{target_name}", :read)
     end
