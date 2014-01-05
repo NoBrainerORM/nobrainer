@@ -5,13 +5,12 @@ module NoBrainer::Document::Association
   extend ActiveSupport::Concern
 
   included do
-    class << self; attr_accessor :association_metadata; end
+    singleton_class.send(:attr_accessor, :association_metadata)
     self.association_metadata = {}
   end
 
-  def association(metadata)
-    @associations ||= {}
-    @associations[metadata] ||= metadata.new(self)
+  def associations
+    @associations ||= Hash.new { |h, metadata| h[metadata] = metadata.new(self) }
   end
 
   module ClassMethods

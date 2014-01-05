@@ -25,7 +25,7 @@ module NoBrainer::Document::Association::Core
       owner_klass.inject_in_layer :associations do
         define_method(method_name) do |*args, &block|
           super(*args, &block) if options[:call_super]
-          association(metadata).__send__(target, *args, &block)
+          associations[metadata].__send__(target, *args, &block)
         end
       end
     end
@@ -40,7 +40,7 @@ module NoBrainer::Document::Association::Core
       instance_eval <<-RUBY, __FILE__, __LINE__+1
         if !@added_#{what}
           metadata = self
-          owner_klass.#{what} { association(metadata).#{what}_callback }
+          owner_klass.#{what} { associations[metadata].#{what}_callback }
           @added_#{what} = true
         end
       RUBY

@@ -69,7 +69,7 @@ class NoBrainer::Document::Association::HasMany
       # is defined, we set the association regardless.
       # The user won't be able to access it since the association accessors are
       # not defined on the parent class.
-      @inverses.each { |inverse| target.association(inverse).preload(self.owner) }
+      @inverses.each { |inverse| target.associations[inverse].preload(self.owner) }
     end
   end
 

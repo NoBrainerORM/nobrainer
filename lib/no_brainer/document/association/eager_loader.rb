@@ -11,7 +11,7 @@ class NoBrainer::Document::Association::EagerLoader
         criteria = criteria.merge(additional_criteria) if additional_criteria
         criteria = criteria.unscoped if options[:unscoped]
 
-        unloaded_docs = docs.reject { |doc| doc.association(self).loaded? }
+        unloaded_docs = docs.reject { |doc| doc.associations[self].loaded? }
 
         owner_keys = unloaded_docs.map(&owner_key).compact.uniq
         if owner_keys.present?
@@ -21,11 +21,11 @@ class NoBrainer::Document::Association::EagerLoader
 
           unloaded_docs.each do |doc|
             doc_targets = targets[doc.read_attribute(owner_key)]
-            doc.association(self).preload(doc_targets)
+            doc.associations[self].preload(doc_targets)
           end
         end
 
-        docs.map { |doc| doc.association(self).read }.flatten.compact.uniq
+        docs.map { |doc| doc.associations[self].read }.flatten.compact.uniq
       end
     end
   end
