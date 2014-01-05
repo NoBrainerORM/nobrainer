@@ -23,9 +23,11 @@ class NoBrainer::Document::Association::BelongsTo
       owner_klass.field foreign_key, :index => options[:index]
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       add_callback_for(:after_validation)
+      # TODO test if we are not overstepping on another foreign_key
     end
 
-    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ :id }, :unscoped => true
+    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ :id },
+                    :unscoped => true
   end
 
   # Note:
@@ -40,14 +42,14 @@ class NoBrainer::Document::Association::BelongsTo
   def read
     return @target_container.first if loaded?
 
-    if fk = instance.read_attribute(foreign_key)
+    if fk = owner.read_attribute(foreign_key)
       preload(target_klass.find(fk))
     end
   end
 
   def write(target)
     assert_target_type(target)
-    instance.write_attribute(foreign_key, target.try(:id))
+    owner.write_attribute(foreign_key, target.try(:id))
     preload(target)
   end
 

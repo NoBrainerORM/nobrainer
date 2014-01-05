@@ -22,6 +22,13 @@ describe 'has_many' do
     it 'is scopable' do
       post.comments.where(:body => 1).count.should == 1
     end
+
+    it 'caches the reverse association' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
+      Post.first.comments.each do |comment|
+        comment.post.should == post
+      end
+    end
   end
 
   context 'when appending' do

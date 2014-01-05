@@ -16,8 +16,8 @@ module NoBrainer::Document::Association::Core
       @association_klass ||= self.class.name.deconstantize.constantize
     end
 
-    def new(instance)
-      association_klass.new(self, instance)
+    def new(owner)
+      association_klass.new(self, owner)
     end
 
     def delegate(method_name, target, options={})
@@ -46,13 +46,12 @@ module NoBrainer::Document::Association::Core
     end
   end
 
-  included { attr_accessor :metadata, :instance }
+  included { attr_accessor :metadata, :owner }
 
   delegate :foreign_key, :target_name, :target_klass, :to => :metadata
 
-  def initialize(metadata, instance)
-    @metadata = metadata
-    @instance = instance
+  def initialize(metadata, owner)
+    @metadata, @owner = metadata, owner
   end
 
   def assert_target_type(value)

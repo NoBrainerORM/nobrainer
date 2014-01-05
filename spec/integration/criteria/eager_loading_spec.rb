@@ -27,7 +27,7 @@ describe 'eager_loading' do
 
   context 'when eager loading nested associations' do
     it 'eager loads' do
-      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
       a = Author.includes(:posts => [:author, :comments]).first
       a.should == author
       a.posts.to_a.should == posts
@@ -40,7 +40,7 @@ describe 'eager_loading' do
 
   context 'when eager loading nested associations with multiple includes' do
     it 'eager loads' do
-      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
       a = Author.includes(:posts => :author).includes(:posts => :comments).first
       a.should == author
       a.posts.to_a.should == posts
@@ -53,7 +53,7 @@ describe 'eager_loading' do
 
   context 'when eager loading after the fact' do
     it 'eager loads' do
-      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
       a = Author.includes(:posts => :comments).first
       a.should == author
       a.posts.to_a.should == posts
@@ -66,7 +66,7 @@ describe 'eager_loading' do
 
   context 'when eager loading after the fact on top of an existing eager load' do
     it 'eager loads' do
-      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
       a = Author.includes(:posts => [:author, :comments]).first
       a.should == author
       a.posts.to_a.should == posts
@@ -79,7 +79,7 @@ describe 'eager_loading' do
 
   context 'when eager loading nested associations with criterias' do
     it 'eager loads' do
-      expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
       a = Author.includes(:posts => Post.where(:title.gte => 1).includes(
                             :author, :comments => Comment.where(:body.gte => 1))).first
       a.should == author
