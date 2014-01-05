@@ -39,8 +39,7 @@ module NoBrainer::Criteria::Chainable::Core
   end
 
   def ==(other)
-    return super if other.is_a?(NoBrainer::Criteria)
-    return to_a == other if other.is_a?(Enumerable) && other.first.is_a?(NoBrainer::Document)
+    return to_a == other if other.is_a?(Array)
     super
   end
 
