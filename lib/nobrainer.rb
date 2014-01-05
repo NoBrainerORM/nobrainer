@@ -40,7 +40,7 @@ module NoBrainer
              :drop!, :purge!, :to => :connection
     delegate :run, :to => 'NoBrainer::QueryRunner'
     delegate :update_indexes, :to => 'NoBrainer::IndexManager'
-    delegate :with_options, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
+    delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
     delegate :configure, :logger, :to => 'NoBrainer::Config'
 
     def jruby?
