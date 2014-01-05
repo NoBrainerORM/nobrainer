@@ -5,9 +5,7 @@ module NoBrainer::Document::Criteria
     self.class.selector_for(id)
   end
 
-  included do
-    class_attribute :default_scope_proc
-  end
+  included { cattr_accessor :default_scope_proc, :instance_accessor => false }
 
   module ClassMethods
     delegate :to_rql,                        # Core
@@ -39,6 +37,7 @@ module NoBrainer::Document::Criteria
 
     def default_scope(criteria=nil, &block)
       criteria ||= block
+      raise "store_in() must be called on the parent class" unless is_root_class?
       self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
     end
 

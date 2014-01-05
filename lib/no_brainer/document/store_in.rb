@@ -1,14 +1,16 @@
+require 'rethinkdb'
+
 module NoBrainer::Document::StoreIn
   extend ActiveSupport::Concern
 
   included do
-    class_attribute :store_in_options
+    cattr_accessor :store_in_options, :instance_accessor => false
     self.store_in_options = {}
   end
 
   module ClassMethods
     def store_in(options)
-      raise "store_in() must be called on the parent class" unless root_class?
+      raise "store_in() must be called on the parent class" unless is_root_class?
       self.store_in_options.merge!(options)
     end
 

@@ -3,7 +3,7 @@ module NoBrainer::Document::Index
   extend ActiveSupport::Concern
 
   included do
-    class_attribute :indexes
+    cattr_accessor :indexes, :instance_accessor => false
     self.indexes = {}
     self.index :id
   end
@@ -12,7 +12,7 @@ module NoBrainer::Document::Index
     def index(name, *args)
       name = name.to_sym
       options = args.extract_options!
-      options.assert_valid_keys(*NoBrainer::Document::Index::VALID_INDEX_OPTIONS)
+      options.assert_valid_keys(*VALID_INDEX_OPTIONS)
 
       raise "Too many arguments: #{args}" if args.size > 1
 
@@ -24,7 +24,7 @@ module NoBrainer::Document::Index
       end
 
       # FIXME Primary key may not always be :id
-      if name.in?(NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS)
+      if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
         raise "Cannot use a reserved field name: #{name}"
       end
       if has_field?(name) && kind != :single

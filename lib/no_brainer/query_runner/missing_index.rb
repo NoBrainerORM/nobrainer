@@ -6,5 +6,6 @@ class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
       raise NoBrainer::Error::MissingIndex.new("Please run \"rake db:update_indexes\" to create index `#{$1}`\n" +
                                                "--> Read http://nobrainer.io/docs/indexes for more information.")
     end
+    raise
   end
 end

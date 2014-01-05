@@ -3,7 +3,7 @@ module NoBrainer::Document::Polymorphic
   include ActiveSupport::DescendantsTracker
 
   included do
-    class_attribute :root_class
+    cattr_accessor :root_class
     self.root_class = self
   end
 

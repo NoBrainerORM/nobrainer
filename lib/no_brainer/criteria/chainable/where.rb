@@ -1,8 +1,6 @@
 module NoBrainer::Criteria::Chainable::Where
   extend ActiveSupport::Concern
 
-  RESERVED_FIELDS = [:index, :default, :and, :or] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
-
   included { attr_accessor :where_ast, :with_index_name }
 
   def initialize(options={})

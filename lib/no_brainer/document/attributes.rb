@@ -1,11 +1,12 @@
 module NoBrainer::Document::Attributes
   VALID_FIELD_OPTIONS = [:index, :default]
+  RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
 
   included do
     # Not using class_attribute because we want to
     # use our custom logic
-    class << self; attr_accessor :fields; end
+    singleton_class.send(:attr_accessor, :fields)
     self.fields = {}
   end
 
@@ -82,8 +83,8 @@ module NoBrainer::Document::Attributes
     def field(name, options={})
       name = name.to_sym
 
-      options.assert_valid_keys(*NoBrainer::Document::Attributes::VALID_FIELD_OPTIONS)
-      if name.in? NoBrainer::Criteria::Chainable::Where::RESERVED_FIELDS
+      options.assert_valid_keys(*VALID_FIELD_OPTIONS)
+      if name.in?(RESERVED_FIELD_NAMES)
         raise "Cannot use a reserved field name: #{name}"
       end
 
