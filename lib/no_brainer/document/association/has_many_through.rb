@@ -26,6 +26,6 @@ class NoBrainer::Document::Association::HasManyThrough
   end
 
   def write(new_children)
-    raise "You can't assign the array of #{target_name}"
+    raise "You can't assign #{target_name}"
   end
 end

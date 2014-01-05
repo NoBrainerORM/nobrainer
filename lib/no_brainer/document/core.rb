@@ -1,7 +1,7 @@
 module NoBrainer::Document::Core
   extend ActiveSupport::Concern
 
-  class << self; attr_accessor :all; end
+  singleton_class.send(:attr_accessor, :all)
   self.all = []
 
   # TODO This assume the primary key is id.

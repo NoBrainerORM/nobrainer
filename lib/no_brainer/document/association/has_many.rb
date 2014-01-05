@@ -47,7 +47,7 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def write(new_children)
-    raise "You can't assign the array of #{target_name}. " +
+    raise "You can't assign #{target_name}. " +
           "Instead, you must modify delete and create #{target_klass} manually."
   end
 
