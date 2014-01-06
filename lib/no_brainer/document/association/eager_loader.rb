@@ -34,6 +34,7 @@ class NoBrainer::Document::Association::EagerLoader
     docs = docs.compact
     return [] if docs.empty?
     meta = docs.first.root_class.association_metadata
+    # TODO test the singularize thingy.
     association = meta[association_name.to_sym] || meta[association_name.to_s.singularize.to_sym]
     raise "Unknown association #{association_name}" unless association
     association.eager_load(docs, criteria)

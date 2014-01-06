@@ -23,7 +23,6 @@ module NoBrainer::Document::Index
         else raise "Index argument must be a lambda or a list of fields"
       end
 
-      # FIXME Primary key may not always be :id
       if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
         raise "Cannot use a reserved field name: #{name}"
       end

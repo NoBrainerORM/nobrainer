@@ -45,7 +45,7 @@ module NoBrainer::Criteria::Termination::Cache
       block.call(instance)
       cache << instance
     end
-    @cache = cache.freeze
+    @cache = cache
     self
   end
 

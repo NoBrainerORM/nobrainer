@@ -1,6 +1,7 @@
 module NoBrainer::Document::Association
   extend NoBrainer::Autoload
   autoload :Core, :BelongsTo, :HasMany, :HasManyThrough, :HasOne, :HasOneThrough, :EagerLoader
+  METHODS = [:belongs_to, :has_many, :has_one]
 
   extend ActiveSupport::Concern
 
@@ -19,7 +20,7 @@ module NoBrainer::Document::Association
       subclass.association_metadata = self.association_metadata.dup
     end
 
-    [:belongs_to, :has_many, :has_one].each do |association|
+    METHODS.each do |association|
       define_method(association) do |target, options={}|
         target = target.to_sym
 
