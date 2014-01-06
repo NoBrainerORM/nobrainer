@@ -1,8 +1,13 @@
-require 'active_support/core_ext'
-
 if Gem::Version.new(RUBY_VERSION.dup) < Gem::Version.new('1.9')
   raise 'Please use Ruby 1.9 or later'
 end
+
+# Load only what we need from ActiveSupport
+require 'active_support/concern'
+require 'active_support/lazy_load_hooks'
+%w(module/delegation module/attribute_accessors class/attribute object/blank
+   object/inclusion object/duplicable hash/keys hash/reverse_merge array/extract_options)
+  .each { |dep| require "active_support/core_ext/#{dep}" }
 
 module NoBrainer
   require 'no_brainer/autoload'

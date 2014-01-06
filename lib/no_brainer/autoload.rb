@@ -1,3 +1,5 @@
+require 'active_support/dependencies/autoload'
+
 module NoBrainer::Autoload
   include ActiveSupport::Autoload
 

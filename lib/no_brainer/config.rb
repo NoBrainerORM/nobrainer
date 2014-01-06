@@ -1,3 +1,5 @@
+require 'logger'
+
 module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
