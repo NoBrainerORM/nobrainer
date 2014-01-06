@@ -60,14 +60,13 @@ module NoBrainer::Document::Attributes
   end
   def attributes=(*args); assign_attributes(*args); end
 
-  # TODO test that thing
-  def inspect
-    attrs = self.class.fields.keys.map { |f| "#{f}: #{@attributes[f.to_s].inspect}" }
-    "#<#{self.class} #{attrs.join(', ')}>"
+  def inspectable_attributes
+    # TODO test that thing
+    Hash[@attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }]
   end
 
-  def to_s
-    inspect
+  def inspect
+    "#<#{self.class} #{inspectable_attributes.map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
   end
 
   module ClassMethods
