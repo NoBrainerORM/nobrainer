@@ -1,7 +1,9 @@
-require "nobrainer"
-require "rails"
+require 'nobrainer'
 
 class NoBrainer::Railtie < Rails::Railtie
+  config.app_generators.orm :nobrainer
+  config.eager_load_namespaces << NoBrainer
+
   config.action_dispatch.rescue_responses.merge!(
     "NoBrainer::Errors::DocumentNotFound" => :not_found,
     "NoBrainer::Errors::DocumentInvalid"  => :unprocessable_entity,
@@ -16,7 +18,7 @@ class NoBrainer::Railtie < Rails::Railtie
 
     if defined?(ActiveRecord) && NoBrainer::Config.warn_on_active_record
       STDERR.puts "[NoBrainer] WARNING: ActiveRecord is loaded which is probably not what you want."
-      STDERR.puts "[NoBrainer] Follow the instructions on http://todo/ to learn how to remove ActiveRecord."
+      STDERR.puts "[NoBrainer] Follow the instructions on http://nobrainer.io/docs/configuration/#removing_activerecord"
       STDERR.puts "[NoBrainer] Configure NoBrainer with 'config.warn_on_active_record = false' to disable with warning."
     end
 
@@ -30,6 +32,4 @@ class NoBrainer::Railtie < Rails::Railtie
       NoBrainer::Loader.cleanup
     end
   end
-
-  #config.eager_load_namespaces << NoBrainer
 end

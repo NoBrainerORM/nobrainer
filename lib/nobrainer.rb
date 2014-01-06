@@ -8,8 +8,9 @@ module NoBrainer
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
-  autoload :Config, :Document, :Connection, :Database, :Error, :QueryRunner,
-           :Criteria, :DecoratedSymbol, :IndexManager, :Loader, :Logging, :Util, :Fork
+  # We eager load things that could be loaded for the first time during the web request
+  autoload :Document, :IndexManager, :Loader, :Fork, :DecoratedSymbol
+  eager_autoload :Config, :Connection, :Error, :QueryRunner, :Criteria, :Util
 
   class << self
     # Note: we always access the connection explicitly, so that in the future,

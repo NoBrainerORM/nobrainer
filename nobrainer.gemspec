@@ -1,12 +1,9 @@
 # encoding: utf-8
 $:.unshift File.expand_path("../lib", __FILE__)
-$:.unshift File.expand_path("../../lib", __FILE__)
-
-require 'no_brainer/version'
 
 Gem::Specification.new do |s|
   s.name        = "nobrainer"
-  s.version     = NoBrainer::VERSION
+  s.version     = '0.9.0'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Nicolas Viennot"]
   s.email       = ["nicolas@viennot.biz"]

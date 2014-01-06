@@ -1,0 +1,13 @@
+<% module_namespacing do -%>
+class <%= class_name %><%= " < #{options[:parent].classify}" if options[:parent] %>
+<% unless options[:parent] -%>
+  include NoBrainer::Document
+<% end -%>
+<% attributes.reject(&:reference?).each do |attribute| -%>
+  field :<%= attribute.name %>
+<% end -%>
+<% attributes.select(&:reference?).each do |attribute| -%>
+  belongs_to :<%= attribute.name %>
+<% end -%>
+end
+<% end -%>
