@@ -2,8 +2,8 @@ module NoBrainer::Document::Timestamps
   extend ActiveSupport::Concern
 
   included do
-    self.field :created_at
-    self.field :updated_at
+    self.field :created_at, :type => Time
+    self.field :updated_at, :type => Time
 
     before_create { self.created_at = Time.now if self.respond_to?(:created_at=) }
     before_save   { self.updated_at = Time.now if self.respond_to?(:updated_at=) }

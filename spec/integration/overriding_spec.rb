@@ -24,17 +24,17 @@ describe 'NoBrainer layers' do
     it 'supports super' do
       SimpleDocument.class_eval do
         def field1=(value)
-          super "#{value}!"
+          super(value.to_s)
         end
       end
 
       # TODO Dry this up: shared example or simple method?
-      doc = SimpleDocument.new(:field1 => 'ohai')
-      doc.field1.should == 'ohai!'
+      doc = SimpleDocument.new(:field1 => 1)
+      doc.field1.should == '1'
       doc.save
-      SimpleDocument.first.field1.should == 'ohai!'
-      doc.update_attributes(:field1 => 'hello')
-      SimpleDocument.first.field1.should == 'hello!'
+      SimpleDocument.first.field1.should == '1'
+      doc.update_attributes(:field1 => 1)
+      SimpleDocument.first.field1.should == '1'
     end
   end
 end

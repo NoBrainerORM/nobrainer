@@ -1,5 +1,5 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default]
+  VALID_FIELD_OPTIONS = [:index, :default, :type]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
 
@@ -40,22 +40,14 @@ module NoBrainer::Document::Attributes
     end
   end
 
+  def _assign_attributes(attrs, options={})
+    attrs.each { |k,v| self.write_attribute(k,v) }
+  end
+
   def assign_attributes(attrs, options={})
-    # XXX We don't save field that are not explicitly set. The row will
-    # therefore not contain nil for unset attributes.
     @attributes.clear if options[:pristine]
-
-    if options[:from_db]
-      # TODO Should we reject undeclared fields ?
-      #
-      # TODO Not using the getter/setters, the dirty tracking won't notice it,
-      # also we should start thinking about custom serializer/deserializer.
-      @attributes.merge! attrs
-    else
-      attrs.each { |k,v| self.write_attribute(k, v) }
-    end
-
-    assign_defaults if options[:pristine] || options[:from_db]
+    _assign_attributes(attrs, options)
+    assign_defaults if options[:pristine]
     self
   end
   def attributes=(*args); assign_attributes(*args); end
@@ -71,7 +63,8 @@ module NoBrainer::Document::Attributes
 
   module ClassMethods
     def new_from_db(attrs, options={})
-      klass_from_attrs(attrs).new(attrs, options.reverse_merge(:from_db => true)) if attrs
+      options = options.reverse_merge(:pristine => true, :from_db => true)
+      klass_from_attrs(attrs).new(attrs, options) if attrs
     end
 
     def inherited(subclass)

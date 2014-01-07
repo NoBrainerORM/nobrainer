@@ -3,7 +3,6 @@ module NoBrainer::Document::Validation
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
 
-  # TODO Test that thing
   def valid?(context=nil)
     super(context || (new_record? ? :create : :update))
   end

@@ -15,9 +15,9 @@ module NoBrainer::Document::Dirty
     @changed_attributes ||= {}
   end
 
-  def assign_attributes(attrs, options={})
-    clear_dirtiness if options[:pristine] || options[:from_db]
+  def _assign_attributes(attrs, options={})
     super
+    clear_dirtiness if options[:pristine]
   end
 
   def clear_dirtiness
