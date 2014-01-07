@@ -1,12 +1,6 @@
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  included do
-    # We namespace our fake Boolean class to avoid polluting the global namespace
-    class_exec { class Boolean; def initialize; raise; end; end }
-    before_validation :add_type_errors
-  end
-
   module CastingRules
     extend self
 
@@ -63,19 +57,30 @@ module NoBrainer::Document::Types
       else raise InvalidType
       end
     end
+
+    def lookup(type)
+      CastingRules.method(type.to_s)
+    rescue NameError
+      proc { raise InvalidType }
+    end
+
+    def cast(value, type, cast_method)
+      return value if value.nil? || type.nil? || value.is_a?(type)
+      cast_method.call(value)
+    end
   end
 
-  def self.cast(value, type, cast_method)
-    return value if value.nil? || type.nil? || value.is_a?(type)
-    cast_method.call(value)
-  end
-
-  def self.lookup_cast_method(type)
-    type = type.to_s
-    type = 'Boolean' if type == 'NoBrainer::Document::Types::Boolean'
-    CastingRules.method(type)
-  rescue NameError
-    proc { raise InvalidType }
+  included do
+    # We namespace our fake Boolean class to avoid polluting the global namespace
+    class_exec do
+      class Boolean
+        def initialize; raise; end
+        def self.inspect; 'Boolean'; end
+        def self.to_s; inspect; end
+        def self.name; inspect; end
+      end
+    end
+    before_validation :add_type_errors
   end
 
   class InvalidType < RuntimeError
@@ -102,12 +107,12 @@ module NoBrainer::Document::Types
       return unless options.has_key?(:type)
       name = name.to_sym
       type = options[:type]
-      cast_method = NoBrainer::Document::Types.lookup_cast_method(type)
+      cast_method = NoBrainer::Document::Types::CastingRules.lookup(type)
 
       inject_in_layer :types do
         define_method("#{name}=") do |value|
           begin
-            value = NoBrainer::Document::Types.cast(value, type, cast_method)
+            value = NoBrainer::Document::Types::CastingRules.cast(value, type, cast_method)
             @pending_type_errors.try(:delete, name)
           rescue NoBrainer::Document::Types::InvalidType => error
             error.type ||= type
