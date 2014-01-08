@@ -5,7 +5,7 @@ module NoBrainer::Document::DynamicAttributes
     if self.respond_to?("#{name}") 
       super
     else
-      @attributes[name.to_s].tap { |value|  attribute_may_change(name, value) if value.respond_to?(:size) }
+      @_attributes[name].tap { |value| attribute_may_change(name, value) if value.respond_to?(:size) }
     end
   end
 
@@ -14,7 +14,7 @@ module NoBrainer::Document::DynamicAttributes
       super
     else
       attribute_may_change(name, read_attribute(name))
-      @attributes[name.to_s] = value
+      @_attributes[name] = value
     end
   end
 end

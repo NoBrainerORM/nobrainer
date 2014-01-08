@@ -82,7 +82,7 @@ module NoBrainer::Document::Persistance
       selector.delete_all
       @destroyed = true
     end
-    # TODO freeze attributes
+    @_attributes.freeze
     true
   end
 

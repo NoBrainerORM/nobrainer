@@ -11,12 +11,12 @@ module NoBrainer::Document::Attributes
   end
 
   def _initialize(attrs={}, options={})
-    @attributes = {}
+    @_attributes = {}.with_indifferent_access
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
   def attributes
-    @attributes.dup.freeze
+    @_attributes.dup.freeze
   end
 
   def read_attribute(name)
@@ -31,7 +31,7 @@ module NoBrainer::Document::Attributes
 
   def assign_defaults
     self.class.fields.each do |name, field_options|
-      if field_options.has_key?(:default) && !@attributes.has_key?(name.to_s)
+      if field_options.has_key?(:default) && !@_attributes.has_key?(name)
         default_value = field_options[:default]
         default_value = default_value.call if default_value.is_a?(Proc)
         self.write_attribute(name, default_value)
@@ -44,7 +44,7 @@ module NoBrainer::Document::Attributes
   end
 
   def assign_attributes(attrs, options={})
-    @attributes.clear if options[:pristine]
+    @_attributes.clear if options[:pristine]
     _assign_attributes(attrs, options)
     assign_defaults if options[:pristine]
     self
@@ -53,7 +53,7 @@ module NoBrainer::Document::Attributes
 
   def inspectable_attributes
     # TODO test that thing
-    Hash[@attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }]
+    Hash[@_attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }]
   end
 
   def inspect
@@ -87,11 +87,11 @@ module NoBrainer::Document::Attributes
       # Using a layer so the user can use super when overriding these methods
       inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}=(value)
-          @attributes['#{name}'] = value
+          @_attributes['#{name}'] = value
         end
 
         def #{name}
-          @attributes['#{name}']
+          @_attributes['#{name}']
         end
       RUBY
     end

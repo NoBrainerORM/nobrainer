@@ -20,7 +20,7 @@ module NoBrainer::Document::Dirty
   def attributes
     # If we leak all the attributes (rare), we perform a copy to ensure that we
     # don't have issues with modified hashes/array. Devs are crazy.
-    super.tap { |attrs| @old_attributes_values = attrs.deep_dup.with_indifferent_access }
+    super.tap { |attrs| @old_attributes_values = attrs.deep_dup }
   end
 
   def _assign_attributes(attrs, options={})
