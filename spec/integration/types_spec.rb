@@ -139,6 +139,13 @@ describe 'types' do
   context 'when using Boolean type' do
     let(:type) { SimpleDocument::Boolean }
 
+    it 'provides a ? method' do
+      doc.field1 = true
+      doc.field1?.should == true
+      doc.field1 = false
+      doc.field1?.should == false
+    end
+
     it 'type checks and casts' do
       doc.field1 = true
       doc.field1.should == true

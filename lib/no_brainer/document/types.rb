@@ -121,11 +121,14 @@ module NoBrainer::Document::Types
           end
           super(value)
         end
+
+        define_method("#{name}?") { !!read_attribute(name) } if type == Boolean
       end
     end
 
     def remove_field(name)
       super
+      # TODO remove the name? if we added it. Low priority though.
       inject_in_layer :types, <<-RUBY, __FILE__, __LINE__ + 1
         undef #{name}=
       RUBY
