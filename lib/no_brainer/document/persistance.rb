@@ -6,8 +6,7 @@ module NoBrainer::Document::Persistance
     define_model_callbacks :create, :update, :save, :destroy, :terminator => 'false'
   end
 
-  # TODO after_initialize, after_find callback
-  def initialize(attrs={}, options={})
+  def _initialize(attrs={}, options={})
     super
     @new_record = !options[:from_db]
   end
@@ -25,56 +24,44 @@ module NoBrainer::Document::Persistance
   end
 
   def reload(options={})
-    unless options[:keep_ivars]
-      id = self.id
-      instance_variables.each { |ivar| remove_instance_variable(ivar) }
-      @attributes = {}
-      self.id = id
-    end
-    assign_attributes(selector.raw.first!, :pristine => true, :from_db => true)
+    attrs = selector.raw.first!
+    instance_variables.each { |ivar| remove_instance_variable(ivar) } unless options[:keep_ivars]
+    initialize(attrs, :pristine => true, :from_db => true)
     self
   end
 
   def _create(options={})
-    run_callbacks :create do
-      if options[:validate] && !valid?
-        false
-      else
-        keys = self.class.insert_all(attributes)
-        self.id ||= keys.first
-        @new_record = false
-        true
-      end
+    if options[:validate] && !valid?
+      false
+    else
+      keys = self.class.insert_all(attributes)
+      self.id ||= keys.first
+      @new_record = false
+      true
     end
   end
 
   def update(options={}, &block)
-    run_callbacks :update do
-      if options[:validate] && !valid?
-        false
-      else
-        selector.update_all(&block)
-        true
-      end
+    if options[:validate] && !valid?
+      false
+    else
+      selector.update_all(&block)
+      true
     end
   end
 
   def replace(options={}, &block)
-    run_callbacks :update do
-      if options[:validate] && !valid?
-        false
-      else
-        selector.replace_all(&block)
-        true
-      end
+    if options[:validate] && !valid?
+      false
+    else
+      selector.replace_all(&block)
+      true
     end
   end
 
   def save(options={})
     options = options.reverse_merge(:validate => true)
-    run_callbacks :save do
-      new_record? ? _create(options) : replace(options) { attributes }
-    end
+    new_record? ? _create(options) : replace(options) { attributes }
   end
 
   def save!(*args)
@@ -100,7 +87,7 @@ module NoBrainer::Document::Persistance
   end
 
   def destroy
-    run_callbacks(:destroy) { delete }
+    delete
   end
 
   module ClassMethods

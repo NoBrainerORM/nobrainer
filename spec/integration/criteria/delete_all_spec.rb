@@ -21,7 +21,8 @@ describe 'delete/destroy' do
     it 'destroys documents' do
       SimpleDocument.destroy_all
       SimpleDocument.count.should == 0
-      SimpleDocument.callbacks.should == [:before_destroy, :after_destroy] * 2
+      SimpleDocument.callbacks.index(:before_destroy).should_not == nil
+      SimpleDocument.callbacks.index(:after_destroy).should_not == nil
     end
 
     it 'returns the array of destroyed documents' do

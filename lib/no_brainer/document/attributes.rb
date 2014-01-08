@@ -10,8 +10,7 @@ module NoBrainer::Document::Attributes
     self.fields = {}
   end
 
-  def initialize(attrs={}, options={})
-    super
+  def _initialize(attrs={}, options={})
     @attributes = {}
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end

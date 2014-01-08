@@ -15,6 +15,4 @@ module NoBrainer::Document::Core
 
     NoBrainer::Document::Core.all << self
   end
-
-  def initialize(attrs={}, options={}); end
 end

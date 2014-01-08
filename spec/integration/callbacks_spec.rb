@@ -10,7 +10,8 @@ describe 'NoBrainer callbacks' do
     context 'when creating' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.should ==
-          [ :before_save, :before_create,
+          [ :before_initialize, :after_initialize,
+            :before_save, :before_create,
             :before_validation, :after_validation,
             :after_create, :after_save]
       end
@@ -48,6 +49,14 @@ describe 'NoBrainer callbacks' do
         SimpleDocument.callbacks.clear
         doc.destroy
         SimpleDocument.callbacks.should == [:before_destroy, :after_destroy]
+      end
+    end
+
+    context 'when reloading' do
+      it 'fires the proper callbacks' do
+        SimpleDocument.callbacks.clear
+        doc.reload
+        SimpleDocument.callbacks.should == [:before_initialize, :after_initialize]
       end
     end
   end

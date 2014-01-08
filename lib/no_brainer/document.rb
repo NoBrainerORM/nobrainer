@@ -5,8 +5,8 @@ module NoBrainer::Document
   extend NoBrainer::Autoload
 
   autoload_and_include :Core, :StoreIn, :InjectionLayer, :Attributes, :Validation, :Types,
-                       :Persistance, :Dirty, :Id, :Association, :Serialization, :Criteria,
-                       :Polymorphic, :Index, :Timestamps
+                       :Persistance, :Callbacks, :Dirty, :Id, :Association, :Serialization,
+                       :Criteria, :Polymorphic, :Index, :Timestamps
 
   autoload :DynamicAttributes
 
