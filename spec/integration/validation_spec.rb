@@ -225,5 +225,40 @@ describe 'NoBrainer callbacks' do
         SimpleDocument.new(:field1 => 3).valid?.should == true
       end
     end
+
+    context 'when using validate' do
+      before do
+        SimpleDocument.class_eval do
+          validate :some_validator
+          def some_validator
+            errors.add(:base, "oh no")
+          end
+        end
+      end
+
+      it 'validates' do
+        SimpleDocument.new.valid?.should == false
+      end
+    end
+  end
+
+  context 'when using validates on the field' do
+    before { SimpleDocument.field :field1, :validates => { :numericality => true } }
+
+    it 'validates' do
+      SimpleDocument.new(:field1 => 'hello').valid?.should == false
+      SimpleDocument.new(:field1 => 3).valid?.should == true
+    end
+  end
+
+  context 'when using validates on a belongs_to' do
+    before { load_blog_models }
+    before { Comment.belongs_to :post, :validates => { :presence => true } }
+
+    it 'validates' do
+      post = Post.create
+      Comment.new.valid?.should == false
+      Comment.new(:post => post).valid?.should == true
+    end
   end
 end

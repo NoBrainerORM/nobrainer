@@ -8,6 +8,11 @@ module NoBrainer::Document::Validation
   end
 
   module ClassMethods
+    def field(name, options={})
+      super
+      validates(name.to_sym, options[:validates]) if options[:validates]
+    end
+
     def validates_uniqueness_of(*attr_names)
       validates_with UniquenessValidator, _merge_attributes(attr_names)
     end

@@ -2,7 +2,7 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:foreign_key, :class_name, :index]
+    VALID_OPTIONS = [:foreign_key, :class_name, :index, :validates]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
@@ -19,7 +19,9 @@ class NoBrainer::Document::Association::BelongsTo
     def hook
       super
 
-      owner_klass.field foreign_key, :index => options[:index]
+      owner_klass.field(foreign_key, :index => options[:index])
+      owner_klass.validates(target_name, options[:validates]) if options[:validates]
+
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       add_callback_for(:after_validation)
       # TODO test if we are not overstepping on another foreign_key
