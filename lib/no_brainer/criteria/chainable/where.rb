@@ -137,7 +137,7 @@ module NoBrainer::Criteria::Chainable::Where
     self.with_index_name == false
   end
 
-  class IndexFinder < Struct.new(:criteria, :index_name, :indexed_values, :ast)
+  class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc, :ast)
     def initialize(*args)
       super
       find_index
@@ -150,9 +150,7 @@ module NoBrainer::Criteria::Chainable::Where
     private
 
     def get_candidate_clauses(*types)
-      Hash[criteria.where_ast.clauses
-        .select { |c| c.is_a?(BinaryOperator) && types.include?(c.op) }
-        .map { |c| [c.key, c] }]
+      criteria.where_ast.clauses.select { |c| c.is_a?(BinaryOperator) && types.include?(c.op) }
     end
 
     def get_usable_indexes(*types)
@@ -163,19 +161,24 @@ module NoBrainer::Criteria::Chainable::Where
     end
 
     def find_index_canonical
-      clauses = get_candidate_clauses(:eq, :in)
+      clauses = Hash[get_candidate_clauses(:eq, :in, :between).map { |c| [c.key, c] }]
       return unless clauses.present?
 
       if index_name = (get_usable_indexes.keys & clauses.keys).first
         clause = clauses[index_name]
         self.index_name = index_name
-        self.indexed_values = clause.op == :in ? clause.value : [clause.value]
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [clause])
+        self.rql_proc = case clause.op
+          when :eq      then ->(rql){ rql.get_all(clause.value, :index => index_name) }
+          when :in      then ->(rql){ rql.get_all(*clause.value, :index => index_name) }
+          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => index_name,
+                                                  :left_bound => :closed, :right_bound => :closed) }
+        end
       end
     end
 
     def find_index_compound
-      clauses = get_candidate_clauses(:eq)
+      clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
       return unless clauses.present?
 
       index_name, index_values = get_usable_indexes(:compound)
@@ -186,14 +189,33 @@ module NoBrainer::Criteria::Chainable::Where
       if index_name
         indexed_clauses = index_values.map { |field| clauses[field] }
         self.index_name = index_name
-        self.indexed_values = [indexed_clauses.map { |c| c.value }]
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - indexed_clauses)
+        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => index_name) }
+      end
+    end
+
+    def find_index_hidden_between
+      clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key)
+      return unless clauses.present?
+
+      if index_name = (get_usable_indexes.keys & clauses.keys).first
+        op_clauses = Hash[clauses[index_name].map { |c| [c.op, c] }]
+        left_bound = op_clauses[:gt] || op_clauses[:ge]
+        right_bound = op_clauses[:lt] || op_clauses[:le]
+
+        self.index_name = index_name
+        self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [left_bound, right_bound].compact)
+
+        options = {:index => index_name}
+        options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
+        options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
+        self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }
       end
     end
 
     def find_index
       return if criteria.__send__(:without_index?)
-      find_index_canonical || find_index_compound
+      find_index_canonical || find_index_compound || find_index_hidden_between
       if criteria.with_index_name && !could_find_index?
         raise NoBrainer::Error::CannotUseIndex.new("Cannot use index #{criteria.with_index_name}")
       end
@@ -207,9 +229,7 @@ module NoBrainer::Criteria::Chainable::Where
 
   def compile_rql_pass1
     rql = super
-    if index_finder.could_find_index?
-      rql = rql.get_all(*index_finder.indexed_values, :index => index_finder.index_name)
-    end
+    rql = index_finder.rql_proc.call(rql) if index_finder.could_find_index?
     rql
   end
 

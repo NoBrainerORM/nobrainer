@@ -103,7 +103,6 @@ describe 'complex where queries' do
         SimpleDocument.where(:field1.lt  => 7).count.should == 6
         SimpleDocument.where(:field1.le  => 7).count.should == 7
         SimpleDocument.where(:field1.lte => 7).count.should == 7
-
       end
     end
 
@@ -161,6 +160,8 @@ describe 'complex where queries' do
     it 'filters documents' do
       SimpleDocument.where(:field1.gte => time + 7).count.should == 3
       SimpleDocument.where(:field1.lt  => time + 7).count.should == 7
+      SimpleDocument.where(:field1.gte => time.utc + 7).count.should == 3
+      SimpleDocument.where(:field1.lt  => time.utc + 7).count.should == 7
     end
   end
 end

@@ -245,4 +245,53 @@ describe 'NoBrainer index' do
       SimpleDocument.used_index.should == :field1
     end
   end
+
+  context 'when using betweens' do
+    before do
+      SimpleDocument.index :field1
+      NoBrainer.update_indexes
+    end
+
+    context 'when using regular values' do
+      before { 10.times.map { |i| SimpleDocument.create(:field1 => i+1) } }
+
+      it 'uses the index' do
+        SimpleDocument.where(:field1 => (3..8)).count.should == 6
+        SimpleDocument.where(:field1.in => (3..8)).count.should == 6
+        SimpleDocument.where(:field1.in => [3,5,9,33]).count.should == 3
+
+        SimpleDocument.where(:field1 => (3..8)).indexed?.should == true
+        SimpleDocument.where(:field1.in => (3..8)).indexed?.should == true
+        SimpleDocument.where(:field1.in => [3,5,9,33]).indexed?.should == true
+
+        SimpleDocument.where(:field1.gt => 7).count.should == 3
+        SimpleDocument.where(:field1.ge => 7).count.should == 4
+        SimpleDocument.where(:field1.lt => 7).count.should == 6
+        SimpleDocument.where(:field1.le => 7).count.should == 7
+        SimpleDocument.where(:field1.gt => 4, :field1.lt => 6).count.should == 1
+        SimpleDocument.where(:field1.ge => 4, :field1.le => 6).count.should == 3
+        SimpleDocument.where(:field1.gt => 4, :field1.gte => 2, :field1.lt => 6, :field1.lte => 8).count.should == 1
+
+        SimpleDocument.where(:field1.gt => 7).indexed?.should == true
+        SimpleDocument.where(:field1.ge => 7).indexed?.should == true
+        SimpleDocument.where(:field1.lt => 7).indexed?.should == true
+        SimpleDocument.where(:field1.le => 7).indexed?.should == true
+        SimpleDocument.where(:field1.gt => 4, :field1.lt => 6).indexed?.should == true
+        SimpleDocument.where(:field1.ge => 4, :field1.le => 6).indexed?.should == true
+        SimpleDocument.where(:field1.gt => 4, :field1.gte => 2, :field1.lt => 6, :field1.lte => 8).indexed?.should == true
+      end
+    end
+
+    context 'when using dates' do
+      let(:time) { Time.now }
+      before { 10.times { |i| SimpleDocument.create(:field1 => time + i) } }
+
+      it 'uses the index' do
+        SimpleDocument.where(:field1.gte => time + 7).count.should == 3
+        SimpleDocument.where(:field1.lt  => time + 7).count.should == 7
+        SimpleDocument.where(:field1.gte => time.utc + 7).count.should == 3
+        SimpleDocument.where(:field1.lt  => time.utc + 7).count.should == 7
+      end
+    end
+  end
 end
