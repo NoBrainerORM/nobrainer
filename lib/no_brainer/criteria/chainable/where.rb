@@ -56,14 +56,21 @@ module NoBrainer::Criteria::Chainable::Where
 
   class BinaryOperator < Struct.new(:key, :op, :value)
     def simplify
-      # TODO Simplify the in uniq
-      self
+      case op
+      when :in then
+        case value
+        when Range then BinaryOperator.new(key, :between, value)
+        when Array then BinaryOperator.new(key, :in, value.uniq)
+        else raise ArgumentError.new ":in takes an array/range, not #{value}"
+        end
+      else self
+      end
     end
 
     def to_rql(doc)
       case op
       when :between then (doc[key] >= value.min) & (doc[key] <= value.max)
-      when :in then value.map { |v| doc[key].eq(v) }.reduce { |a,b| a | b }
+      when :in then RethinkDB::RQL.new.expr(value).contains(doc[key])
       else doc[key].__send__(op, value)
       end
     end
