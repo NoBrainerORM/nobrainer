@@ -5,12 +5,12 @@ describe 'NoBrainer dirty' do
   before { SimpleDocument.disable_timestamps }
 
   it 'tracks attribute changes' do
-    doc = SimpleDocument.create(:field1 => 'hello')
+    doc = SimpleDocument.new(:field1 => 'hello')
+    doc.save
 
     doc.changed?.should == false
     doc.changed.should == []
     doc.changes.should == {}
-    doc.changed_attributes.should == {}
 
     doc.field1_changed?.should == false
     doc.field1_change.should == nil
@@ -29,9 +29,8 @@ describe 'NoBrainer dirty' do
     doc.field3 = nil
 
     doc.changed?.should == true
-    doc.changed.should == [:field1, :field2]
-    doc.changes.should == {:field1 => ['hello', 'ohai'], :field2 => [nil, 'yay']}
-    doc.changed_attributes.should == {:field1 => 'hello', :field2 => nil}
+    doc.changed.should == ['field1', 'field2']
+    doc.changes.should == {'field1' => ['hello', 'ohai'], 'field2' => [nil, 'yay']}
 
     doc.field1_changed?.should == true
     doc.field1_change.should == ['hello', 'ohai']
@@ -50,8 +49,6 @@ describe 'NoBrainer dirty' do
     doc.changed?.should == false
     doc.changed.should == []
     doc.changes.should == {}
-    doc.previous_changes.should == {:field1 => ['hello', 'ohai'], :field2 => [nil, 'yay']}
-    doc.changed_attributes.should == {}
 
     doc.field1_changed?.should == false
     doc.field1_change.should == nil
@@ -83,6 +80,54 @@ describe 'NoBrainer dirty' do
       doc.field1_change.should == [nil, 'hello']
       doc.save
       doc.changed?.should == false
+    end
+  end
+
+  context 'when using hashes' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create(:field1 => {})
+      doc.field1['key'] = 'hello'
+      doc.field1_change.should == [{}, {'key' => 'hello'}]
+    end
+  end
+
+  context 'when using arrays' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create(:field1 => [])
+      doc.field1 << 'hello'
+      doc.field1_change.should == [[], ['hello']]
+    end
+  end
+
+  context 'when using the attributes getter' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create(:field1 => {})
+      doc.attributes['field1']['key'] = 'hello'
+      doc.field1_change.should == [{}, {'key' => 'hello'}]
+    end
+  end
+
+  context 'when nothing changes really' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create(:field1 => 'hi')
+      doc.field1 = 'hi'
+      doc.changed?.should == false
+      doc.field1_changed?.should == false
+    end
+  end
+
+  context 'when using dynamic attributes' do
+    it 'track changes' do
+      SimpleDocument.send(:include, NoBrainer::Document::DynamicAttributes)
+      doc = SimpleDocument.create(:hello => {})
+      doc.changed?.should == false
+      doc.changes.should == {}
+      doc['hello']['xx'] = 123
+      doc.changed?.should == true
+      doc.save
+      doc.changed?.should == false
+      doc['yay'] = 123
+      doc.changed?.should == true
     end
   end
 end

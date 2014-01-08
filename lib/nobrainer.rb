@@ -4,7 +4,7 @@ end
 
 require 'active_support'
 %w(module/delegation module/attribute_accessors class/attribute object/blank object/inclusion
-   object/duplicable object/try hash/keys hash/reverse_merge array/extract_options)
+   object/deep_dup object/try hash/keys hash/indifferent_access hash/reverse_merge array/extract_options)
     .each { |dep| require "active_support/core_ext/#{dep}" }
 
 module NoBrainer
