@@ -13,6 +13,15 @@ class NoBrainer::Railtie < Rails::Railtie
     load "no_brainer/railtie/database.rake"
   end
 
+  console do
+    # Send console messages to standard error like ActiveRecord.
+    # Not the cleanest behavior, but if ActiveRecord does it, why not.
+    unless defined?(ActiveRecord)
+      console = ActiveSupport::Logger.new(STDERR)
+      Rails.logger.extend ActiveSupport::Logger.broadcast(console)
+    end
+  end
+
   config.after_initialize do
     NoBrainer::Config.configure unless NoBrainer::Config.configured?
 
