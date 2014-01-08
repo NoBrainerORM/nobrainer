@@ -16,7 +16,7 @@ module NoBrainer::Document::Criteria
              :with_cache, :without_cache,    # Cache
              :count, :empty?, :any?,         # Count
              :delete_all, :destroy_all,      # Delete
-             :includes,                      # EagerLoading
+             :includes, :preload,            # Preload
              :each, :to_a,                   # Enumerable
              :first, :last, :first!, :last!, # First
              :inc_all, :dec_all,             # Inc

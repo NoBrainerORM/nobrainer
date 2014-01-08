@@ -43,7 +43,7 @@ describe 'has_many_through' do
     end
 
     it 'can be eager loaded' do
-      m1 = Model1.includes(:model4).first
+      m1 = Model1.preload(:model4).first
       NoBrainer.purge!
       m1.model4.count.should == 3
     end
@@ -51,13 +51,13 @@ describe 'has_many_through' do
 
   context 'when going through the belongs_to' do
     it 'can be eager loaded' do
-      m4s = Model4.includes(:model3 => { :model2 => :model1 }).to_a
+      m4s = Model4.preload(:model3 => { :model2 => :model1 }).to_a
       NoBrainer.purge!
       m4s.first.model3.model2.model1.should_not == nil
     end
 
     it 'can be eager loaded with criterias' do
-      m4s = Model4.includes(:model3 => { :model2 => { :model1 => { :model4 => Model4.limit(2) } } }).to_a
+      m4s = Model4.preload(:model3 => { :model2 => { :model1 => { :model4 => Model4.limit(2) } } }).to_a
       NoBrainer.purge!
       m4s.first.model3.model2.model1.model4.should == m4s[0...2]
     end
