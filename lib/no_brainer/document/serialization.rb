@@ -3,7 +3,6 @@ module NoBrainer::Document::Serialization
 
   include ActiveModel::Serialization
   include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
 
   included { self.include_root_in_json = false }
 end

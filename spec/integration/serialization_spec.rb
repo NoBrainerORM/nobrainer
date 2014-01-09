@@ -10,10 +10,4 @@ describe "NoBrainer serialization" do
     # field3 remains unset.
     JSON::parse(doc.to_json).should == {'id' => doc.id, 'field1' => 'hello', 'field2' => nil }
   end
-
-  it 'serializes to xml' do
-    # Not going to parse that crap
-    doc.to_xml.should =~ /xml/
-    doc.to_xml.should =~ /hello/
-  end
 end
