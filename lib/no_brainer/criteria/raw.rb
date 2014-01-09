@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::Raw
+module NoBrainer::Criteria::Raw
   extend ActiveSupport::Concern
 
   included { attr_accessor :_raw }

@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::Core
+module NoBrainer::Criteria::Core
   extend ActiveSupport::Concern
 
   included { attr_accessor :init_options }

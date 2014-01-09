@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Count
+module NoBrainer::Criteria::Count
   extend ActiveSupport::Concern
 
   def count

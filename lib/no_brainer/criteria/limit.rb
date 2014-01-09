@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::Limit
+module NoBrainer::Criteria::Limit
   # TODO Test these guys
   extend ActiveSupport::Concern
 

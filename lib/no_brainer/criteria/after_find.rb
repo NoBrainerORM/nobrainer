@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::AfterFind
+module NoBrainer::Criteria::AfterFind
   extend ActiveSupport::Concern
 
   included { attr_accessor :_after_find }

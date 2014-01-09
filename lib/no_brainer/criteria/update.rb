@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Update
+module NoBrainer::Criteria::Update
   extend ActiveSupport::Concern
 
   def update_all(attrs={}, &block)

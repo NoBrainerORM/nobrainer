@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Inc
+module NoBrainer::Criteria::Inc
   extend ActiveSupport::Concern
 
   def inc_all(field, value=1)

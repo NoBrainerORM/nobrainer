@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::Where
+module NoBrainer::Criteria::Where
   extend ActiveSupport::Concern
 
   included { attr_accessor :where_ast, :with_index_name }

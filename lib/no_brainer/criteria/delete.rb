@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Delete
+module NoBrainer::Criteria::Delete
   extend ActiveSupport::Concern
 
   def delete_all

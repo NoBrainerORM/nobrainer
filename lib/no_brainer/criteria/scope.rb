@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::Scope
+module NoBrainer::Criteria::Scope
   extend ActiveSupport::Concern
 
   included { attr_accessor :use_default_scope }

@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Cache
+module NoBrainer::Criteria::Cache
   extend ActiveSupport::Concern
 
   included { attr_accessor :_with_cache }

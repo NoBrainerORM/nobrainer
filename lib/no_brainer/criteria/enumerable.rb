@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Enumerable
+module NoBrainer::Criteria::Enumerable
   extend ActiveSupport::Concern
 
   def each(options={}, &block)

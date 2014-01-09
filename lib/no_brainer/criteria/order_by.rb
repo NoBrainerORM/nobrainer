@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Chainable::OrderBy
+module NoBrainer::Criteria::OrderBy
   extend ActiveSupport::Concern
 
   included { attr_accessor :order, :_reverse_order }

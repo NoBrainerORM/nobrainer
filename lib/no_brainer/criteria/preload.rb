@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::Preload
+module NoBrainer::Criteria::Preload
   extend ActiveSupport::Concern
 
   included { attr_accessor :_preloads }

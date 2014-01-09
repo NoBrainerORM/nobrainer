@@ -1,4 +1,4 @@
-module NoBrainer::Criteria::Termination::First
+module NoBrainer::Criteria::First
   extend ActiveSupport::Concern
 
   def first
