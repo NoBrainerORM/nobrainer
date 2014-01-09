@@ -6,7 +6,7 @@ module NoBrainer::Document::Id
   extend ActiveSupport::Concern
 
   included do
-    self.field :id, :default => ->{ NoBrainer::Document::Id.generate }
+    self.field :id, :type => String, :default => ->{ NoBrainer::Document::Id.generate }
   end
 
   def ==(other)

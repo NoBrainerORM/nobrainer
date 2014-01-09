@@ -7,6 +7,7 @@ class NoBrainer::Railtie < Rails::Railtie
   config.action_dispatch.rescue_responses.merge!(
     "NoBrainer::Errors::DocumentNotFound" => :not_found,
     "NoBrainer::Errors::DocumentInvalid"  => :unprocessable_entity,
+    "NoBrainer::Errors::InvalidType"      => :bad_request,
   )
 
   rake_tasks do

@@ -19,6 +19,11 @@ class NoBrainer::Document::Association::BelongsTo
     def hook
       super
 
+      # TODO It would be good to set the type we want to work with, but because
+      # the target class is eager loaded, we are not doing it.
+      # This would have the effect of loading all the models because they
+      # are likely to be related to each other. So we don't know the type
+      # of the primary key of the target.
       owner_klass.field(foreign_key, :index => options[:index])
       owner_klass.validates(target_name, options[:validates]) if options[:validates]
 

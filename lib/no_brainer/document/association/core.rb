@@ -57,8 +57,8 @@ module NoBrainer::Document::Association::Core
 
   def assert_target_type(value)
     unless value.is_a?(target_klass) || value.nil?
-      msg = "Trying to use a #{value.class} as a #{target_name}"
-      raise NoBrainer::Error::InvalidType.new(msg)
+      options = { :attr_name => target_name, :value => value, :type => target_klass }
+      raise NoBrainer::Error::InvalidType.new(options)
     end
   end
 end

@@ -3,6 +3,7 @@ module NoBrainer::Document::Types
 
   module CastingRules
     extend self
+    InvalidType = NoBrainer::Error::InvalidType
 
     def String(value)
       case value
@@ -64,9 +65,9 @@ module NoBrainer::Document::Types
       proc { raise InvalidType }
     end
 
-    def cast(value, type, cast_method)
+    def cast(value, type, type_cast_method)
       return value if value.nil? || type.nil? || value.is_a?(type)
-      cast_method.call(value)
+      type_cast_method.call(value)
     end
   end
 
@@ -83,39 +84,41 @@ module NoBrainer::Document::Types
     before_validation :add_type_errors
   end
 
-  class InvalidType < RuntimeError
-    attr_accessor :type
-    def initialize(type=nil)
-      @type = type
-    end
-
-    def validation_error_args
-      [:invalid_type, :type => type.to_s.underscore.humanize.downcase]
-    end
-  end
-
   def add_type_errors
     return unless @pending_type_errors
     @pending_type_errors.each do |name, error|
-      errors.add(name, *error.validation_error_args)
+      errors.add(name, :invalid_type, :type => error.human_type_name)
     end
   end
 
   module ClassMethods
+    def cast_value_for(name, value)
+      name = name.to_sym
+      field_def = fields[name]
+      return value unless field_def && field_def[:type]
+      NoBrainer::Document::Types::CastingRules.cast(value, field_def[:type], field_def[:type_cast_method])
+    rescue NoBrainer::Error::InvalidType => error
+      error.type = field_def[:type]
+      error.value = value
+      error.attr_name = name
+      raise error
+    end
+
     def field(name, options={})
-      super
-      return unless options.has_key?(:type)
+      return super unless options.has_key?(:type)
+
       name = name.to_sym
       type = options[:type]
-      cast_method = NoBrainer::Document::Types::CastingRules.lookup(type)
+      options[:type_cast_method] = NoBrainer::Document::Types::CastingRules.lookup(type)
+
+      super
 
       inject_in_layer :types do
         define_method("#{name}=") do |value|
           begin
-            value = NoBrainer::Document::Types::CastingRules.cast(value, type, cast_method)
+            value = self.class.cast_value_for(name, value)
             @pending_type_errors.try(:delete, name)
-          rescue NoBrainer::Document::Types::InvalidType => error
-            error.type ||= type
+          rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
             @pending_type_errors[name] = error
           end

@@ -54,16 +54,16 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class BinaryOperator < Struct.new(:key, :op, :value)
+  class BinaryOperator < Struct.new(:key, :op, :value, :criteria)
     def simplify
       case op
       when :in then
         case value
-        when Range then BinaryOperator.new(key, :between, value)
-        when Array then BinaryOperator.new(key, :in, value.uniq)
+        when Range then BinaryOperator.new(key, :between, (cast(value.min)..cast(value.max)), criteria)
+        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast)).uniq, criteria)
         else raise ArgumentError.new ":in takes an array/range, not #{value}"
         end
-      else self
+      else BinaryOperator.new(key, op, cast(value), criteria)
       end
     end
 
@@ -73,6 +73,12 @@ module NoBrainer::Criteria::Where
       when :in then RethinkDB::RQL.new.expr(value).contains(doc[key])
       else doc[key].__send__(op, value)
       end
+    end
+
+    private
+
+    def cast(value)
+      criteria.klass.cast_value_for(key, value)
     end
   end
 
@@ -117,19 +123,22 @@ module NoBrainer::Criteria::Where
     when :and then MultiOperator.new(:and, value.map { |v| parse_clause(v) })
     when :or  then MultiOperator.new(:or,  value.map { |v| parse_clause(v) })
     when :not then UnaryOperator.new(:not, parse_clause(value))
-    when String, Symbol then parse_clause_stub(key.to_sym.eq, value)
+    when String, Symbol then parse_clause_stub_eq(key, value)
     when NoBrainer::DecoratedSymbol then
       case key.modifier
       when :ne then parse_clause(:not => { key.symbol => value })
-      when :eq then
-        case value
-        when Range  then BinaryOperator.new(key.symbol, :between, value)
-        when Regexp then BinaryOperator.new(key.symbol, :match, value.inspect[1..-2])
-        else BinaryOperator.new(key.symbol, key.modifier, value)
-        end
-      else BinaryOperator.new(key.symbol, key.modifier, value)
+      when :eq then parse_clause_stub_eq(key.symbol, value)
+      else BinaryOperator.new(key.symbol, key.modifier, value, self)
       end
     else raise "Invalid key: #{key}"
+    end
+  end
+
+  def parse_clause_stub_eq(key, value)
+    case value
+    when Range  then BinaryOperator.new(key, :between, value, self)
+    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self)
+    else BinaryOperator.new(key, :eq, value, self)
     end
   end
 
