@@ -96,19 +96,6 @@ module NoBrainer::Document::Attributes
       RUBY
     end
 
-    def remove_field(name)
-      name = name.to_sym
-
-      ([self] + descendants).each do |klass|
-        klass.fields.delete(name)
-      end
-
-      inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
-        undef #{name}=
-        undef #{name}
-      RUBY
-    end
-
     def has_field?(name)
       !!fields[name.to_sym]
     end

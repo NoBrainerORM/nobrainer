@@ -87,17 +87,5 @@ module NoBrainer::Document::Dirty
         end
       end
     end
-
-    def remove_field(name)
-      super
-
-      inject_in_layer :dirty_tracking, <<-RUBY, __FILE__, __LINE__ + 1
-        undef #{name}_changed?
-        undef #{name}_change
-        undef #{name}_was
-        undef #{name}
-        undef #{name}=
-      RUBY
-    end
   end
 end

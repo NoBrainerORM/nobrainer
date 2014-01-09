@@ -2,7 +2,6 @@ require 'spec_helper'
 
 describe 'NoBrainer dirty' do
   before { load_simple_document }
-  before { SimpleDocument.disable_timestamps }
 
   it 'tracks attribute changes' do
     doc = SimpleDocument.new(:field1 => 'hello')
