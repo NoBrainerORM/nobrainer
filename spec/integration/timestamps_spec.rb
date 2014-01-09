@@ -19,7 +19,7 @@ describe "NoBrainer timestamps" do
       new_time = old_time + 60
 
       Timecop.freeze(old_time) { SimpleDocument.create }
-      Timecop.freeze(new_time) { SimpleDocument.first.update_attributes!(:field1 => 'ohai') }
+      Timecop.freeze(new_time) { SimpleDocument.first.update_attributes(:field1 => 'ohai') }
 
       SimpleDocument.first.created_at.to_i.should == old_time.to_i
       SimpleDocument.first.updated_at.to_i.should == new_time.to_i

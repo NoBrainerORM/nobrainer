@@ -31,37 +31,50 @@ module NoBrainer::Document::Persistance
   end
 
   def _create(options={})
-    if options[:validate] && !valid?
-      false
-    else
-      keys = self.class.insert_all(attributes)
-      self.id ||= keys.first
-      @new_record = false
-      true
-    end
+    return false if options[:validate] && !valid?
+    keys = self.class.insert_all(@_attributes)
+    self.id ||= keys.first
+    @new_record = false
+    true
   end
 
   def update(options={}, &block)
-    if options[:validate] && !valid?
-      false
-    else
-      selector.update_all(&block)
-      true
-    end
+    return false if options[:validate] && !valid?
+    selector.update_all(&block)
+    true
   end
 
   def replace(options={}, &block)
-    if options[:validate] && !valid?
-      false
+    return false if options[:validate] && !valid?
+    selector.replace_all(&block)
+    true
+  end
+
+  def _update_changed_attributes(changed_attrs)
+    # If we have a hash to save, we replace the entire document
+    # instead of doing some smart update. This is because RethinkDB
+    # will merge the existing hash with the given hash. If the
+    # user has deleted some keys, we won't remove them.
+    if changed_attrs.values.any? { |v| v.is_a?(Hash) }
+      selector.replace_all { @_attributes }
     else
-      selector.replace_all(&block)
-      true
+      selector.update_all { changed_attrs }
     end
+  end
+
+  def _update_changed(options={})
+    return false if options[:validate] && !valid?
+
+    # We won't be using the `changes` values, because they went through
+    # read_attribute(), and we want the raw values.
+    changed_attrs = Hash[self.changed.map { |k| [k, @_attributes[k]] }]
+    _update_changed_attributes(changed_attrs) if changed_attrs.present?
+    true
   end
 
   def save(options={})
     options = options.reverse_merge(:validate => true)
-    new_record? ? _create(options) : replace(options) { attributes }
+    new_record? ? _create(options) : _update_changed(options)
   end
 
   def save!(*args)

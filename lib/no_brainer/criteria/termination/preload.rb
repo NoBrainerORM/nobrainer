@@ -28,10 +28,10 @@ module NoBrainer::Criteria::Termination::Preload
   end
 
   def each(options={}, &block)
-    return super unless should_preloads? && !options[:no_preloadsing] && block
+    return super unless should_preloads? && !options[:no_preloading] && block
 
     docs = []
-    super(options.merge(:no_preloadsing => true)) { |doc| docs << doc }
+    super(options.merge(:no_preloading => true)) { |doc| docs << doc }
     perform_preloads(docs)
     docs.each(&block)
     self

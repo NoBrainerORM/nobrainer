@@ -16,7 +16,7 @@ module NoBrainer::Document::Attributes
   end
 
   def attributes
-    @_attributes.dup.freeze
+    Hash[@_attributes.keys.map { |k| [k, read_attribute(k)] }].with_indifferent_access.freeze
   end
 
   def read_attribute(name)

@@ -17,12 +17,6 @@ module NoBrainer::Document::Dirty
     @old_attributes_values.try(:clear)
   end
 
-  def attributes
-    # If we leak all the attributes (rare), we perform a copy to ensure that we
-    # don't have issues with modified hashes/array. Devs are crazy.
-    super.tap { |attrs| @old_attributes_values = attrs.deep_dup }
-  end
-
   def _assign_attributes(attrs, options={})
     super
     clear_dirtiness if options[:from_db]

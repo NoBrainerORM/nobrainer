@@ -53,6 +53,8 @@ describe 'where' do
     it 'does not return documents that have the field set to nil' do
       SimpleDocument.where(:field_new => nil).count.should == 0
       SimpleDocument.field :field_new
+      SimpleDocument.first.update_attributes(:field_new => 'hi')
+      SimpleDocument.where(:field_new => 'hi').count.should == 1
       SimpleDocument.first.update_attributes(:field_new => nil)
       SimpleDocument.where(:field_new => nil).count.should == 1
     end

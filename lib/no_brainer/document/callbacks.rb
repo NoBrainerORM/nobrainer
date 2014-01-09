@@ -23,6 +23,10 @@ module NoBrainer::Document::Callbacks
     run_callbacks(:update) { super }
   end
 
+  def _update_changed(*args)
+    run_callbacks(:update) { super }
+  end
+
   def save(*args)
     run_callbacks(:save) { super }
   end
