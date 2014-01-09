@@ -39,7 +39,7 @@ class NoBrainer::Document::Association::HasMany
 
   def target_criteria
     @target_criteria ||= target_klass.where(foreign_key => owner.id)
-                                     ._after_instantiate(set_inverse_proc)
+                                     .after_find(set_inverse_proc)
   end
 
   def read

@@ -59,6 +59,17 @@ describe 'NoBrainer callbacks' do
         SimpleDocument.callbacks.should == [:before_initialize, :after_initialize]
       end
     end
+
+    context 'when finding' do
+      it 'fires the proper callbacks' do
+        SimpleDocument.callbacks.clear
+        SimpleDocument.each { }
+        SimpleDocument.callbacks.should == [:before_initialize, :after_initialize, :after_find]
+        SimpleDocument.callbacks.clear
+        SimpleDocument.find(doc.id)
+        SimpleDocument.callbacks.should == [:before_initialize, :after_initialize, :after_find]
+      end
+    end
   end
 
   context 'when validation fails on create' do

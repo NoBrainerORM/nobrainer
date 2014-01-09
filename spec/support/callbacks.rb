@@ -6,7 +6,8 @@ module CallbacksHelper
       self.callbacks_of = {}
 
       [:before, :after].each do |when_|
-        [:initialize, :validation, :create, :update, :save, :destroy].each do |action|
+        [:initialize, :find, :validation, :create, :update, :save, :destroy].each do |action|
+          next if action == :find && when_ == :before
           cb = :"#{when_}_#{action}"
           __send__(cb) do
             self.class.callbacks << cb

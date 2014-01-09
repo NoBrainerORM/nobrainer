@@ -4,6 +4,7 @@ module NoBrainer::Document::Callbacks
   included do
     extend ActiveModel::Callbacks
     define_model_callbacks :initialize, :create, :update, :save, :destroy, :terminator => 'false'
+    define_model_callbacks :find, :only => [:after], :terminator => 'false'
   end
 
   def initialize(*args)

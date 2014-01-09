@@ -2,3 +2,4 @@ Gemfile.lock
 *.swp
 .rbenv*
 todo
+*.gem
