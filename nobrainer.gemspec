@@ -7,16 +7,16 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Nicolas Viennot"]
   s.email       = ["nicolas@viennot.biz"]
-  s.homepage    = "http://github.com/nviennot/nobrainer"
+  s.homepage    = "http://nobrainer.io"
   s.summary     = "ORM for RethinkDB"
   s.description = "ORM for RethinkDB"
-  s.license     = 'MIT'
+  s.license     = "LGPLv3"
 
   s.add_dependency "rethinkdb",   "~> 1.11.0.1"
   s.add_dependency "activemodel", ">= 3.2.0", "< 5"
   s.add_dependency "middleware",  "~> 0.1.0"
 
-  s.files        = Dir["lib/**/*"] + ['README.md'] + ['LICENSE.md']
+  s.files        = Dir["lib/**/*"] + ['README.md'] + ['LICENSE']
   s.require_path = 'lib'
   s.has_rdoc     = false
 end
