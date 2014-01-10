@@ -13,7 +13,7 @@ describe 'delete/destroy' do
     end
 
     it 'returns the the number of deleted documents' do
-      SimpleDocument.delete_all.should == 2
+      SimpleDocument.delete_all['deleted'].should == 2
     end
   end
 

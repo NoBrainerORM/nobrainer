@@ -2,7 +2,7 @@ module NoBrainer::Criteria::Delete
   extend ActiveSupport::Concern
 
   def delete_all
-    run(to_rql.delete)['deleted']
+    run(to_rql.delete)
   end
 
   def destroy_all

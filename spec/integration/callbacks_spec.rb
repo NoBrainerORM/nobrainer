@@ -17,14 +17,6 @@ describe 'NoBrainer callbacks' do
       end
     end
 
-    context 'when updating with update' do
-      it 'fires the proper callbacks' do
-        SimpleDocument.callbacks.clear
-        doc.update {{:field1 => 'hello'}}
-        SimpleDocument.callbacks.should == [:before_update, :after_update]
-      end
-    end
-
     context 'when updating with save' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.clear

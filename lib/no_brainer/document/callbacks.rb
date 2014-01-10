@@ -7,31 +7,23 @@ module NoBrainer::Document::Callbacks
     define_model_callbacks :find, :only => [:after], :terminator => 'false'
   end
 
-  def initialize(*args)
+  def initialize(*args, &block)
     run_callbacks(:initialize) { _initialize(*args); true }
   end
 
-  def _create(*args)
+  def _create(*args, &block)
     run_callbacks(:create) { super }
   end
 
-  def update(*args, &block)
+  def _update_only_changed_attrs(*args, &block)
     run_callbacks(:update) { super }
   end
 
-  def replace(*args, &block)
-    run_callbacks(:update) { super }
-  end
-
-  def _update_changed(*args)
-    run_callbacks(:update) { super }
-  end
-
-  def save(*args)
+  def save(*args, &block)
     run_callbacks(:save) { super }
   end
 
-  def destroy(*args)
+  def destroy(*args, &block)
     run_callbacks(:destroy) { super }
   end
 end

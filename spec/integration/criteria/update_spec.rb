@@ -7,17 +7,15 @@ describe 'update' do
 
   context 'when passing a hash of attributes' do
     it 'updates documents' do
-      SimpleDocument.update_all(:field1 => 2).should == 2
+      SimpleDocument.update_all(:field1 => 2)['replaced'].should == 2
       SimpleDocument.where(:field1 => 2).count.should == 2
     end
   end
 
   context 'when passing a block' do
     it 'updates documents' do
-      SimpleDocument.update_all do |doc|
-        {:field1 => doc[:field1] * 2}
-      end.should == 2
-
+      res = SimpleDocument.update_all { |doc| {:field1 => doc[:field1] * 2} }
+      res['replaced'].should == 2
       SimpleDocument.where(:field1 => 20).count.should == 2
     end
   end
