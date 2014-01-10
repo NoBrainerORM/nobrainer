@@ -10,6 +10,7 @@ module NoBrainer::Document::Validation
   module ClassMethods
     def field(name, options={})
       super
+      validates(name.to_sym, { :presence => true }) if options[:required]
       validates(name.to_sym, options[:validates]) if options[:validates]
     end
 

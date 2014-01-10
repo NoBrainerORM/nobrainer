@@ -261,4 +261,24 @@ describe 'NoBrainer callbacks' do
       Comment.new(:post => post).valid?.should == true
     end
   end
+
+  context 'when using required on the field' do
+    before { SimpleDocument.field :field1, :required => true }
+
+    it 'validates' do
+      SimpleDocument.new(:field1 => nil).valid?.should == false
+      SimpleDocument.new(:field1 => 'ohai').valid?.should == true
+    end
+  end
+
+  context 'when using required on a belongs_to' do
+    before { load_blog_models }
+    before { Comment.belongs_to :post, :required => true }
+
+    it 'validates' do
+      post = Post.create
+      Comment.new.valid?.should == false
+      Comment.new(:post => post).valid?.should == true
+    end
+  end
 end

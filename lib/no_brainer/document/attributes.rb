@@ -1,5 +1,5 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default, :type, :type_cast_method, :validates]
+  VALID_FIELD_OPTIONS = [:index, :default, :type, :type_cast_method, :validates, :required]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
 
@@ -81,7 +81,7 @@ module NoBrainer::Document::Attributes
 
       ([self] + descendants).each do |klass|
         klass.fields[name] ||= {}
-        klass.fields[name].merge!(options)
+        klass.fields[name].deep_merge!(options)
       end
 
       # Using a layer so the user can use super when overriding these methods
