@@ -25,7 +25,6 @@ describe 'NoBrainer dirty' do
 
     doc.field1 = 'ohai'
     doc.field2 = 'yay'
-    doc.field3 = nil
 
     doc.changed?.should == true
     doc.changed.should == ['field1', 'field2']
@@ -112,6 +111,15 @@ describe 'NoBrainer dirty' do
       doc.field1 = 'hi'
       doc.changed?.should == false
       doc.field1_changed?.should == false
+    end
+  end
+
+  context 'when changing from undefined to nil' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create
+      doc.field1 = nil
+      doc.changed?.should == true
+      doc.field1_change.should == [nil, nil]
     end
   end
 

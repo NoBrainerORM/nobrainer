@@ -1,12 +1,5 @@
 module NoBrainer::Document::Dirty
   extend ActiveSupport::Concern
-
-  # We are not using ActiveModel::Dirty because it's using
-  # ActiveModel::AttributeMethods which gives pretty violent method_missing()
-  # capabilities, such as giving a getter/setter method for any keys within the
-  # attributes keys. We don't want that.
-  # Also it doesn't work properly with array and hashes
-
   # We need to save the changes as seen through read_attribute because
   # the user sees attributes through the read_attribute getters.
   # But we want to detect changes based on @_attributes to track
@@ -26,12 +19,9 @@ module NoBrainer::Document::Dirty
     super.tap { clear_dirtiness }
   end
 
-  def old_attributes_values
-    @old_attributes_values ||= {}.with_indifferent_access
-  end
-
   def clear_dirtiness
-    @old_attributes_values.try(:clear)
+    @_old_attributes = {}.with_indifferent_access
+    @_old_attributes_keys = @_attributes.keys # to track undefined -> nil changes
   end
 
   def changed?
@@ -44,29 +34,31 @@ module NoBrainer::Document::Dirty
 
   def changes
     result = {}.with_indifferent_access
-    old_attributes_values.each do |attr, old_value|
+    @_old_attributes.each do |attr, old_value|
       current_value = read_attribute(attr)
-      result[attr] = [old_value, current_value] if current_value != old_value
+      if current_value != old_value || !@_old_attributes_keys.include?(attr)
+        result[attr] = [old_value, current_value]
+      end
     end
     result
   end
 
   def attribute_may_change(attr, current_value)
-    unless old_attributes_values.has_key?(attr)
-      old_attributes_values[attr] = current_value.deep_dup
+    unless @_old_attributes.has_key?(attr)
+      @_old_attributes[attr] = current_value.deep_dup
     end
   end
 
   module ClassMethods
     def field(name, options={})
       super
+      name = name.to_s
 
       inject_in_layer :dirty_tracking do
         define_method("#{name}_change") do
-          if old_attributes_values.has_key?(name)
-            result = [old_attributes_values[name], read_attribute(name)]
-            result = nil if result.first == result.last
-            result
+          if @_old_attributes.has_key?(name)
+            result = [@_old_attributes[name], read_attribute(name)]
+            result if result.first != result.last || !@_old_attributes_keys.include?(name)
           end
         end
 
@@ -75,8 +67,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{name}_was") do
-          old_attributes_values.has_key?(name) ?
-            old_attributes_values[name] : read_attribute(name)
+          @_old_attributes.has_key?(name) ? @_old_attributes[name] : read_attribute(name)
         end
 
         define_method("#{name}") do
