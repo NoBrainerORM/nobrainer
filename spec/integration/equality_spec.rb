@@ -26,6 +26,7 @@ describe 'NoBrainer ==' do
 
   context 'when the ids are both nil' do
     it 'returns false' do
+      SimpleDocument.field :id, :readonly => false
       doc1.id = doc2.id = nil
       doc1.should_not == doc2
     end

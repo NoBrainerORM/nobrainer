@@ -8,6 +8,7 @@ module NoBrainer::Error
   class MissingIndex        < RuntimeError; end
   class InvalidType         < RuntimeError; end
   class AssociationNotSaved < RuntimeError; end
+  class ReadonlyField       < RuntimeError; end
 
   class InvalidType < RuntimeError
     attr_accessor :attr_name, :value, :type

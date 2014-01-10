@@ -1,5 +1,5 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default, :type, :type_cast_method, :validates, :required]
+  VALID_FIELD_OPTIONS = [:index, :default, :type, :type_cast_method, :validates, :required, :readonly]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
 
@@ -73,15 +73,11 @@ module NoBrainer::Document::Attributes
 
     def _field(attr, options={})
       # Using a layer so the user can use super when overriding these methods
-      inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
-        def #{attr}=(value)
-          @_attributes['#{attr}'] = value
-        end
-
-        def #{attr}
-          @_attributes['#{attr}']
-        end
-      RUBY
+      attr = attr.to_s
+      inject_in_layer :attributes do
+        define_method("#{attr}=") { |value| @_attributes[attr] = value }
+        define_method("#{attr}")  { @_attributes[attr] }
+      end
     end
 
     def field(attr, options={})

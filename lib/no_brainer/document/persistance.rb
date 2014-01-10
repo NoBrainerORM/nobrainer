@@ -7,8 +7,8 @@ module NoBrainer::Document::Persistance
   end
 
   def _initialize(attrs={}, options={})
-    super
     @new_record = !options[:from_db]
+    super
   end
 
   def new_record?
