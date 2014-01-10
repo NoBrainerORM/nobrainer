@@ -92,41 +92,43 @@ module NoBrainer::Document::Types
   end
 
   module ClassMethods
-    def cast_value_for(name, value)
-      name = name.to_sym
-      field_def = fields[name]
+    def cast_value_for(attr, value)
+      attr = attr.to_sym
+      field_def = fields[attr]
       return value unless field_def && field_def[:type]
       NoBrainer::Document::Types::CastingRules.cast(value, field_def[:type], field_def[:type_cast_method])
     rescue NoBrainer::Error::InvalidType => error
       error.type = field_def[:type]
       error.value = value
-      error.attr_name = name
+      error.attr_name = attr
       raise error
     end
 
-    def field(name, options={})
-      return super unless options.has_key?(:type)
-
-      name = name.to_sym
-      type = options[:type]
-      options[:type_cast_method] = NoBrainer::Document::Types::CastingRules.lookup(type)
-
+    def _field(attr, options={})
       super
 
       inject_in_layer :types do
-        define_method("#{name}=") do |value|
+        define_method("#{attr}=") do |value|
           begin
-            value = self.class.cast_value_for(name, value)
-            @pending_type_errors.try(:delete, name)
+            value = self.class.cast_value_for(attr, value)
+            @pending_type_errors.try(:delete, attr)
           rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
-            @pending_type_errors[name] = error
+            @pending_type_errors[attr] = error
           end
           super(value)
         end
 
-        define_method("#{name}?") { !!read_attribute(name) } if type == Boolean
+        define_method("#{attr}?") { !!read_attribute(attr) } if options[:type] == Boolean
       end
+    end
+
+    def field(attr, options={})
+      if options[:type]
+        type_cast_method = NoBrainer::Document::Types::CastingRules.lookup(options[:type])
+        options = options.merge(:type_cast_method => type_cast_method)
+      end
+      super
     end
   end
 end

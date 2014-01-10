@@ -41,21 +41,19 @@ module NoBrainer::Document::Index
       !!indexes[name.to_sym]
     end
 
-    def field(name, options={})
-      name = name.to_sym
-
-      if has_index?(name) && indexes[name][:kind] != :single
-        raise "Cannot reuse index name #{name}"
+    def _field(attr, options={})
+      if has_index?(attr) && indexes[attr][:kind] != :single
+        raise "Cannot reuse index attr #{attr}"
       end
 
       super
 
       case options[:index]
       when nil    then
-      when Hash   then index(name, options[:index])
-      when Symbol then index(name, options[:index] => true)
-      when true   then index(name)
-      when false  then remove_index(name)
+      when Hash   then index(attr, options[:index])
+      when Symbol then index(attr, options[:index] => true)
+      when true   then index(attr)
+      when false  then remove_index(attr)
       end
     end
 

@@ -71,33 +71,37 @@ module NoBrainer::Document::Attributes
       subclass.fields = self.fields.dup
     end
 
-    def field(name, options={})
-      name = name.to_sym
-
-      options.assert_valid_keys(*VALID_FIELD_OPTIONS)
-      if name.in?(RESERVED_FIELD_NAMES)
-        raise "Cannot use a reserved field name: #{name}"
-      end
-
-      ([self] + descendants).each do |klass|
-        klass.fields[name] ||= {}
-        klass.fields[name].deep_merge!(options)
-      end
-
+    def _field(attr, options={})
       # Using a layer so the user can use super when overriding these methods
       inject_in_layer :attributes, <<-RUBY, __FILE__, __LINE__ + 1
-        def #{name}=(value)
-          @_attributes['#{name}'] = value
+        def #{attr}=(value)
+          @_attributes['#{attr}'] = value
         end
 
-        def #{name}
-          @_attributes['#{name}']
+        def #{attr}
+          @_attributes['#{attr}']
         end
       RUBY
     end
 
-    def has_field?(name)
-      !!fields[name.to_sym]
+    def field(attr, options={})
+      attr = attr.to_sym
+
+      options.assert_valid_keys(*VALID_FIELD_OPTIONS)
+      if attr.in?(RESERVED_FIELD_NAMES)
+        raise "Cannot use a reserved field attr: #{attr}"
+      end
+
+      ([self] + descendants).each do |klass|
+        klass.fields[attr] ||= {}
+        klass.fields[attr].deep_merge!(options)
+      end
+
+      _field(attr, self.fields[attr])
+    end
+
+    def has_field?(attr)
+      !!fields[attr.to_sym]
     end
   end
 end

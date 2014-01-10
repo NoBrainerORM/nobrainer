@@ -8,10 +8,10 @@ module NoBrainer::Document::Validation
   end
 
   module ClassMethods
-    def field(name, options={})
+    def _field(attr, options={})
       super
-      validates(name.to_sym, { :presence => true }) if options[:required]
-      validates(name.to_sym, options[:validates]) if options[:validates]
+      validates(attr, { :presence => true }) if options[:required]
+      validates(attr, options[:validates]) if options[:validates]
     end
 
     def validates_uniqueness_of(*attr_names)

@@ -50,36 +50,36 @@ module NoBrainer::Document::Dirty
   end
 
   module ClassMethods
-    def field(name, options={})
+    def _field(attr, options={})
       super
-      name = name.to_s
+      attr = attr.to_s
 
       inject_in_layer :dirty_tracking do
-        define_method("#{name}_change") do
-          if @_old_attributes.has_key?(name)
-            result = [@_old_attributes[name], read_attribute(name)]
-            result if result.first != result.last || !@_old_attributes_keys.include?(name)
+        define_method("#{attr}_change") do
+          if @_old_attributes.has_key?(attr)
+            result = [@_old_attributes[attr], read_attribute(attr)]
+            result if result.first != result.last || !@_old_attributes_keys.include?(attr)
           end
         end
 
-        define_method("#{name}_changed?") do
-          !!__send__("#{name}_change")
+        define_method("#{attr}_changed?") do
+          !!__send__("#{attr}_change")
         end
 
-        define_method("#{name}_was") do
-          @_old_attributes.has_key?(name) ? @_old_attributes[name] : read_attribute(name)
+        define_method("#{attr}_was") do
+          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute(attr)
         end
 
-        define_method("#{name}") do
+        define_method("#{attr}") do
           super().tap do |value|
             # This take care of string/arrays/hashes that could change without going
             # through the setter.
-            attribute_may_change(name, value) if value.respond_to?(:size)
+            attribute_may_change(attr, value) if value.respond_to?(:size)
           end
         end
 
-        define_method("#{name}=") do |value|
-          attribute_may_change(name, read_attribute(name))
+        define_method("#{attr}=") do |value|
+          attribute_may_change(attr, read_attribute(attr))
           super(value)
         end
       end
