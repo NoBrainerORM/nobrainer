@@ -2,7 +2,7 @@ module NoBrainer::Autoload
   include ActiveSupport::Autoload
 
   def self.extended(base)
-    ActiveSupport::Autoload.extended(base)
+    ActiveSupport::Autoload.send(:extended, base)
   end
 
   def autoload(*constants)

@@ -1,7 +1,3 @@
-if Gem::Version.new(RUBY_VERSION.dup) < Gem::Version.new('1.9')
-  raise 'Please use Ruby 1.9 or later'
-end
-
 require 'active_support'
 %w(module/delegation module/attribute_accessors class/attribute object/blank object/inclusion object/deep_dup
    object/try hash/keys hash/indifferent_access hash/reverse_merge hash/deep_merge array/extract_options)
