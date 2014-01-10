@@ -242,12 +242,12 @@ describe 'types' do
 
   context 'when coming from the database' do
     let(:type) { nil }
-    it 'type check/cast' do
+    it 'does not type check/cast' do
       doc.field1 = '1'
       doc.save
       SimpleDocument.first.field1.should == '1'
       SimpleDocument.field :field1, :type => Integer
-      SimpleDocument.first.field1.should == 1
+      SimpleDocument.first.field1.should == '1'
     end
   end
 end

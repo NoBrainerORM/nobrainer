@@ -39,13 +39,13 @@ module NoBrainer::Document::Attributes
     end
   end
 
-  def _assign_attributes(attrs, options={})
-    attrs.each { |k,v| self.write_attribute(k,v) }
-  end
-
   def assign_attributes(attrs, options={})
     @_attributes.clear if options[:pristine]
-    _assign_attributes(attrs, options)
+    if options[:from_db]
+      @_attributes.merge!(attrs)
+    else
+      attrs.each { |k,v| self.write_attribute(k,v) }
+    end
     assign_defaults if options[:pristine]
     self
   end

@@ -7,7 +7,24 @@ module NoBrainer::Document::Dirty
   # attributes keys. We don't want that.
   # Also it doesn't work properly with array and hashes
 
-  included { after_save { clear_dirtiness } }
+  # We need to save the changes as seen through read_attribute because
+  # the user sees attributes through the read_attribute getters.
+  # But we want to detect changes based on @_attributes to track
+  # things like undefined -> nil. Going through the getters will
+  # not give us that.
+
+  def assign_attributes(attrs, options={})
+    clear_dirtiness if options[:pristine]
+    super
+  end
+
+  def _create(*args)
+    super.tap { clear_dirtiness }
+  end
+
+  def _update(*args)
+    super.tap { clear_dirtiness }
+  end
 
   def old_attributes_values
     @old_attributes_values ||= {}.with_indifferent_access
@@ -15,11 +32,6 @@ module NoBrainer::Document::Dirty
 
   def clear_dirtiness
     @old_attributes_values.try(:clear)
-  end
-
-  def _assign_attributes(attrs, options={})
-    super
-    clear_dirtiness if options[:from_db]
   end
 
   def changed?
