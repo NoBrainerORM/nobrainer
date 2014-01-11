@@ -28,7 +28,7 @@ module NoBrainer
     end
 
     def disconnect
-      @connection.try(:disconnect)
+      @connection.try(:disconnect, :noreply_wait => true)
       @connection = nil
     end
 
