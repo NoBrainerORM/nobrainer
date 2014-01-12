@@ -16,17 +16,19 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
   def call(env)
     env[:options].symbolize_keys!
     if Thread.current[:nobrainer_options]
-      env[:options] = env[:options].reverse_merge(Thread.current[:nobrainer_options])
+      env[:options].reverse_merge!(Thread.current[:nobrainer_options])
     end
 
     if NoBrainer::Config.durability.to_s != 'hard'
-      env[:options] = env[:options].reverse_merge(:durability => NoBrainer::Config.durability)
+      env[:options].reverse_merge!(:durability => NoBrainer::Config.durability)
     end
 
     if env[:options][:db] && !env[:options][:db].is_a?(RethinkDB::RQL)
       env[:db_name] = env[:options][:db].to_s
       env[:options][:db] = RethinkDB::RQL.new.db(env[:db_name])
     end
+
+    env[:criteria] = env[:options].delete(:criteria)
 
     @runner.call(env)
   end

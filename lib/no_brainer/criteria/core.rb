@@ -26,7 +26,7 @@ module NoBrainer::Criteria::Core
   end
 
   def run(rql=nil)
-    NoBrainer.run(rql || to_rql)
+    NoBrainer.run(:criteria => self) { (rql || to_rql) }
   end
 
   def merge!(criteria, options={})
