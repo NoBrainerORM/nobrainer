@@ -34,20 +34,4 @@ describe "NoBrainer timestamps" do
       expect { SimpleDocument.new.updated_at }.to raise_error NoMethodError
     end
   end
-
-  context 'when using the shorthand module' do
-    before do
-      define_constant :SimpleDocument do
-        include NoBrainer::DocumentWithTimestamps
-      end
-    end
-
-    it 'populates the created_at/updated_at fields on creation' do
-      time = Time.now
-      Timecop.freeze(time) { SimpleDocument.create }
-
-      SimpleDocument.first.created_at.to_i.should == time.to_i
-      SimpleDocument.first.updated_at.to_i.should == time.to_i
-    end
-  end
 end

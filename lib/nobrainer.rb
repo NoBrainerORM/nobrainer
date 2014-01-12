@@ -12,7 +12,7 @@ module NoBrainer
   extend NoBrainer::Autoload
 
   # We eager load things that could be loaded for the first time during the web request
-  autoload :Document, :DocumentWithTimestamps, :IndexManager, :Loader, :Fork, :DecoratedSymbol
+  autoload :Document, :IndexManager, :Loader, :Fork, :DecoratedSymbol
   eager_autoload :Config, :Connection, :Error, :QueryRunner, :Criteria, :Util
 
   class << self
