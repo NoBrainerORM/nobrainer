@@ -19,7 +19,6 @@ module NoBrainer::Document::Criteria
              :includes, :preload,            # Preload
              :each, :to_a,                   # Enumerable
              :first, :last, :first!, :last!, # First
-             :inc_all, :dec_all,             # Inc
              :update_all, :replace_all,      # Update
              :to => :all
 
