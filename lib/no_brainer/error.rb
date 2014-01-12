@@ -1,7 +1,6 @@
 module NoBrainer::Error
   class Connection          < RuntimeError; end
   class DocumentNotFound    < RuntimeError; end
-  class DocumentInvalid     < RuntimeError; end
   class DocumentNotSaved    < RuntimeError; end
   class ChildrenExist       < RuntimeError; end
   class CannotUseIndex      < RuntimeError; end
@@ -9,6 +8,17 @@ module NoBrainer::Error
   class InvalidType         < RuntimeError; end
   class AssociationNotSaved < RuntimeError; end
   class ReadonlyField       < RuntimeError; end
+
+  class DocumentInvalid < RuntimeError
+    attr_accessor :instance
+    def initialize(instance)
+      @instance = instance
+    end
+
+    def message
+      "#{instance} is invalid: #{instance.errors.full_messages.join(", ")}"
+    end
+  end
 
   class InvalidType < RuntimeError
     attr_accessor :attr_name, :value, :type

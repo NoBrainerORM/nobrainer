@@ -54,7 +54,8 @@ describe 'NoBrainer callbacks' do
       let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
 
       it 'throws an exception for create!' do
-        expect { SimpleDocument.create! }.to raise_error(NoBrainer::Error::DocumentInvalid)
+        expect { SimpleDocument.create! }
+          .to raise_error(NoBrainer::Error::DocumentInvalid, /Field1 can't be blank/)
       end
 
       context 'when passing :validate => false' do
