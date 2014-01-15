@@ -130,5 +130,10 @@ describe 'NoBrainer callbacks' do
       doc.destroy
       SimpleDocument.find(doc.id).should == nil
     end
+
+    it 'does not halt validations' do
+      SimpleDocument.before_validation { false }
+      SimpleDocument.new.valid?.should == true
+    end
   end
 end
