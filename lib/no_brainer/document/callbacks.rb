@@ -1,10 +1,19 @@
 module NoBrainer::Document::Callbacks
   extend ActiveSupport::Concern
 
+  def self.terminator
+    if Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1')
+      lambda { false }
+    else
+      'false'
+    end
+  end
+
   included do
     extend ActiveModel::Callbacks
-    define_model_callbacks :initialize, :create, :update, :save, :destroy, :terminator => 'false'
-    define_model_callbacks :find, :only => [:after], :terminator => 'false'
+
+    define_model_callbacks :initialize, :create, :update, :save, :destroy, :terminator => NoBrainer::Document::Callbacks.terminator
+    define_model_callbacks :find, :only => [:after], :terminator => NoBrainer::Document::Callbacks.terminator
   end
 
   def initialize(*args, &block)
