@@ -1,11 +1,6 @@
 module NoBrainer::Document::Persistance
   extend ActiveSupport::Concern
 
-  included do
-    extend ActiveModel::Callbacks
-    define_model_callbacks :create, :update, :save, :destroy, :terminator => 'false'
-  end
-
   def _initialize(attrs={}, options={})
     @new_record = !options[:from_db]
     super
