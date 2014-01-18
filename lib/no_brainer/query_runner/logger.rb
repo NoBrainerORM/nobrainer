@@ -6,11 +6,6 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
       duration = Time.now - start_time
       msg = env[:query].inspect.gsub(/\n/, '').gsub(/ +/, ' ')
 
-      # Need to fix the rethinkdb gem.
-      if msg =~ /Erroneous_Portion_Constructed/
-        msg = "r.the_rethinkdb_gem_is_flipping_out_with_Erroneous_Portion_Constructed"
-      end
-
       msg = "(#{env[:db_name]}) #{msg}" if env[:db_name]
       msg = "[#{(duration * 1000.0).round(1)}ms] #{msg}"
 
