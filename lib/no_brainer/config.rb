@@ -35,22 +35,65 @@ module NoBrainer::Config
     end
 
     def default_rethinkdb_url
-      db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
-      db ||= "#{Rails.application.class.parent_name.underscore}_#{Rails.env}" if defined?(Rails)
-      host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
-      port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
-      auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
-      url = ENV['RETHINKDB_URL'] || ENV['RDB_URL']
-      url ||= "rethinkdb://#{":#{auth}@" if auth}#{host}#{":#{port}" if port}/#{db}" if db
+      return url_from_env if url_from_env
+
+      url = 'rethinkdb://'
+      url += ":#{auth}@" if auth
+      url += host
+      url += ":#{port}" if port
+      url += "/#{database}" if database
+
       url
     end
 
     def default_logger
-      defined?(Rails) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
+      if defined? Rails
+        Rails.logger
+      else
+        Logger.new(STDERR).tap do |logger|
+          logger.level = Logger::WARN
+        end
+      end
     end
 
     def default_durability
-      (defined?(Rails) && (Rails.env.test? || Rails.env.development?)) ? :soft : :hard
+      if defined? Rails && !Rails.env.production?
+        :soft
+      else
+        :hard
+      end
+    end
+
+    private
+
+    def url_from_env
+      ENV['RETHINKDB_URL'] || ENV['RDB_URL']
+    end
+
+    def database
+      database_name_from_env || database_name_from_application_name
+    end
+
+    def database_name_from_env
+      ENV['RETHINKDB_DB'] || ENV['RDB_DB']
+    end
+
+    def database_name_from_application_name
+      if defined?(Rails)
+        "#{Rails.application.class.parent_name.underscore}_#{Rails.env}"
+      end
+    end
+
+    def host
+      ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
+    end
+
+    def port
+      ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
+    end
+
+    def auth
+      ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
     end
   end
 end

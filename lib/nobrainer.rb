@@ -1,13 +1,17 @@
 require 'active_support'
-%w(module/delegation module/attribute_accessors class/attribute object/blank object/inclusion object/deep_dup
-   object/try hash/keys hash/indifferent_access hash/reverse_merge hash/deep_merge array/extract_options)
-    .each { |dep| require "active_support/core_ext/#{dep}" }
+
+%w(module/delegation module/attribute_accessors
+   class/attribute object/blank object/inclusion object/deep_dup
+   object/try hash/keys hash/indifferent_access hash/reverse_merge
+   hash/deep_merge array/extract_options)
+.each { |dep| require "active_support/core_ext/#{dep}" }
 
 module NoBrainer
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
-  # We eager load things that could be loaded for the first time during the web request
+  # We eager load things that could be loaded for the first time during
+  # the web request
   autoload :Document, :IndexManager, :Loader, :Fork, :DecoratedSymbol
   eager_autoload :Config, :Connection, :Error, :QueryRunner, :Criteria, :Util
 
@@ -18,13 +22,13 @@ module NoBrainer
     def connection
       @connection ||= begin
         url = NoBrainer::Config.rethinkdb_url
-        raise "Please specify a database connection to RethinkDB" unless url
+        fail 'Please specify a database connection to RethinkDB' unless url
         Connection.new(url).tap { |c| c.connect }
       end
     end
 
     def disconnect
-      @connection.try(:disconnect, :noreply_wait => true)
+      @connection.try(:disconnect, noreply_wait: true)
       @connection = nil
     end
 
@@ -36,12 +40,12 @@ module NoBrainer
 
     delegate :db_create, :db_drop, :db_list,
              :table_create, :table_drop, :table_list,
-             :drop!, :purge!, :to => :connection
+             :drop!, :purge!, to: :connection
 
-    delegate :configure, :logger,   :to => 'NoBrainer::Config'
-    delegate :run,                  :to => 'NoBrainer::QueryRunner'
-    delegate :update_indexes,       :to => 'NoBrainer::IndexManager'
-    delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
+    delegate :configure, :logger,   to: 'NoBrainer::Config'
+    delegate :run,                  to: 'NoBrainer::QueryRunner'
+    delegate :update_indexes,       to: 'NoBrainer::IndexManager'
+    delegate :with, :with_database, to: 'NoBrainer::QueryRunner::RunOptions'
 
     def jruby?
       RUBY_PLATFORM == 'java'
