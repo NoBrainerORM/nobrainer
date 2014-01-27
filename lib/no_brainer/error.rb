@@ -22,7 +22,7 @@ module NoBrainer::Error
 
   class InvalidType < RuntimeError
     attr_accessor :attr_name, :value, :type
-    def initialize(options={})
+    def initialize(options = {})
       @attr_name = options[:attr_name]
       @value     = options[:value]
       @type      = options[:type]
