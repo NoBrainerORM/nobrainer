@@ -202,6 +202,24 @@ describe 'NoBrainer index' do
     end
   end
 
+  context 'when indexing a lambda with the multi flag' do
+    before do
+      SimpleDocument.index :field12, ->(doc){ [doc['field1'], doc['field2']] }, :multi => true
+      NoBrainer.update_indexes
+    end
+
+    let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'ohai') }
+    let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'this') }
+    let!(:doc3) { SimpleDocument.create(:field1 => 'hello', :field2 => 'there') }
+
+    it 'uses the index' do
+      SimpleDocument.where(:field12 => 'hello').count.should == 2
+      SimpleDocument.where(:field12 => 'ohai').count.should == 2
+      SimpleDocument.where(:field12 => 'this').count.should == 1
+      SimpleDocument.where(:field12 => ['hello', 'ohai']).count.should == 0
+    end
+  end
+
   context 'when indexing a compound field' do
     before do
       SimpleDocument.index :field12, [:field1, :field2]
