@@ -1,7 +1,7 @@
 require 'rethinkdb'
 
 class NoBrainer::Connection
-  attr_accessor :uri
+  attr_accessor :uri, :parsed_uri
 
   def initialize(uri)
     self.uri = uri
@@ -9,19 +9,21 @@ class NoBrainer::Connection
   end
 
   def parsed_uri
-    require 'uri'
-    uri = URI.parse(self.uri)
+    @parsed_uri ||= begin
+      require 'uri'
+      uri = URI.parse(self.uri)
 
-    if uri.scheme != 'rethinkdb'
-      raise NoBrainer::Error::Connection,
-        "Invalid URI. Expecting something like rethinkdb://host:port/database. Got #{uri}"
+      if uri.scheme != 'rethinkdb'
+        raise NoBrainer::Error::Connection,
+          "Invalid URI. Expecting something like rethinkdb://host:port/database. Got #{uri}"
+      end
+
+      { :auth_key => uri.password,
+        :host     => uri.host,
+        :port     => uri.port || 28015,
+        :db       => uri.path.gsub(/^\//, ''),
+      }.tap { |result| raise "No database specified in #{uri}" unless result[:db].present? }
     end
-
-    { :auth_key => uri.password,
-      :host     => uri.host,
-      :port     => uri.port || 28015,
-      :db       => uri.path.gsub(/^\//, ''),
-    }.tap { |result| raise "No database specified in #{uri}" unless result[:db].present? }
   end
 
   def raw

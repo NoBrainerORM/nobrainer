@@ -4,7 +4,8 @@ module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
-                   :max_reconnection_tries, :durability, :colorize_logger
+                   :max_reconnection_tries, :durability, :colorize_logger,
+                   :distributed_lock_class
 
     def apply_defaults
       self.rethinkdb_url           = default_rethinkdb_url
@@ -15,6 +16,7 @@ module NoBrainer::Config
       self.max_reconnection_tries  = 10
       self.durability              = default_durability
       self.colorize_logger         = true
+      self.distributed_lock_class  = nil
     end
 
     def reset!

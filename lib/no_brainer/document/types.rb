@@ -1,5 +1,3 @@
-require 'set'
-
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 

@@ -6,7 +6,7 @@ describe "NoBrainer query runner" do
 
   describe 'run' do
     it 'run takes an argument' do
-      NoBrainer.run(SimpleDocument.to_rql.count ).should == 1
+      NoBrainer.run(SimpleDocument.to_rql.count).should == 1
     end
 
     it 'run takes a block with r as an argument' do
