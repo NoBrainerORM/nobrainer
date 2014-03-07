@@ -51,7 +51,6 @@ module NoBrainer::Document::Attributes
     assign_defaults if options[:pristine]
     self
   end
-  def attributes=(*args); assign_attributes(*args); end
 
   def inspectable_attributes
     # TODO test that thing
