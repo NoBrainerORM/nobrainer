@@ -4,3 +4,4 @@ Gemfile.lock
 todo
 *.gem
 .bundle
+coverage

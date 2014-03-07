@@ -5,3 +5,4 @@ gem 'rake'
 gem 'rspec'
 gem 'timecop'
 gem 'pry'
+gem 'simplecov', :require => false

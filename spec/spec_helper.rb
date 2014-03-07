@@ -1,9 +1,10 @@
+load './spec/support/_coverage.rb' if ENV['COVERAGE']
 require 'rubygems'
 require 'bundler'
 Bundler.require
 
 SPEC_ROOT = File.expand_path File.dirname(__FILE__)
-Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f }
+Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f unless File.basename(f) =~ /^_/ }
 
 database_host = ENV['DB_HOST'] || 'localhost'
 database_name = ENV['DB_NAME'] || 'nobrainer_test'
