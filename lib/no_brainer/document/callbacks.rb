@@ -2,8 +2,8 @@ module NoBrainer::Document::Callbacks
   extend ActiveSupport::Concern
 
   def self.terminator
-    if Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.1')
-      lambda { false }
+    if Gem.loaded_specs['activesupport'].version.release >= Gem::Version.new('4.1')
+      proc { false }
     else
       'false'
     end
