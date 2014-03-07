@@ -224,6 +224,18 @@ describe 'types' do
       doc.field1.should == ''
       doc.valid?.should == false
     end
+
+    it 'reads back a symbol from the db' do
+      doc.field1 = :ohai
+      doc.save
+      doc.reload
+      doc.field1.should == :ohai
+
+      doc.field1 = nil
+      doc.save
+      doc.reload
+      doc.field1.should == nil
+    end
   end
 
   context 'when using a non implemented type' do
@@ -242,7 +254,7 @@ describe 'types' do
 
   context 'when coming from the database' do
     let(:type) { nil }
-    it 'does not type check/cast' do
+    it 'does not type check/cast' do # except for symbols :)
       doc.field1 = '1'
       doc.save
       SimpleDocument.first.field1.should == '1'

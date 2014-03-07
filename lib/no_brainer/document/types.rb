@@ -1,7 +1,9 @@
+require 'set'
+
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  module CastingRules
+  module CastUserToDB
     extend self
     InvalidType = NoBrainer::Error::InvalidType
 
@@ -60,14 +62,23 @@ module NoBrainer::Document::Types
     end
 
     def lookup(type)
-      CastingRules.method(type.to_s)
+      public_method(type.to_s)
     rescue NameError
       proc { raise InvalidType }
     end
+  end
 
-    def cast(value, type, type_cast_method)
-      return value if value.nil? || type.nil? || value.is_a?(type)
-      type_cast_method.call(value)
+  module CastDBToUser
+    extend self
+
+    def Symbol(value)
+      value.to_sym rescue value
+    end
+
+    def lookup(type)
+      public_method(type.to_s)
+    rescue NameError
+      nil
     end
   end
 
@@ -82,6 +93,11 @@ module NoBrainer::Document::Types
       end
     end
     before_validation :add_type_errors
+
+    # Fast access for db->user cast methods for performance when reading from
+    # the database.
+    singleton_class.send(:attr_accessor, :cast_db_to_user_fields)
+    self.cast_db_to_user_fields = Set.new
   end
 
   def add_type_errors
@@ -91,12 +107,27 @@ module NoBrainer::Document::Types
     end
   end
 
+  def assign_attributes(attrs, options={})
+    super
+    if options[:from_db]
+      self.class.cast_db_to_user_fields.each do |attr|
+        field_def = self.class.fields[attr]
+        type = field_def[:type]
+        value = @_attributes[attr.to_s]
+        unless value.nil? || value.is_a?(type)
+          @_attributes[attr.to_s] = field_def[:cast_db_to_user].call(value)
+        end
+      end
+    end
+  end
+
   module ClassMethods
-    def cast_value_for(attr, value)
-      attr = attr.to_sym
-      field_def = fields[attr]
-      return value unless field_def && field_def[:type]
-      NoBrainer::Document::Types::CastingRules.cast(value, field_def[:type], field_def[:type_cast_method])
+    def cast_user_to_db_for(attr, value)
+      field_def = fields[attr.to_sym]
+      return value if !field_def
+      type = field_def[:type]
+      return value if value.nil? || type.nil? || value.is_a?(type)
+      field_def[:cast_user_to_db].call(value)
     rescue NoBrainer::Error::InvalidType => error
       error.type = field_def[:type]
       error.value = value
@@ -104,13 +135,24 @@ module NoBrainer::Document::Types
       raise error
     end
 
+    def inherited(subclass)
+      super
+      subclass.cast_db_to_user_fields = self.cast_db_to_user_fields.dup
+    end
+
     def _field(attr, options={})
       super
+
+      if options[:cast_db_to_user]
+        ([self] + descendants).each do |klass|
+          klass.cast_db_to_user_fields << attr
+        end
+      end
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
           begin
-            value = self.class.cast_value_for(attr, value)
+            value = self.class.cast_user_to_db_for(attr, value)
             @pending_type_errors.try(:delete, attr)
           rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
@@ -125,8 +167,9 @@ module NoBrainer::Document::Types
 
     def field(attr, options={})
       if options[:type]
-        type_cast_method = NoBrainer::Document::Types::CastingRules.lookup(options[:type])
-        options = options.merge(:type_cast_method => type_cast_method)
+        options = options.merge(
+          :cast_user_to_db => NoBrainer::Document::Types::CastUserToDB.lookup(options[:type]),
+          :cast_db_to_user => NoBrainer::Document::Types::CastDBToUser.lookup(options[:type]))
       end
       super
     end

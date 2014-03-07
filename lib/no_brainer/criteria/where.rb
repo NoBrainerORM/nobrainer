@@ -78,7 +78,7 @@ module NoBrainer::Criteria::Where
     private
 
     def cast(value)
-      criteria.klass.cast_value_for(key, value)
+      criteria.klass.cast_user_to_db_for(key, value)
     end
   end
 
