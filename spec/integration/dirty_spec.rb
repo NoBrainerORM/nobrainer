@@ -123,6 +123,15 @@ describe 'NoBrainer dirty' do
     end
   end
 
+  context 'when reloading' do
+    it 'tracks changes' do
+      doc = SimpleDocument.create(:field1 => 'ohai')
+      doc.reload
+      doc.field1 = 'ohai'
+      doc.changed?.should == false
+    end
+  end
+
   context 'when using dynamic attributes' do
     it 'track changes' do
       SimpleDocument.send(:include, NoBrainer::Document::DynamicAttributes)

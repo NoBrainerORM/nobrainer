@@ -6,11 +6,6 @@ module NoBrainer::Document::Dirty
   # things like undefined -> nil. Going through the getters will
   # not give us that.
 
-  def assign_attributes(attrs, options={})
-    clear_dirtiness if options[:pristine]
-    super
-  end
-
   def _create(*args)
     super.tap { clear_dirtiness }
   end

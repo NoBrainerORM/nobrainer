@@ -43,7 +43,9 @@ module NoBrainer::Document::Attributes
     @_attributes.clear if options[:pristine]
     if options[:from_db]
       @_attributes.merge!(attrs)
+      clear_dirtiness
     else
+      clear_dirtiness if options[:pristine]
       attrs.each { |k,v| self.write_attribute(k,v) }
     end
     assign_defaults if options[:pristine]
