@@ -12,11 +12,6 @@ module NoBrainer::Criteria::Preload
     chain(:keep_cache => true) { |criteria| criteria._preloads = values }
   end
 
-  def includes(*values)
-    NoBrainer.logger.warn "[NoBrainer] includes() is deprecated and will be removed, use preload() instead."
-    preload(*values)
-  end
-
   def merge!(criteria, options={})
     super
     self._preloads = self._preloads + criteria._preloads
