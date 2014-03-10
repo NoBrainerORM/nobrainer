@@ -16,7 +16,6 @@ module NoBrainer::Document::Types
       case value
       when String
         value = value.strip.gsub(/^\+/, '')
-        return nil if value.empty?
         value.to_i.tap { |new_value| new_value.to_s == value or raise InvalidType }
       when Float
         value.to_i.tap { |new_value| new_value.to_f == value or raise InvalidType }
@@ -29,7 +28,6 @@ module NoBrainer::Document::Types
       when Integer then value.to_f
       when String
         value = value.strip.gsub(/^\+/, '')
-        return nil if value.empty?
         value = value.gsub(/0+$/, '') if value['.']
         value = value.gsub(/\.$/, '')
         value = "#{value}.0" unless value['.']
@@ -46,7 +44,6 @@ module NoBrainer::Document::Types
         value = value.to_s.strip.downcase
         return true  if value.in? %w(true yes t 1)
         return false if value.in? %w(false no f 0)
-        return nil   if value.empty?
         raise InvalidType
       else raise InvalidType
       end
@@ -56,7 +53,6 @@ module NoBrainer::Document::Types
       case value
       when String
         value = value.strip
-        return nil if value.empty?
         raise InvalidType if value.empty?
         value.to_sym
       else raise InvalidType
