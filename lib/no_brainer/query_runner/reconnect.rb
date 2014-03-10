@@ -1,4 +1,4 @@
-class NoBrainer::QueryRunner::Connection < NoBrainer::QueryRunner::Middleware
+class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
   rescue StandardError => e
