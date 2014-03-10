@@ -77,9 +77,10 @@ describe 'types' do
       doc.field1 = 1.1
       doc.field1.should == 1.1
       doc.valid?.should == false
-      doc.field1 = ''
-      doc.field1.should == ''
-      doc.valid?.should == false
+
+      doc.field1 = ' '
+      doc.field1.should == nil
+      doc.valid?.should == true
     end
   end
 
@@ -126,9 +127,10 @@ describe 'types' do
       doc.field1 = 'a0'
       doc.field1.should == 'a0'
       doc.valid?.should == false
-      doc.field1 = ''
-      doc.field1.should == ''
-      doc.valid?.should == false
+
+      doc.field1 = '  '
+      doc.field1.should == nil
+      doc.valid?.should == true
 
       doc.field1 = 1
       doc.field1.should == 1.0
@@ -195,9 +197,9 @@ describe 'types' do
       doc.field1 = 'blah'
       doc.field1.should == 'blah'
       doc.valid?.should == false
-      doc.field1 = ''
-      doc.field1.should == ''
-      doc.valid?.should == false
+      doc.field1 = '  '
+      doc.field1.should == nil
+      doc.valid?.should == true
       doc.field1 = 2
       doc.field1.should == 2
       doc.valid?.should == false
@@ -220,9 +222,9 @@ describe 'types' do
       doc.field1 = 123
       doc.field1.should == 123
       doc.valid?.should == false
-      doc.field1 = ''
-      doc.field1.should == ''
-      doc.valid?.should == false
+      doc.field1 = '  '
+      doc.field1.should == nil
+      doc.valid?.should == true
     end
 
     it 'reads back a symbol from the db' do
