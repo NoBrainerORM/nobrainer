@@ -30,7 +30,6 @@ class NoBrainer::Document::Association::BelongsTo
 
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       add_callback_for(:after_validation)
-      # TODO test if we are not overstepping on another foreign_key
     end
 
     eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ :id },
@@ -47,7 +46,7 @@ class NoBrainer::Document::Association::BelongsTo
   end
 
   def read
-    return @target_container.first if loaded?
+    return target if loaded?
 
     if fk = owner.read_attribute(foreign_key)
       preload(target_klass.find(fk))
@@ -60,8 +59,12 @@ class NoBrainer::Document::Association::BelongsTo
     preload(target)
   end
 
-  def preload(target)
-    @target_container = [*target] # the * is for the generic eager loading code
+  def preload(targets)
+    @target_container = [*targets] # the * is for the generic eager loading code
+    target
+  end
+
+  def target
     @target_container.first
   end
 
@@ -70,7 +73,7 @@ class NoBrainer::Document::Association::BelongsTo
   end
 
   def after_validation_callback
-    if loaded? && @target_container.first && !@target_container.first.persisted?
+    if loaded? && target && !target.persisted?
       raise NoBrainer::Error::AssociationNotSaved.new("#{target_name} must be saved first")
     end
   end
