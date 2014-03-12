@@ -146,8 +146,29 @@ describe 'NoBrainer callbacks' do
 
     it 'validates' do
       post = Post.create
-      Comment.new.valid?.should == false
-      Comment.new(:post => post).valid?.should == true
+      c = Comment.create({}, :validate => false)
+
+      c.post = Post.new
+      expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotSaved)
+
+      c.post = post
+      c.post_id.should == post.id
+      c.valid?.should == true
+
+      c.post = nil
+      c.post_id.should == nil
+      c.valid?.should == false
+
+      c.post_id = '123'
+      c.valid?.should == false
+
+      c.post_id = post.id
+      c.valid?.should == true
+      Post.delete_all
+      c.valid?.should == true
+
+      c.post_id = post.id
+      c.valid?.should == false
     end
   end
 end
