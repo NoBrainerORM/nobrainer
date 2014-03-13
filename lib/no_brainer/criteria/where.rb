@@ -56,14 +56,15 @@ module NoBrainer::Criteria::Where
 
   class BinaryOperator < Struct.new(:key, :op, :value, :criteria)
     def simplify
+      key = cast_key(self.key)
       case op
       when :in then
         case value
-        when Range then BinaryOperator.new(key, :between, (cast(value.min)..cast(value.max)), criteria)
-        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast)).uniq, criteria)
+        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria)
+        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, criteria)
         else raise ArgumentError.new ":in takes an array/range, not #{value}"
         end
-      else BinaryOperator.new(key, op, cast(value), criteria)
+      else BinaryOperator.new(key, op, cast_value(value), criteria)
       end
     end
 
@@ -77,8 +78,33 @@ module NoBrainer::Criteria::Where
 
     private
 
-    def cast(value)
-      criteria.klass.cast_user_to_db_for(key, value)
+    def association
+      # FIXME This leaks memory with dynamic attributes. The internals of type
+      # checking will convert the key to a symbol, and Ruby does not garbage
+      # collect symbols.
+      @association ||= [criteria.klass.association_metadata[key.to_sym]]
+      @association.first
+    end
+
+    def cast_value(value)
+      case association
+      when NoBrainer::Document::Association::BelongsTo::Metadata
+        target_klass = association.target_klass
+        opts = { :attr_name => key, :value => value, :type => target_klass}
+        raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_klass)
+        value.id
+      else
+        criteria.klass.cast_user_to_db_for(key, value)
+      end
+    end
+
+    def cast_key(key)
+      case association
+      when NoBrainer::Document::Association::BelongsTo::Metadata
+        association.foreign_key
+      else
+        key
+      end
     end
   end
 

@@ -166,4 +166,21 @@ describe 'complex where queries' do
       SimpleDocument.where(:field1.lt  => time.utc + 7).count.should == 7
     end
   end
+
+  context 'when using a belongs_to association' do
+    before { load_blog_models }
+
+    it 'converts to a foreign key search' do
+      post1 = Post.create
+      post2 = Post.create
+      c1 = Comment.create(:post => post1)
+      c2 = Comment.create(:post => post2)
+      Comment.create
+
+      Comment.count.should == 3
+      Comment.where(:post => post1).first.should == c1
+      Comment.where(:post => post2).first.should == c2
+      Comment.where(:post.in => [post1, post2]).count.should == 2
+    end
+  end
 end
