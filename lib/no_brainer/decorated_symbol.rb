@@ -1,5 +1,6 @@
 class NoBrainer::DecoratedSymbol < Struct.new(:symbol, :modifier, :args)
-  MODIFIERS = { :ne => :ne, :not => :ne, :in => :in, :eq => :eq,
+  MODIFIERS = { :in => :in, :nin => :nin,
+                :eq => :eq, :ne => :ne, :not => :ne,
                 :gt => :gt, :ge => :ge, :gte => :ge,
                 :lt => :lt, :le => :le, :lte => :le}
 

@@ -121,6 +121,12 @@ describe 'complex where queries' do
       end
     end
 
+    context 'when using nin' do
+      it 'filters documents' do
+        SimpleDocument.where(:field1.nin => [3,5,9,33]).count.should == 7
+      end
+    end
+
     context 'when using or' do
       it 'filters documents' do
         SimpleDocument.where(:or => [{:field1 => 3}, {:field1 => 7}, {:field1 => 33}]).count.should == 2

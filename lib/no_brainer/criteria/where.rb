@@ -152,8 +152,9 @@ module NoBrainer::Criteria::Where
     when String, Symbol then parse_clause_stub_eq(key, value)
     when NoBrainer::DecoratedSymbol then
       case key.modifier
-      when :ne then parse_clause(:not => { key.symbol => value })
-      when :eq then parse_clause_stub_eq(key.symbol, value)
+      when :nin then parse_clause(:not => { key.symbol.in => value })
+      when :ne  then parse_clause(:not => { key.symbol.eq => value })
+      when :eq  then parse_clause_stub_eq(key.symbol, value)
       else BinaryOperator.new(key.symbol, key.modifier, value, self)
       end
     else raise "Invalid key: #{key}"
