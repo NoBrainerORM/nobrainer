@@ -16,7 +16,8 @@ module NoBrainer::Document::Validation
   module ClassMethods
     def _field(attr, options={})
       super
-      validates(attr, { :presence => true }) if options[:required]
+      validates(attr, { :presence => options[:required] }) if options.has_key?(:required)
+      validates(attr, { :uniqueness => options[:unique] }) if options.has_key?(:unique)
       validates(attr, options[:validates]) if options[:validates]
     end
   end

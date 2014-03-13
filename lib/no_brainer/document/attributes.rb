@@ -1,5 +1,5 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default, :type, :cast_user_to_db, :cast_db_to_user, :validates, :required, :readonly]
+  VALID_FIELD_OPTIONS = [:index, :default, :type, :cast_user_to_db, :cast_db_to_user, :validates, :required, :unique, :readonly]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations] + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
 

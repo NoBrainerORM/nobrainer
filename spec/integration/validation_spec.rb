@@ -131,6 +131,15 @@ describe 'NoBrainer callbacks' do
     end
   end
 
+  context 'when using unique on the field' do
+    before { SimpleDocument.field :field1, :unique => true }
+
+    it 'validates' do
+      SimpleDocument.new(:field1 => 123).save.should == true
+      SimpleDocument.new(:field1 => 123).save.should == false
+    end
+  end
+
   context 'when using required on the field' do
     before { SimpleDocument.field :field1, :required => true }
 
