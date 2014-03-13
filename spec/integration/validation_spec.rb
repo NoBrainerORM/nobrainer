@@ -158,7 +158,7 @@ describe 'NoBrainer callbacks' do
       c = Comment.create({}, :validate => false)
 
       c.post = Post.new
-      expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotSaved)
+      expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
 
       c.post = post
       c.post_id.should == post.id

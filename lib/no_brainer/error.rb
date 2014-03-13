@@ -6,7 +6,7 @@ module NoBrainer::Error
   class CannotUseIndex      < RuntimeError; end
   class MissingIndex        < RuntimeError; end
   class InvalidType         < RuntimeError; end
-  class AssociationNotSaved < RuntimeError; end
+  class AssociationNotPersisted < RuntimeError; end
   class ReadonlyField       < RuntimeError; end
 
   class DocumentInvalid < RuntimeError

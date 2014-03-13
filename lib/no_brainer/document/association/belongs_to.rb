@@ -74,7 +74,7 @@ class NoBrainer::Document::Association::BelongsTo
 
   def after_validation_callback
     if loaded? && target && !target.persisted?
-      raise NoBrainer::Error::AssociationNotSaved.new("#{target_name} must be saved first")
+      raise NoBrainer::Error::AssociationNotPersisted.new("#{target_name} must be saved first")
     end
   end
 end
