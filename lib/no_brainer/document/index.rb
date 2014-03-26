@@ -68,7 +68,7 @@ module NoBrainer::Document::Index
       end
 
       NoBrainer.run(self.rql_table.index_create(index_name, index_args[:options], &index_proc))
-      NoBrainer.run(self.rql_table.index_wait(index_name)) if options[:wait]
+      wait_for_index(index_name) unless options[:wait] == false
       STDERR.puts "Created index #{self}.#{index_name}" if options[:verbose]
     end
 
@@ -90,5 +90,10 @@ module NoBrainer::Document::Index
       end
     end
     alias_method :update_indexes, :perform_update_indexes
+
+    def wait_for_index(index_name=nil, options={})
+      args = [index_name].compact
+      NoBrainer.run(self.rql_table.index_wait(*args))
+    end
   end
 end

@@ -75,6 +75,8 @@ describe 'order_by' do
       NoBrainer.update_indexes
     end
 
+    after { NoBrainer.drop! }
+
     context 'when not specifying orders' do
       context 'when using order_by with implicit indexes' do
         it 'orders documents properly' do
