@@ -69,7 +69,8 @@ describe 'NoBrainer index' do
 
     it 'raises' do
       SimpleDocument.where(:field1 => 'ohai').indexed?.should == true
-      expect { SimpleDocument.where(:field1 => 'ohai').count }.to raise_error NoBrainer::Error::MissingIndex
+      expect { SimpleDocument.where(:field1 => 'ohai').count }.to raise_error(
+        NoBrainer::Error::MissingIndex, /Please run.*to create the index `field1` in the table `simple_documents`/)
     end
   end
 
