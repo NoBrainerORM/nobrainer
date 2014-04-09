@@ -64,7 +64,9 @@ module NoBrainer::Document::Uniqueness
   class UniquenessValidator < ActiveModel::EachValidator
     attr_accessor :scope
 
-    def setup(klass)
+    def initialize(options={})
+      super
+      klass = options[:class]
       self.scope = [*options[:scope]]
       ([klass] + klass.descendants).each do |_klass|
         _klass.unique_validators << self

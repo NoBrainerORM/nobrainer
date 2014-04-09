@@ -6,7 +6,7 @@ module NoBrainer::Document::Validation
   included do
     # We don't want before_validation returning false to halt the chain.
     define_callbacks :validation, :skip_after_callbacks_if_terminated => true, :scope => [:kind, :name],
-                     :terminator => NoBrainer::Document::Callbacks.terminator
+                     :terminator => proc { false }
   end
 
   def valid?(context=nil)

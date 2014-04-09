@@ -12,9 +12,9 @@ Gem::Specification.new do |s|
   s.description = "ORM for RethinkDB"
   s.license     = "LGPLv3"
 
-  s.add_dependency "rethinkdb",     "~> 1.12.0.1"
-  s.add_dependency "activesupport", ">= 4.0.0"
-  s.add_dependency "activemodel",   ">= 4.0.0"
+  s.add_dependency "rethinkdb",     ">= 1.12.0.2"
+  s.add_dependency "activesupport", ">= 4.1.0"
+  s.add_dependency "activemodel",   ">= 4.1.0"
   s.add_dependency "middleware",    "~> 0.1.0"
 
   s.files        = Dir["lib/**/*"] + ['README.md'] + ['LICENSE']
