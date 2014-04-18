@@ -7,19 +7,18 @@ module NoBrainer
   require 'no_brainer/autoload'
   extend NoBrainer::Autoload
 
-  # We eager load things that could be loaded for the first time during the web request
+  # We eager load things that could be loaded when handling the first web request.
+  # Code that is loaded through the DSL of NoBrainer should not be eager loaded.
   autoload :Document, :IndexManager, :Loader, :Fork, :DecoratedSymbol
   eager_autoload :Config, :Connection, :Error, :QueryRunner, :Criteria, :Util
 
   class << self
-    # Note: we always access the connection explicitly, so that in the future,
-    # we can refactor to return a connection depending on the context.
-    # Note that a connection is tied to a database in NoBrainer.
+    # A connection is tied to a database.
     def connection
       @connection ||= begin
         url = NoBrainer::Config.rethinkdb_url
         raise "Please specify a database connection to RethinkDB" unless url
-        Connection.new(url).tap { |c| c.connect }
+        Connection.new(url)
       end
     end
 
