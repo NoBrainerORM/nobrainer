@@ -190,16 +190,16 @@ describe 'NoBrainer callbacks' do
       Lock.locked_keys = []
       Lock.unlocked_keys = []
       doc.save
-      Lock.locked_keys.should == ["nobrainer:nobrainer_test:simple_documents:field1:ohai",
-                                  "nobrainer:nobrainer_test:simple_documents:field2:blah",
-                                  "nobrainer:nobrainer_test:simple_documents:field3:nil"]
+      Lock.locked_keys.should == ["nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:ohai",
+                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field2:blah",
+                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:nil"]
       Lock.unlocked_keys.should == Lock.locked_keys.reverse
 
       Lock.locked_keys = []
       Lock.unlocked_keys = []
       doc.update_attributes(:field3 => 'hello', :field1 => nil)
-      Lock.locked_keys.should == ["nobrainer:nobrainer_test:simple_documents:field1:nil",
-                                  "nobrainer:nobrainer_test:simple_documents:field3:hello"]
+      Lock.locked_keys.should == ["nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:nil",
+                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:hello"]
       Lock.unlocked_keys.should == Lock.locked_keys.reverse
     end
 

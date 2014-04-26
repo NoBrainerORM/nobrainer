@@ -5,3 +5,5 @@ todo
 *.gem
 .bundle
 coverage
+tmp
+tmp2
