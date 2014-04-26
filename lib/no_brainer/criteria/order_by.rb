@@ -64,7 +64,8 @@ module NoBrainer::Criteria::OrderBy
     # We are going to try to go so and if we cannot, we'll simply apply
     # the ordering in pass2, which will happen after a potential filter().
 
-    if rql.body.type == Term::TermType::TABLE && !without_index?
+    NoBrainer::RQL.is_table?(rql)
+    if NoBrainer::RQL.is_table?(rql) && !without_index?
       options = {}
       first_key = effective_order.first[0]
       if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)

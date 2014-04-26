@@ -1,6 +1,6 @@
 class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
   def call(env)
-    write_query = NoBrainer::Util.is_write_query?(env[:query])
+    write_query = NoBrainer::RQL.is_write_query?(env[:query])
     @runner.call(env).tap do |result|
       # TODO Fix rethinkdb driver: Their classes Term, Query, Response are
       # not scoped to the RethinkDB module! (that would prevent a user from

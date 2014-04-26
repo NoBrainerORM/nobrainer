@@ -22,7 +22,7 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
       if exception
         msg = "#{msg} \e[0;31m#{exception.class} #{exception.message.split("\n").first}\e[0m"
       else
-        case NoBrainer::Util.rql_type(env[:query])
+        case NoBrainer::RQL.type_of(env[:query])
         when :write      then msg = "\e[1;31m#{msg}\e[0m" # red
         when :read       then msg = "\e[1;32m#{msg}\e[0m" # green
         when :management then msg = "\e[1;33m#{msg}\e[0m" # yellow
