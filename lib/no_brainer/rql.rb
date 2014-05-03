@@ -1,5 +1,5 @@
 module NoBrainer::RQL
-  include Term::TermType
+  include RethinkDB::Term::TermType
   extend self
 
   def is_write_query?(rql_query)
