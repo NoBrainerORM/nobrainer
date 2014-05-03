@@ -5,7 +5,7 @@ module NoBrainer::Document::Core
     attr_accessor :_all
 
     def all
-      Rails.application.eager_load! if defined?(Rails)
+      Rails.application.eager_load! if defined?(Rails.application.eager_load!)
       @_all
     end
   end

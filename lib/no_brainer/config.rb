@@ -38,7 +38,7 @@ module NoBrainer::Config
 
     def default_rethinkdb_url
       db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
-      db ||= "#{Rails.application.class.parent_name.underscore}_#{Rails.env}" if defined?(Rails)
+      db ||= "#{Rails.application.class.parent_name.underscore}_#{Rails.env}" rescue nil
       host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
       port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
       auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
@@ -48,11 +48,11 @@ module NoBrainer::Config
     end
 
     def default_logger
-      defined?(Rails) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
+      defined?(Rails.logger) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
     end
 
     def default_durability
-      (defined?(Rails) && (Rails.env.test? || Rails.env.development?)) ? :soft : :hard
+      (defined?(Rails.env) && (Rails.env.test? || Rails.env.development?)) ? :soft : :hard
     end
   end
 end
