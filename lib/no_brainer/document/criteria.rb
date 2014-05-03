@@ -41,14 +41,14 @@ module NoBrainer::Document::Criteria
     end
 
     def selector_for(id)
-      # TODO Pass primary key if not default
-      unscoped.where(:id => id)
+      rql_table.get(id)
     end
 
     # XXX this doesn't have the same semantics as
     # other ORMs. the equivalent is find!.
     def find(id)
-      selector_for(id).first
+      attrs = NoBrainer.run { selector_for(id) }
+      new_from_db(attrs).tap { |doc| doc.run_callbacks(:find) } if attrs
     end
 
     def find!(id)

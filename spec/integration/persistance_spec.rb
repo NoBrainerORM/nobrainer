@@ -53,9 +53,18 @@ describe 'NoBrainer persistance' do
   end
 
   context 'when the document is gone' do
+    before { SimpleDocument.delete_all }
     it 'raises when reloading' do
-      SimpleDocument.delete_all
-      expect {doc.reload }.to raise_error(NoBrainer::Error::DocumentNotFound)
+      expect { doc.reload }.to raise_error(NoBrainer::Error::DocumentNotFound)
+    end
+
+    it 'raises when updating' do
+      # TODO unknown error? Fix rethinkdb
+      expect { doc.update_attributes(:field1 => 'x') }.to raise_error
+    end
+
+    it 'raises when deleting' do
+      expect { doc.delete }.to raise_error
     end
   end
 

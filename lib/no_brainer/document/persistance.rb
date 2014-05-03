@@ -19,7 +19,8 @@ module NoBrainer::Document::Persistance
   end
 
   def reload(options={})
-    attrs = selector.raw.first!
+    attrs = NoBrainer.run { self.class.selector_for(id) }
+    raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found" unless attrs
     instance_variables.each { |ivar| remove_instance_variable(ivar) } unless options[:keep_ivars]
     initialize(attrs, :pristine => true, :from_db => true)
     self
@@ -34,7 +35,7 @@ module NoBrainer::Document::Persistance
   end
 
   def _update(attrs)
-    selector.update_all(attrs)
+    NoBrainer.run { selector.update(attrs) }
   end
 
   def _update_only_changed_attrs(options={})
@@ -73,7 +74,7 @@ module NoBrainer::Document::Persistance
 
   def delete
     unless @destroyed
-      selector.delete_all
+      NoBrainer.run { selector.delete }
       @destroyed = true
     end
     @_attributes.freeze

@@ -29,7 +29,6 @@ describe 'NoBrainer index' do
     it 'uses the primary key index' do
       SimpleDocument.where(:id => doc1.id).indexed?.should == true
       SimpleDocument.where(:id => doc1.id).count.should == 1
-      doc1.selector.indexed?.should == true
     end
   end
 
