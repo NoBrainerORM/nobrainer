@@ -21,6 +21,6 @@ class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
   def raise_write_error(env, error_msg)
     error_msg ||= "Unknown error"
     error_msg += "\nQuery was: #{env[:query].inspect[0..1000]}"
-    raise NoBrainer::Error::DocumentNotSaved, error_msg
+    raise NoBrainer::Error::DocumentNotPersisted, error_msg
   end
 end

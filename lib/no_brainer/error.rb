@@ -1,13 +1,13 @@
 module NoBrainer::Error
-  class Connection          < RuntimeError; end
-  class DocumentNotFound    < RuntimeError; end
-  class DocumentNotSaved    < RuntimeError; end
-  class ChildrenExist       < RuntimeError; end
-  class CannotUseIndex      < RuntimeError; end
-  class MissingIndex        < RuntimeError; end
-  class InvalidType         < RuntimeError; end
+  class Connection              < RuntimeError; end
+  class DocumentNotFound        < RuntimeError; end
+  class DocumentNotPersisted    < RuntimeError; end
+  class ChildrenExist           < RuntimeError; end
+  class CannotUseIndex          < RuntimeError; end
+  class MissingIndex            < RuntimeError; end
+  class InvalidType             < RuntimeError; end
   class AssociationNotPersisted < RuntimeError; end
-  class ReadonlyField       < RuntimeError; end
+  class ReadonlyField           < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance

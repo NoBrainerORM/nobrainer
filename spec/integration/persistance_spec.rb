@@ -59,12 +59,14 @@ describe 'NoBrainer persistance' do
     end
 
     it 'raises when updating' do
-      # TODO unknown error? Fix rethinkdb
-      expect { doc.update_attributes(:field1 => 'x') }.to raise_error
+      expect { doc.update_attributes(:field1 => 'x') }.to raise_error(NoBrainer::Error::DocumentNotPersisted,
+                                                                      /Non existent document/)
     end
 
     it 'raises when deleting' do
-      expect { doc.delete }.to raise_error
+      expect { doc.delete }.to raise_error(NoBrainer::Error::DocumentNotPersisted,
+                                           /Non existent document/)
+
     end
   end
 
@@ -75,7 +77,7 @@ describe 'NoBrainer persistance' do
 
   context "when the document already exists" do
     it 'raises an error when creating' do
-      expect { SimpleDocument.create(:id => doc.id) }.to raise_error(NoBrainer::Error::DocumentNotSaved)
+      expect { SimpleDocument.create(:id => doc.id) }.to raise_error(NoBrainer::Error::DocumentNotPersisted)
     end
   end
 end
