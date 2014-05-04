@@ -2,10 +2,10 @@ module NoBrainer::Criteria::Delete
   extend ActiveSupport::Concern
 
   def delete_all
-    run(to_rql.delete)
+    run(without_ordering.to_rql.delete)
   end
 
   def destroy_all
-    to_a.each { |doc| doc.destroy }
+    without_ordering.to_a.each { |doc| doc.destroy }
   end
 end

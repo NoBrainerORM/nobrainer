@@ -26,7 +26,7 @@ describe 'delete/destroy' do
     end
 
     it 'returns the array of destroyed documents' do
-      SimpleDocument.destroy_all.should == docs
+      SimpleDocument.destroy_all.should =~ docs
     end
   end
 end

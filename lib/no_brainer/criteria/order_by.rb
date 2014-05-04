@@ -1,7 +1,7 @@
 module NoBrainer::Criteria::OrderBy
   extend ActiveSupport::Concern
 
-  included { attr_accessor :order, :_reverse_order }
+  included { attr_accessor :order, :ordering_mode }
 
   def initialize(options={})
     super
@@ -24,20 +24,32 @@ module NoBrainer::Criteria::OrderBy
 
     chain do |criteria|
       criteria.order = rules
-      criteria._reverse_order = false
+      criteria.ordering_mode = :normal
     end
+  end
+
+  def without_ordering
+    chain { |criteria| criteria.ordering_mode = :disabled }
   end
 
   def merge!(criteria, options={})
     super
     # The latest order_by() wins
     self.order = criteria.order if criteria.order.present?
-    self._reverse_order = criteria._reverse_order unless criteria._reverse_order.nil?
+    self.ordering_mode = criteria.ordering_mode unless criteria.ordering_mode.nil?
     self
   end
 
   def reverse_order
-    chain { |criteria| criteria._reverse_order = !self._reverse_order }
+    chain do |criteria|
+      criteria.ordering_mode =
+        case self.ordering_mode
+        when nil       then :reversed
+        when :normal   then :reversed
+        when :reversed then :normal
+        when :disabled then :disabled
+        end
+    end
   end
 
   private
@@ -47,11 +59,16 @@ module NoBrainer::Criteria::OrderBy
   end
 
   def reverse_order?
-    !!self._reverse_order
+    self.ordering_mode == :reversed
+  end
+
+  def should_order?
+    self.ordering_mode != :disabled
   end
 
   def compile_rql_pass1
     rql = super
+    return rql unless should_order?
 
     rql_rules = effective_order.map do |k,v|
       case v
@@ -84,7 +101,10 @@ module NoBrainer::Criteria::OrderBy
 
   def compile_rql_pass2
     rql = super
-    rql = rql.order_by(*@rql_rules_pass2) if @rql_rules_pass2
+    if @rql_rules_pass2
+      rql = rql.order_by(*@rql_rules_pass2)
+      @rql_rules_pass2 = nil
+    end
     rql
   end
 
