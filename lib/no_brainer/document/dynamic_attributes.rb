@@ -17,4 +17,8 @@ module NoBrainer::Document::DynamicAttributes
       @_attributes[name] = value
     end
   end
+
+  def readable_attributes
+    @_attributes.keys
+  end
 end

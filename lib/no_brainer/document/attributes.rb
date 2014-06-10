@@ -15,8 +15,12 @@ module NoBrainer::Document::Attributes
     assign_attributes(attrs, options.reverse_merge(:pristine => true))
   end
 
+  def readable_attributes
+    @_attributes.keys & self.class.fields.keys.map(&:to_s)
+  end
+
   def attributes
-    Hash[@_attributes.keys.map { |k| [k, read_attribute(k)] }].with_indifferent_access.freeze
+    Hash[readable_attributes.map { |k| [k, read_attribute(k)] }].with_indifferent_access.freeze
   end
 
   def read_attribute(name)
