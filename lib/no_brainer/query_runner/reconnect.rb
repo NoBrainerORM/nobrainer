@@ -36,6 +36,7 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
       true
     when RethinkDB::RqlRuntimeError
       e.message =~ /No master available/ ||
+      e.message =~ /Master .* not available/ ||
       e.message =~ /Error: Connection Closed/
     else
       false
