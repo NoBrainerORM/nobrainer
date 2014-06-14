@@ -11,7 +11,7 @@ module CallbacksHelper
           cb = :"#{when_}_#{action}"
           __send__(cb) do
             self.class.callbacks << cb
-            (self.class.callbacks_of[id] ||= []) << cb rescue nil
+            (self.class.callbacks_of[pk_value] ||= []) << cb rescue nil
           end
         end
       end

@@ -92,7 +92,7 @@ module NoBrainer::Criteria::Where
         target_klass = association.target_klass
         opts = { :attr_name => key, :value => value, :type => target_klass}
         raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_klass)
-        value.id
+        value.pk_value
       else
         criteria.klass.cast_user_to_db_for(key, value)
       end

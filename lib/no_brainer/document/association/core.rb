@@ -49,7 +49,7 @@ module NoBrainer::Document::Association::Core
 
   included { attr_accessor :metadata, :owner }
 
-  delegate :foreign_key, :target_name, :target_klass, :to => :metadata
+  delegate :primary_key, :foreign_key, :target_name, :target_klass, :to => :metadata
 
   def initialize(metadata, owner)
     @metadata, @owner = metadata, owner

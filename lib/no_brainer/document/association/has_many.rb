@@ -2,13 +2,18 @@ class NoBrainer::Document::Association::HasMany
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:foreign_key, :class_name, :dependent]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || owner_klass.name.foreign_key.to_sym
+      options[:foreign_key].try(:to_sym) || :"#{owner_klass.name.underscore}_#{owner_klass.pk_name}"
+    end
+
+    def primary_key
+      # TODO test :primary_key
+      options[:primary_key].try(:to_sym) || target_klass.pk_name
     end
 
     def target_klass
@@ -25,6 +30,7 @@ class NoBrainer::Document::Association::HasMany
       target_klass.association_metadata.values.select do |assoc|
         assoc.is_a?(NoBrainer::Document::Association::BelongsTo::Metadata) and
         assoc.foreign_key == self.foreign_key                              and
+        assoc.primary_key == self.primary_key                              and
         assoc.target_klass.root_class == owner_klass.root_class
       end
     end
@@ -34,11 +40,11 @@ class NoBrainer::Document::Association::HasMany
       add_callback_for(:before_destroy) if options[:dependent]
     end
 
-    eager_load_with :owner_key => ->{ :id }, :target_key => ->{ foreign_key }
+    eager_load_with :owner_key => ->{ primary_key }, :target_key => ->{ foreign_key }
   end
 
   def target_criteria
-    @target_criteria ||= target_klass.where(foreign_key => owner.id)
+    @target_criteria ||= target_klass.where(foreign_key => owner.pk_value)
                                      .after_find(set_inverse_proc)
   end
 

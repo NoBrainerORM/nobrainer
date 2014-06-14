@@ -8,7 +8,7 @@ describe 'read only fields' do
       SimpleDocument.field :field1, :readonly => true
       doc = SimpleDocument.create(:field1 => 'hello')
       expect { doc.update_attributes(:field1 => 'ohno') }.to raise_error(NoBrainer::Error::ReadonlyField)
-      expect { doc.update_attributes(:id => 'ohno') }.to raise_error(NoBrainer::Error::ReadonlyField)
+      expect { doc.update_attributes(SimpleDocument.pk_name => 'ohno') }.to raise_error(NoBrainer::Error::ReadonlyField)
     end
   end
 end

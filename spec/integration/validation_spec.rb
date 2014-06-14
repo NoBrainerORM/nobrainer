@@ -161,22 +161,22 @@ describe 'NoBrainer callbacks' do
       expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
 
       c.post = post
-      c.post_id.should == post.id
+      c.send("post_#{Post.pk_name}").should == post.pk_value
       c.valid?.should == true
 
       c.post = nil
-      c.post_id.should == nil
+      c.send("post_#{Post.pk_name}").should == nil
       c.valid?.should == false
 
-      c.post_id = '123'
+      c.send("post_#{Post.pk_name}=", '123')
       c.valid?.should == false
 
-      c.post_id = post.id
+      c.send("post_#{Post.pk_name}=", post.pk_value)
       c.valid?.should == true
       Post.delete_all
       c.valid?.should == true
 
-      c.post_id = post.id
+      c.send("post_#{Post.pk_name}=", post.pk_value)
       c.valid?.should == false
     end
   end

@@ -38,13 +38,13 @@ describe 'first' do
       context 'order_by is on the id' do
         describe 'first' do
           it 'returns the document' do
-            SimpleDocument.all.order_by(:id => :desc).first.should == docs.last
+            SimpleDocument.all.order_by(SimpleDocument.pk_name => :desc).first.should == docs.last
           end
         end
 
         describe 'last' do
           it 'returns the document' do
-            SimpleDocument.all.order_by(:id => :desc).last.should == docs.first
+            SimpleDocument.all.order_by(SimpleDocument.pk_name => :desc).last.should == docs.first
           end
         end
       end

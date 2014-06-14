@@ -29,7 +29,7 @@ describe 'NoBrainer persistance' do
 
   it 'deletes' do
     doc.delete.should == true
-    SimpleDocument.find(doc.id).should == nil
+    SimpleDocument.find(doc.pk_value).should == nil
   end
 
   context 'when using default reload' do
@@ -69,12 +69,13 @@ describe 'NoBrainer persistance' do
 
   it 'destroys' do
     doc.destroy.should == true
-    SimpleDocument.find(doc.id).should == nil
+    SimpleDocument.find(doc.pk_value).should == nil
   end
 
   context "when the document already exists" do
     it 'raises an error when creating' do
-      expect { SimpleDocument.create(:id => doc.id) }.to raise_error(NoBrainer::Error::DocumentNotPersisted)
+      expect { SimpleDocument.create(SimpleDocument.pk_name => doc.pk_value) }
+        .to raise_error(NoBrainer::Error::DocumentNotPersisted)
     end
   end
 end
@@ -85,7 +86,7 @@ describe 'NoBrainer bulk inserts' do
   context 'when using insert_all' do
     it 'inserts a bunch of documents' do
       keys = SimpleDocument.insert_all(100.times.map { |i| {:field1 => i+1} })
-      SimpleDocument.where(:id => keys.first).count.should == 1
+      SimpleDocument.where(SimpleDocument.pk_name => keys.first).count.should == 1
       SimpleDocument.count.should == 100
       SimpleDocument.where(:field1.gt 50).count.should == 50
     end

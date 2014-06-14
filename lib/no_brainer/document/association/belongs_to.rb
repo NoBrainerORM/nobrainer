@@ -2,13 +2,18 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:foreign_key, :class_name, :index, :validates, :required]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :index, :validates, :required]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{target_name}_id"
+      options[:foreign_key].try(:to_sym) || :"#{target_name}_#{primary_key}"
+    end
+
+    def primary_key
+      # TODO test :primary_key
+      options[:primary_key].try(:to_sym) || target_klass.pk_name
     end
 
     def target_klass
@@ -32,7 +37,7 @@ class NoBrainer::Document::Association::BelongsTo
       add_callback_for(:after_validation)
     end
 
-    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ :id },
+    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ primary_key },
                     :unscoped => true
   end
 
@@ -49,13 +54,13 @@ class NoBrainer::Document::Association::BelongsTo
     return target if loaded?
 
     if fk = owner.read_attribute(foreign_key)
-      preload(target_klass.find(fk))
+      preload(target_klass.unscoped.where(primary_key => fk).first)
     end
   end
 
   def write(target)
     assert_target_type(target)
-    owner.write_attribute(foreign_key, target.try(:id))
+    owner.write_attribute(foreign_key, target.try(:pk_value))
     preload(target)
   end
 

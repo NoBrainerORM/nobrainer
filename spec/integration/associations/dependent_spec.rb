@@ -20,7 +20,7 @@ describe 'dependents' do
         author.destroy
         Post.count.should == 2
         Comment.count.should == 4
-        Post.first.author_id.should == author.id
+        Post.first.send("author_#{Author.pk_name}").should == author.pk_value
       end
     end
 
@@ -51,8 +51,8 @@ describe 'dependents' do
         author.destroy
         Post.count.should == 2
         Comment.count.should == 4
-        Post.first.author_id.should == nil
-        Comment.first.post_id.should_not == nil
+        Post.first.send("author_#{Author.pk_name}").should == nil
+        Comment.first.send("post_#{Post.pk_name}").should_not == nil
       end
     end
 

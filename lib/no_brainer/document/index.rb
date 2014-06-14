@@ -5,7 +5,6 @@ module NoBrainer::Document::Index
   included do
     cattr_accessor :indexes, :instance_accessor => false
     self.indexes = {}
-    self.index :id
   end
 
   module ClassMethods
@@ -84,7 +83,7 @@ module NoBrainer::Document::Index
 
     def perform_update_indexes(options={})
       current_indexes = NoBrainer.run(self.rql_table.index_list).map(&:to_sym)
-      wanted_indexes = self.indexes.keys - [:id] # XXX Primary key?
+      wanted_indexes = self.indexes.keys - [self.pk_name]
 
       (current_indexes - wanted_indexes).each do |index_name|
         perform_drop_index(index_name, options)

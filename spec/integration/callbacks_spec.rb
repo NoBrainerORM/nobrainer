@@ -69,7 +69,7 @@ describe 'NoBrainer callbacks' do
         SimpleDocument.each { }
         SimpleDocument.callbacks.should == [:before_initialize, :after_initialize, :after_find]
         SimpleDocument.callbacks.clear
-        SimpleDocument.find(doc.id)
+        SimpleDocument.find(doc.pk_value)
         SimpleDocument.callbacks.should == [:before_initialize, :after_initialize, :after_find]
       end
     end
@@ -128,7 +128,7 @@ describe 'NoBrainer callbacks' do
       SimpleDocument.before_destroy { false }
       doc = SimpleDocument.create(:field1 => 'hello')
       doc.destroy
-      SimpleDocument.find(doc.id).should == nil
+      SimpleDocument.find(doc.pk_value).should == nil
     end
 
     it 'does not halt validations' do

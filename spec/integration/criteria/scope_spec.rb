@@ -64,7 +64,7 @@ describe 'scope' do
 
     it 'scopes' do
       SimpleDocument.s1.s2.count.should == 1
-      SimpleDocument.s1.s2.first.id.should == doc3.id
+      SimpleDocument.s1.s2.first.pk_value.should == doc3.pk_value
     end
   end
 
@@ -80,7 +80,7 @@ describe 'scope' do
 
     context 'when using find()' do
       it 'does not apply the default scope' do
-        SimpleDocument.find(doc2.id).should == doc2
+        SimpleDocument.find(doc2.pk_value).should == doc2
       end
     end
 

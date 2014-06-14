@@ -55,7 +55,7 @@ module NoBrainer::Criteria::OrderBy
   private
 
   def effective_order
-    self.order.presence || {:id => :asc}
+    self.order.presence || (klass ? {klass.pk_name => :asc} : {})
   end
 
   def reverse_order?
@@ -69,8 +69,10 @@ module NoBrainer::Criteria::OrderBy
   def compile_rql_pass1
     rql = super
     return rql unless should_order?
+    _effective_order = effective_order
+    return rql if _effective_order.empty?
 
-    rql_rules = effective_order.map do |k,v|
+    rql_rules = _effective_order.map do |k,v|
       case v
       when :asc  then reverse_order? ? RethinkDB::RQL.new.desc(k) : RethinkDB::RQL.new.asc(k)
       when :desc then reverse_order? ? RethinkDB::RQL.new.asc(k)  : RethinkDB::RQL.new.desc(k)
@@ -84,7 +86,7 @@ module NoBrainer::Criteria::OrderBy
     NoBrainer::RQL.is_table?(rql)
     if NoBrainer::RQL.is_table?(rql) && !without_index?
       options = {}
-      first_key = effective_order.first[0]
+      first_key = _effective_order.first[0]
       if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
         options[:index] = rql_rules.shift
       end

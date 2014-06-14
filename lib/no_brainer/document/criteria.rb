@@ -2,7 +2,7 @@ module NoBrainer::Document::Criteria
   extend ActiveSupport::Concern
 
   def selector
-    self.class.selector_for(id)
+    self.class.selector_for(pk_value)
   end
 
   included { cattr_accessor :default_scope_proc, :instance_accessor => false }
@@ -40,20 +40,20 @@ module NoBrainer::Document::Criteria
       self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
     end
 
-    def selector_for(id)
-      rql_table.get(id)
+    def selector_for(pk)
+      rql_table.get(pk)
     end
 
     # XXX this doesn't have the same semantics as
     # other ORMs. the equivalent is find!.
-    def find(id)
-      attrs = NoBrainer.run { selector_for(id) }
+    def find(pk)
+      attrs = NoBrainer.run { selector_for(pk) }
       new_from_db(attrs).tap { |doc| doc.run_callbacks(:find) } if attrs
     end
 
-    def find!(id)
-      find(id).tap do |doc|
-        raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found" unless doc
+    def find!(pk)
+      find(pk).tap do |doc|
+        raise NoBrainer::Error::DocumentNotFound, "#{self} #{pk_name}: #{pk} not found" unless doc
       end
     end
   end

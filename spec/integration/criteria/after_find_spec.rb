@@ -36,7 +36,7 @@ describe "after_find" do
       doc = nil
       criteria = SimpleDocument.all.raw.after_find { |d| doc = d }
       criteria.first.should == doc
-      doc['id'].should == SimpleDocument.first.id
+      doc[SimpleDocument.pk_name.to_s].should == SimpleDocument.first.pk_value
     end
   end
 end

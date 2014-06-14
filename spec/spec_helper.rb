@@ -35,6 +35,9 @@ end
 
 I18n.enforce_available_locales = true rescue nil
 
+NoBrainer::Document::Id.__send__(:remove_const, :DEFAULT_PK_NAME)
+NoBrainer::Document::Id.__send__(:const_set,    :DEFAULT_PK_NAME, :_id_)
+
 RSpec.configure do |config|
   config.color_enabled = true
   config.include ModelsHelper

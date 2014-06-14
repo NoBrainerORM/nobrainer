@@ -27,8 +27,8 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello') }
 
     it 'uses the primary key index' do
-      SimpleDocument.where(:id => doc1.id).indexed?.should == true
-      SimpleDocument.where(:id => doc1.id).count.should == 1
+      SimpleDocument.where(SimpleDocument.pk_name => doc1.pk_value).indexed?.should == true
+      SimpleDocument.where(SimpleDocument.pk_name => doc1.pk_value).count.should == 1
     end
   end
 

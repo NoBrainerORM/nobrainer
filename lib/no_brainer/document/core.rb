@@ -11,9 +11,11 @@ module NoBrainer::Document::Core
   end
   self._all = []
 
-  # TODO This assume the primary key is id.
-  # RethinkDB can have a custom primary key. careful.
   include ActiveModel::Conversion
+
+  def to_key
+    [pk_value]
+  end
 
   included do
     # TODO test these includes

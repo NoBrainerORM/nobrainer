@@ -10,5 +10,7 @@ module NoBrainer::Document
 
   autoload :DynamicAttributes, :Timestamps
 
+  included { define_default_pk }
+
   singleton_class.delegate :all, :to => Core
 end

@@ -19,8 +19,8 @@ module NoBrainer::Document::Persistance
   end
 
   def reload(options={})
-    attrs = NoBrainer.run { self.class.selector_for(id) }
-    raise NoBrainer::Error::DocumentNotFound, "#{self.class} id #{id} not found" unless attrs
+    attrs = NoBrainer.run { self.class.selector_for(pk_value) }
+    raise NoBrainer::Error::DocumentNotFound, "#{self.class} #{self.class.pk_name}: #{pk_value} not found" unless attrs
     instance_variables.each { |ivar| remove_instance_variable(ivar) } unless options[:keep_ivars]
     initialize(attrs, :pristine => true, :from_db => true)
     self
@@ -29,7 +29,7 @@ module NoBrainer::Document::Persistance
   def _create(options={})
     return false if options[:validate] && !valid?
     keys = self.class.insert_all(@_attributes)
-    self.id ||= keys.first
+    self.pk_value ||= keys.first
     @new_record = false
     true
   end
