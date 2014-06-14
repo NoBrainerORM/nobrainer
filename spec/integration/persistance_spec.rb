@@ -58,15 +58,12 @@ describe 'NoBrainer persistance' do
       expect { doc.reload }.to raise_error(NoBrainer::Error::DocumentNotFound)
     end
 
-    it 'raises when updating' do
-      expect { doc.update_attributes(:field1 => 'x') }.to raise_error(NoBrainer::Error::DocumentNotPersisted,
-                                                                      /Non existent document/)
+    it 'does not raise when updating' do
+      expect { doc.update_attributes(:field1 => 'x') }.to_not raise_error
     end
 
-    it 'raises when deleting' do
-      expect { doc.delete }.to raise_error(NoBrainer::Error::DocumentNotPersisted,
-                                           /Non existent document/)
-
+    it 'does not raise when deleting' do
+      expect { doc.delete }.to_not raise_error
     end
   end
 

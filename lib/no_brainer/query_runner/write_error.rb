@@ -2,9 +2,8 @@ class NoBrainer::QueryRunner::WriteError < NoBrainer::QueryRunner::Middleware
   def call(env)
     write_query = NoBrainer::RQL.is_write_query?(env[:query])
     @runner.call(env).tap do |result|
-      if write_query && (result['errors'].to_i != 0 || result['skipped'].to_i != 0)
+      if write_query && (result['errors'].to_i != 0)
         error_msg = result['first_error']
-        error_msg ||= "Non existent document" if result['skipped'].to_i > 0
         raise_write_error(env, error_msg)
       end
     end
