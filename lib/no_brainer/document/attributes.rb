@@ -101,6 +101,23 @@ module NoBrainer::Document::Attributes
       _field(attr, self.fields[attr])
     end
 
+    def _remove_field(attr, options={})
+      inject_in_layer :attributes do
+        remove_method("#{attr}=")
+        remove_method("#{attr}")
+      end
+    end
+
+    def remove_field(attr, options={})
+      attr = attr.to_sym
+
+      _remove_field(attr, options)
+
+      ([self] + descendants).each do |klass|
+        klass.fields.delete(attr)
+      end
+    end
+
     def has_field?(attr)
       !!fields[attr.to_sym]
     end

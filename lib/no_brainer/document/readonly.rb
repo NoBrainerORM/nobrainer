@@ -15,5 +15,12 @@ module NoBrainer::Document::Readonly
         end
       end
     end
+
+    def _remove_field(attr, options={})
+      super
+      inject_in_layer :readonly do
+        remove_method("#{attr}=") if method_defined?("#{attr}=")
+      end
+    end
   end
 end

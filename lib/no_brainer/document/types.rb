@@ -171,5 +171,13 @@ module NoBrainer::Document::Types
       end
       super
     end
+
+    def _remove_field(attr, options={})
+      super
+      inject_in_layer :types do
+        remove_method("#{attr}=")
+        remove_method("#{attr}?") if method_defined?("#{attr}?")
+      end
+    end
   end
 end

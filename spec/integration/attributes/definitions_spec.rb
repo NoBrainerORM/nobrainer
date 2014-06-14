@@ -67,4 +67,31 @@ describe NoBrainer do
       expect { SimpleDocument.field :and }.to raise_error
     end
   end
+
+  context 'when removing fields' do
+    before { load_simple_document }
+
+    def methods(klass)
+      klass.methods.grep(/methods/).map { |m| klass.send(m) }.reduce(:+)
+    end
+
+    it 'cleans up' do
+      original_methods = methods(SimpleDocument)
+      original_fields = SimpleDocument.fields.dup
+      original_indexes = SimpleDocument.indexes.dup
+      original_consts = SimpleDocument.constants
+
+      # Logic overriding 'def _field' should be triggered here.
+      SimpleDocument.field :attr, :type     => SimpleDocument::Boolean,
+                                  :unique   => true,
+                                  :index    => true,
+                                  :readonly => true
+      SimpleDocument.remove_field :attr
+
+      methods(SimpleDocument).should == original_methods
+      SimpleDocument.fields.should == original_fields
+      SimpleDocument.indexes.should == original_indexes
+      SimpleDocument.constants.should == original_consts
+    end
+  end
 end

@@ -57,6 +57,11 @@ module NoBrainer::Document::Index
       end
     end
 
+    def _remove_field(attr, options={})
+      super
+      remove_index(attr) if fields[attr][:index]
+    end
+
     def perform_create_index(index_name, options={})
       index_name = index_name.to_sym
       index_args = self.indexes[index_name]

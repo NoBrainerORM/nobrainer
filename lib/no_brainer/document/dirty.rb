@@ -79,5 +79,16 @@ module NoBrainer::Document::Dirty
         end
       end
     end
+
+    def _remove_field(attr, options={})
+      super
+      inject_in_layer :dirty_tracking do
+        remove_method("#{attr}_change")
+        remove_method("#{attr}_changed?")
+        remove_method("#{attr}_was")
+        remove_method("#{attr}=")
+        remove_method("#{attr}")
+      end
+    end
   end
 end
