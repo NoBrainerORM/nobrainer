@@ -5,7 +5,7 @@ describe 'NoBrainer id' do
 
   it 'can be used to order documents by time' do
     range = (0..20)
-    Time.stub(:now).and_return(*range.map { |i| Time.at(i) })
+    allow(Time).to receive(:now).and_return(*range.map { |i| Time.at(i) })
     range.each { |i| SimpleDocument.create(:field1 => i) }
     SimpleDocument.all.order_by(SimpleDocument.pk_name => :asc).map(&:field1).to_a.should == range.to_a
   end

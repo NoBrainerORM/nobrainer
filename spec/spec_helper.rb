@@ -39,7 +39,10 @@ NoBrainer::Document::Id.__send__(:remove_const, :DEFAULT_PK_NAME)
 NoBrainer::Document::Id.__send__(:const_set,    :DEFAULT_PK_NAME, :_id_)
 
 RSpec.configure do |config|
-  config.color_enabled = true
+  config.color = true
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
   config.include ModelsHelper
   config.include CallbacksHelper
 

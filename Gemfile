@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'rake'
-gem 'rspec'
+gem 'rspec', '~> 3.0'
 gem 'timecop'
 gem 'pry'
 gem 'simplecov', :require => false
