@@ -2,7 +2,7 @@ module NoBrainer::Criteria::Count
   extend ActiveSupport::Concern
 
   def count
-    run(to_rql.count)
+    run(without_ordering.to_rql.count)
   end
 
   def empty?

@@ -64,6 +64,7 @@ module NoBrainer::Criteria::Where
         when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, criteria)
         else raise ArgumentError.new ":in takes an array/range, not #{value}"
         end
+      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria)
       else BinaryOperator.new(key, op, cast_value(value), criteria)
       end
     end
