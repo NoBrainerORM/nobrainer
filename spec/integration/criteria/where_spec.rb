@@ -159,6 +159,27 @@ describe 'complex where queries' do
         SimpleDocument.where(:field1.in [3,5,9,33]).count.should == 3
       end
     end
+
+    context 'when using defined' do
+      before { SimpleDocument.delete_all }
+      let!(:doc1) { SimpleDocument.create(:field1 => 'hey') }
+      let!(:doc2) { SimpleDocument.create(:field2 => 'hey') }
+      let!(:doc3) { SimpleDocument.create(:field1 => 'hey', :field2 => 'hey') }
+
+      it 'filters documents' do
+        SimpleDocument.where(:field1.defined => false).count.should == 1
+        SimpleDocument.where(:field1.defined => true).count.should == 2
+        SimpleDocument.where(:field2.defined => false).count.should == 1
+        SimpleDocument.where(:field2.defined => true).count.should == 2
+
+        SimpleDocument.where(:field1.defined => true,
+                             :field2.defined => false).first.should == doc1
+        SimpleDocument.where(:field1.defined => false,
+                             :field2.defined => true).first.should == doc2
+        SimpleDocument.where(:field1.defined => true,
+                             :field2.defined => true).first.should == doc3
+      end
+    end
   end
 
   context 'when using dates' do

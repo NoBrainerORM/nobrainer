@@ -71,8 +71,9 @@ module NoBrainer::Criteria::Where
 
     def to_rql(doc)
       case op
+      when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
       when :between then (doc[key] >= value.min) & (doc[key] <= value.max)
-      when :in then RethinkDB::RQL.new.expr(value).contains(doc[key])
+      when :in      then RethinkDB::RQL.new.expr(value).contains(doc[key])
       else doc[key].__send__(op, value)
       end
     end
