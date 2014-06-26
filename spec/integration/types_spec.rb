@@ -238,6 +238,54 @@ describe 'types' do
     end
   end
 
+  context 'when using Time type' do
+    let(:type) { Time }
+
+    it 'type checks and casts' do
+      now = Time.at(Time.now.to_i)
+
+      doc.field1 = now
+      doc.field1.should == now
+      doc.valid?.should == true
+
+      doc.field1 = "11-11-1111"
+      doc.field1.should == "11-11-1111"
+      doc.valid?.should == false
+
+      doc.field1 = "hello"
+      doc.field1.should == "hello"
+      doc.valid?.should == false
+
+      doc.field1 = "2014-06-26T15:34:12-04:00"
+      doc.field1.should == Time.parse("2014-06-26T15:34:12-04:00")
+      doc.valid?.should == true
+
+      doc.field1 = "  2014-06-26T15:34:12-04:00  "
+      doc.field1.should == Time.parse("2014-06-26T15:34:12-04:00")
+      doc.valid?.should == true
+
+      doc.field1 = "2014-06-26 T 15:34:12-04:00"
+      doc.field1.should == "2014-06-26 T 15:34:12-04:00"
+      doc.valid?.should == false
+
+      doc.field1 = "2014-06-26x15:34:12-04:00"
+      doc.field1.should == "2014-06-26x15:34:12-04:00"
+      doc.valid?.should == false
+
+      doc.field1 = "2014-06-26T15:34:12Z"
+      doc.field1.should == Time.parse("2014-06-26T15:34:12Z")
+      doc.valid?.should == true
+
+      doc.field1 = now.iso8601
+      doc.field1.should == now
+      doc.valid?.should == true
+
+      doc.field1 = now.utc.iso8601
+      doc.field1.should == now.utc
+      doc.valid?.should == true
+    end
+  end
+
   context 'when using a non implemented type' do
     let(:type) { nil }
     before { define_constant(:CustomType) { } }

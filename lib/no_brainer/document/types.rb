@@ -1,3 +1,5 @@
+require 'time'
+
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
@@ -59,7 +61,21 @@ module NoBrainer::Document::Types
       end
     end
 
+    def Time(value)
+      raise InvalidType unless value.is_a?(String)
+      value = value.strip
+      time = Time.parse(value) rescue (raise InvalidType)
+      raise InvalidType unless time.iso8601 == value
+      time
+    end
+
     def lookup(type)
+      if type.to_s.in? %w(DateTime Date)
+        STDERR.puts "[NoBrainer] At: #{NoBrainer.user_caller}"
+        STDERR.puts "[NoBrainer] #{type} types are not supported. Please use the Time type instead."
+        STDERR.puts "[NoBrainer] You may read about this caveat at the bottom of http://nobrainer.io/docs/types/"
+      end
+
       public_method(type.to_s)
     rescue NameError
       proc { raise InvalidType }
