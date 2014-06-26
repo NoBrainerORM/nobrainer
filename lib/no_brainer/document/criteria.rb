@@ -18,7 +18,7 @@ module NoBrainer::Document::Criteria
              :delete_all, :destroy_all,      # Delete
              :includes, :preload,            # Preload
              :each, :to_a,                   # Enumerable
-             :first, :last, :first!, :last!, # First
+             :first, :last, :first!, :last!, :sample, # First
              :update_all, :replace_all,      # Update
              :to => :all
 

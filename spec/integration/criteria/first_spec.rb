@@ -18,6 +18,23 @@ describe 'first' do
           SimpleDocument.last.should == docs.last
         end
       end
+
+      describe 'sample' do
+        it 'returns a random document' do
+          docs = 10.times.map { SimpleDocument.sample }
+          docs.first.should be_a(SimpleDocument)
+          docs.uniq.size.should > 1
+        end
+
+        it 'returns an array of documents when supplied with an argument' do
+          SimpleDocument.sample(1).should be_a(Array)
+          SimpleDocument.sample(1).first.should be_a(SimpleDocument)
+
+          SimpleDocument.sample(1).size.should == 1
+          SimpleDocument.sample(2).size.should == 2
+          SimpleDocument.sample(3).size.should == 3
+        end
+      end
     end
 
     context 'when using a scope' do

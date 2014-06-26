@@ -17,6 +17,12 @@ module NoBrainer::Criteria::First
     last.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
   end
 
+  def sample(n=nil)
+    result = NoBrainer.run { self.without_ordering.to_rql.sample(n.nil? ? 1 : n) }
+    result = result.map(&method(:instantiate_doc))
+    n.nil? ? result.first : result
+  end
+
   private
 
   def get_one(criteria)
