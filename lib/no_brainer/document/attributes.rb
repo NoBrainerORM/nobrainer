@@ -64,6 +64,10 @@ module NoBrainer::Document::Attributes
     Hash[@_attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }]
   end
 
+  def to_s
+    "#<#{self.class} #{self.class.pk_name}: #{self.pk_value.inspect}>"
+  end
+
   def inspect
     "#<#{self.class} #{inspectable_attributes.map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
   end
