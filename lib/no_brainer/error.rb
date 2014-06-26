@@ -33,7 +33,7 @@ module NoBrainer::Error
     end
 
     def message
-      "#{attr_name} should be used with a #{human_type_name}. Got `#{value}`"
+      "#{attr_name} should be used with a #{human_type_name}. Got `#{value}` (#{value.class})"
     end
   end
 end
