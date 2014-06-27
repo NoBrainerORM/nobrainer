@@ -82,7 +82,7 @@ module NoBrainer::Document::Types
     end
   end
 
-  module CastInternalToUser
+  module CastDBToInternal
     extend self
 
     def Symbol(value)
@@ -110,8 +110,8 @@ module NoBrainer::Document::Types
 
     # Fast access for db->user cast methods for performance when reading from
     # the database.
-    singleton_class.send(:attr_accessor, :cast_internal_to_user_fields)
-    self.cast_internal_to_user_fields = Set.new
+    singleton_class.send(:attr_accessor, :cast_db_to_internal_fields)
+    self.cast_db_to_internal_fields = Set.new
   end
 
   def add_type_errors
@@ -124,12 +124,12 @@ module NoBrainer::Document::Types
   def assign_attributes(attrs, options={})
     super
     if options[:from_db]
-      self.class.cast_internal_to_user_fields.each do |attr|
+      self.class.cast_db_to_internal_fields.each do |attr|
         field_def = self.class.fields[attr]
         type = field_def[:type]
         value = @_attributes[attr.to_s]
         unless value.nil? || value.is_a?(type)
-          @_attributes[attr.to_s] = field_def[:cast_internal_to_user].call(value)
+          @_attributes[attr.to_s] = field_def[:cast_db_to_internal].call(value)
         end
       end
     end
@@ -156,15 +156,15 @@ module NoBrainer::Document::Types
 
     def inherited(subclass)
       super
-      subclass.cast_internal_to_user_fields = self.cast_internal_to_user_fields.dup
+      subclass.cast_db_to_internal_fields = self.cast_db_to_internal_fields.dup
     end
 
     def _field(attr, options={})
       super
 
-      if options[:cast_internal_to_user]
+      if options[:cast_db_to_internal]
         ([self] + descendants).each do |klass|
-          klass.cast_internal_to_user_fields << attr
+          klass.cast_db_to_internal_fields << attr
         end
       end
 
@@ -187,7 +187,7 @@ module NoBrainer::Document::Types
     def field(attr, options={})
       if options[:type]
         options = {:cast_user_to_internal => NoBrainer::Document::Types::CastUserToInternal.lookup(options[:type]),
-                   :cast_internal_to_user => NoBrainer::Document::Types::CastInternalToUser.lookup(options[:type])}.merge(options)
+                   :cast_db_to_internal   => NoBrainer::Document::Types::CastDBToInternal.lookup(options[:type])}.merge(options)
       end
       super
     end

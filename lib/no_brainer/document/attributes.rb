@@ -1,6 +1,6 @@
 module NoBrainer::Document::Attributes
   VALID_FIELD_OPTIONS = [:index, :default, :type,
-                         :cast_user_to_internal, :cast_internal_to_user,
+                         :cast_user_to_internal, :cast_db_to_internal,
                          :validates, :required, :unique, :readonly, :primary_key]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
                           + NoBrainer::DecoratedSymbol::MODIFIERS.keys
