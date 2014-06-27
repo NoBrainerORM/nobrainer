@@ -3,7 +3,7 @@ require 'time'
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  module CastUserToDB
+  module CastUserToInternal
     extend self
     InvalidType = NoBrainer::Error::InvalidType
 
@@ -82,7 +82,7 @@ module NoBrainer::Document::Types
     end
   end
 
-  module CastDBToUser
+  module CastInternalToUser
     extend self
 
     def Symbol(value)
@@ -110,8 +110,8 @@ module NoBrainer::Document::Types
 
     # Fast access for db->user cast methods for performance when reading from
     # the database.
-    singleton_class.send(:attr_accessor, :cast_db_to_user_fields)
-    self.cast_db_to_user_fields = Set.new
+    singleton_class.send(:attr_accessor, :cast_internal_to_user_fields)
+    self.cast_internal_to_user_fields = Set.new
   end
 
   def add_type_errors
@@ -124,24 +124,24 @@ module NoBrainer::Document::Types
   def assign_attributes(attrs, options={})
     super
     if options[:from_db]
-      self.class.cast_db_to_user_fields.each do |attr|
+      self.class.cast_internal_to_user_fields.each do |attr|
         field_def = self.class.fields[attr]
         type = field_def[:type]
         value = @_attributes[attr.to_s]
         unless value.nil? || value.is_a?(type)
-          @_attributes[attr.to_s] = field_def[:cast_db_to_user].call(value)
+          @_attributes[attr.to_s] = field_def[:cast_internal_to_user].call(value)
         end
       end
     end
   end
 
   module ClassMethods
-    def cast_user_to_db_for(attr, value)
+    def cast_user_to_internal_for(attr, value)
       field_def = fields[attr.to_sym]
       return value if !field_def
       type = field_def[:type]
       return value if value.nil? || type.nil? || value.is_a?(type)
-      field_def[:cast_user_to_db].call(value)
+      field_def[:cast_user_to_internal].call(value)
     rescue NoBrainer::Error::InvalidType => error
       error.type = field_def[:type]
       error.value = value
@@ -149,24 +149,29 @@ module NoBrainer::Document::Types
       raise error
     end
 
+    def cast_user_to_db_for(attr, value)
+      cast_user_to_internal_for(attr, value)
+      # TODO support custom internal -> db translations.
+    end
+
     def inherited(subclass)
       super
-      subclass.cast_db_to_user_fields = self.cast_db_to_user_fields.dup
+      subclass.cast_internal_to_user_fields = self.cast_internal_to_user_fields.dup
     end
 
     def _field(attr, options={})
       super
 
-      if options[:cast_db_to_user]
+      if options[:cast_internal_to_user]
         ([self] + descendants).each do |klass|
-          klass.cast_db_to_user_fields << attr
+          klass.cast_internal_to_user_fields << attr
         end
       end
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
           begin
-            value = self.class.cast_user_to_db_for(attr, value)
+            value = self.class.cast_user_to_internal_for(attr, value)
             @pending_type_errors.try(:delete, attr)
           rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
@@ -181,9 +186,8 @@ module NoBrainer::Document::Types
 
     def field(attr, options={})
       if options[:type]
-        options = options.merge(
-          :cast_user_to_db => NoBrainer::Document::Types::CastUserToDB.lookup(options[:type]),
-          :cast_db_to_user => NoBrainer::Document::Types::CastDBToUser.lookup(options[:type]))
+        options = {:cast_user_to_internal => NoBrainer::Document::Types::CastUserToInternal.lookup(options[:type]),
+                   :cast_internal_to_user => NoBrainer::Document::Types::CastInternalToUser.lookup(options[:type])}.merge(options)
       end
       super
     end
