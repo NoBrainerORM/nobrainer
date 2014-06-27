@@ -10,7 +10,7 @@ describe 'where types' do
       begin
         SimpleDocument.where(:field1 => "abc")
       rescue Exception => e
-        e.message.should == "field1 should be used with a integer. Got `abc`"
+        e.message.should == "field1 should be used with a integer. Got `abc` (String)"
       end
 
       expect { SimpleDocument.where(:field1 => "abc") }.to raise_error NoBrainer::Error::InvalidType
