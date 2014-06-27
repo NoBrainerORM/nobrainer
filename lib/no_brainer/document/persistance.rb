@@ -28,7 +28,7 @@ module NoBrainer::Document::Persistance
 
   def _create(options={})
     return false if options[:validate] && !valid?
-    keys = self.class.insert_all(@_attributes)
+    keys = self.class.insert_all(self.class.persistable_attributes(@_attributes))
     self.pk_value ||= keys.first
     @new_record = false
     true
@@ -50,7 +50,7 @@ module NoBrainer::Document::Persistance
       attr = RethinkDB::RQL.new.literal(attr) if attr.is_a?(Hash)
       [k, attr]
     end]
-    _update(attrs) if attrs.present?
+    _update(self.class.persistable_attributes(attrs)) if attrs.present?
     true
   end
 

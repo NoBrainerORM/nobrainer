@@ -235,6 +235,10 @@ describe 'types' do
       doc.save
       doc.reload
       doc.field1.should == nil
+
+      NoBrainer.run { doc.selector.update(:field1 => 1) }
+      doc.reload
+      doc.field1.should == :"1"
     end
   end
 
@@ -300,9 +304,50 @@ describe 'types' do
     end
   end
 
-  context 'when coming from the database' do
+  context 'when using a custom type' do
     let(:type) { nil }
-    it 'does not type check/cast' do # except for symbols :)
+    before do
+      define_constant :Point, Struct.new(:x, :y) do
+        def self.nobrainer_safe_cast_user_to_model(value)
+          case value
+          when Point then value
+          when Hash  then new(value[:x] || value['x'], value[:y] || value['y'])
+          else raise NoBrainer::Error::InvalidType
+          end
+        end
+
+        def self.nobrainer_cast_db_to_model(value)
+          Point.new(value['x'], value['y'])
+        end
+
+        def self.nobrainer_cast_model_to_db(value)
+          {'x' => value.x, 'y' => value.y}
+        end
+      end
+    end
+    before { SimpleDocument.field :field1, :type => Point }
+
+    it 'type checks' do
+      doc.field1 = Point.new
+      doc.valid?.should == true
+
+      doc.field1 = 123
+      doc.field1.should == 123
+      doc.valid?.should == false
+      doc.errors.full_messages.first.should == "Field1 should be a point"
+
+      doc.field1 = {:x => 123, :y => 456}
+      doc.field1.should == Point.new(123, 456)
+      doc.valid?.should == true
+
+      doc.save
+      SimpleDocument.first.field1.should == Point.new(123, 456)
+    end
+  end
+
+  context 'when coming from the database with a cast that cannot be perfomred' do
+    let(:type) { nil }
+    it 'does not type check/cast' do
       doc.field1 = '1'
       doc.save
       SimpleDocument.first.field1.should == '1'

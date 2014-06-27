@@ -3,7 +3,7 @@ require 'time'
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  module CastUserToInternal
+  module SafeCastUserToModel
     extend self
     InvalidType = NoBrainer::Error::InvalidType
 
@@ -70,24 +70,28 @@ module NoBrainer::Document::Types
     end
 
     def lookup(type)
-      if type.to_s.in? %w(DateTime Date)
-        STDERR.puts "[NoBrainer] At: #{NoBrainer.user_caller}"
-        STDERR.puts "[NoBrainer] #{type} types are not supported. Please use the Time type instead."
-        STDERR.puts "[NoBrainer] You may read about this caveat at the bottom of http://nobrainer.io/docs/types/"
-      end
-
       public_method(type.to_s)
     rescue NameError
       proc { raise InvalidType }
     end
   end
 
-  module CastDBToInternal
+  module CastDBToModel
     extend self
 
     def Symbol(value)
-      value.to_sym rescue value
+      value.to_sym rescue (value.to_s.to_sym rescue value)
     end
+
+    def lookup(type)
+      public_method(type.to_s)
+    rescue NameError
+      nil
+    end
+  end
+
+  module CastModelToDB
+    extend self
 
     def lookup(type)
       public_method(type.to_s)
@@ -110,8 +114,10 @@ module NoBrainer::Document::Types
 
     # Fast access for db->user cast methods for performance when reading from
     # the database.
-    singleton_class.send(:attr_accessor, :cast_db_to_internal_fields)
-    self.cast_db_to_internal_fields = Set.new
+    singleton_class.send(:attr_accessor, :cast_db_to_model_fields)
+    singleton_class.send(:attr_accessor, :cast_model_to_db_fields)
+    self.cast_db_to_model_fields = Set.new
+    self.cast_model_to_db_fields = Set.new
   end
 
   def add_type_errors
@@ -124,24 +130,24 @@ module NoBrainer::Document::Types
   def assign_attributes(attrs, options={})
     super
     if options[:from_db]
-      self.class.cast_db_to_internal_fields.each do |attr|
-        field_def = self.class.fields[attr]
-        type = field_def[:type]
-        value = @_attributes[attr.to_s]
-        unless value.nil? || value.is_a?(type)
-          @_attributes[attr.to_s] = field_def[:cast_db_to_internal].call(value)
-        end
+      self.class.cast_db_to_model_fields.each do |attr|
+        @_attributes[attr] = self.class.cast_db_to_model_for(attr, @_attributes[attr])
       end
     end
   end
 
   module ClassMethods
-    def cast_user_to_internal_for(attr, value)
+    def __cast__(what, attr, value, options={})
       field_def = fields[attr.to_sym]
       return value if !field_def
-      type = field_def[:type]
-      return value if value.nil? || type.nil? || value.is_a?(type)
-      field_def[:cast_user_to_internal].call(value)
+      return value if value.nil? || field_def[what].nil?
+
+      if options[:lazy]
+        type = field_def[:type]
+        return value if type && value.is_a?(type)
+      end
+
+      field_def[what].call(value)
     rescue NoBrainer::Error::InvalidType => error
       error.type = field_def[:type]
       error.value = value
@@ -149,29 +155,59 @@ module NoBrainer::Document::Types
       raise error
     end
 
-    def cast_user_to_db_for(attr, value)
-      cast_user_to_internal_for(attr, value)
-      # TODO support custom internal -> db translations.
+    def safe_cast_user_to_model_for(attr, value)
+      __cast__(:safe_cast_user_to_model, attr, value, :lazy => true)
+    end
+
+    def cast_model_to_db_for(attr, value)
+      __cast__(:cast_model_to_db, attr, value)
+    end
+
+    def cast_db_to_model_for(attr, value)
+      __cast__(:cast_db_to_model, attr, value)
+    end
+
+    def safe_cast_user_to_db_for(attr, value)
+      value = safe_cast_user_to_model_for(attr, value)
+      cast_model_to_db_for(attr, value)
+    end
+
+    def persistable_attributes(attrs)
+      attr_names = cast_model_to_db_fields & attrs.keys
+      if attr_names.present?
+        attrs = attrs.dup
+        attr_names.each do |attr|
+          attrs[attr] = cast_model_to_db_for(attr, attrs[attr])
+        end
+      end
+      attrs
     end
 
     def inherited(subclass)
       super
-      subclass.cast_db_to_internal_fields = self.cast_db_to_internal_fields.dup
+      subclass.cast_db_to_model_fields = self.cast_db_to_model_fields.dup
+      subclass.cast_model_to_db_fields = self.cast_model_to_db_fields.dup
     end
 
     def _field(attr, options={})
       super
 
-      if options[:cast_db_to_internal]
+      if options[:cast_db_to_model]
         ([self] + descendants).each do |klass|
-          klass.cast_db_to_internal_fields << attr
+          klass.cast_db_to_model_fields << attr.to_s
+        end
+      end
+
+      if options[:cast_model_to_db]
+        ([self] + descendants).each do |klass|
+          klass.cast_model_to_db_fields << attr.to_s
         end
       end
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
           begin
-            value = self.class.cast_user_to_internal_for(attr, value)
+            value = self.class.safe_cast_user_to_model_for(attr, value)
             @pending_type_errors.try(:delete, attr)
           rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
@@ -185,15 +221,34 @@ module NoBrainer::Document::Types
     end
 
     def field(attr, options={})
-      if options[:type]
-        options = {:cast_user_to_internal => NoBrainer::Document::Types::CastUserToInternal.lookup(options[:type]),
-                   :cast_db_to_internal   => NoBrainer::Document::Types::CastDBToInternal.lookup(options[:type])}.merge(options)
+      type = options[:type]
+      if type
+        if type.to_s.in? %w(DateTime Date)
+          STDERR.puts "[NoBrainer] At: #{NoBrainer.user_caller}"
+          STDERR.puts "[NoBrainer] #{type} types are not supported. Please use the Time type instead."
+          STDERR.puts "[NoBrainer] You may read about this caveat at the bottom of http://nobrainer.io/docs/types/"
+        end
+
+        cast_methods = {}
+        cast_methods[:safe_cast_user_to_model] = type.method(:nobrainer_safe_cast_user_to_model) rescue nil
+        cast_methods[:cast_db_to_model]        = type.method(:nobrainer_cast_db_to_model) rescue nil
+        cast_methods[:cast_model_to_db]        = type.method(:nobrainer_cast_model_to_db) rescue nil
+        cast_methods[:safe_cast_user_to_model] ||= NoBrainer::Document::Types::SafeCastUserToModel.lookup(type)
+        cast_methods[:cast_db_to_model]        ||= NoBrainer::Document::Types::CastDBToModel.lookup(type)
+        cast_methods[:cast_model_to_db]        ||= NoBrainer::Document::Types::CastModelToDB.lookup(type)
+        options = cast_methods.merge(options)
       end
       super
     end
 
     def _remove_field(attr, options={})
       super
+
+      ([self] + descendants).each do |klass|
+        klass.cast_db_to_model_fields.delete(attr.to_s)
+        klass.cast_model_to_db_fields.delete(attr.to_s)
+      end
+
       inject_in_layer :types do
         remove_method("#{attr}=")
         remove_method("#{attr}?") if method_defined?("#{attr}?")

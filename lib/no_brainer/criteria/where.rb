@@ -96,7 +96,7 @@ module NoBrainer::Criteria::Where
         raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_klass)
         value.pk_value
       else
-        criteria.klass.cast_user_to_db_for(key, value)
+        criteria.klass.safe_cast_user_to_db_for(key, value)
       end
     end
 
