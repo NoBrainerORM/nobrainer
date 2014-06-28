@@ -82,6 +82,18 @@ module NoBrainer::Document::Types
       end
     end
 
+    def Date(value)
+      case value
+      when Date then value
+      when String
+        value = value.strip
+        date = Date.parse(value) rescue (raise InvalidType)
+        raise InvalidType unless date.iso8601 == value
+        date
+      else raise InvalidType
+      end
+    end
+
     def lookup(type)
       public_method(type.to_s)
     rescue NameError
@@ -106,6 +118,10 @@ module NoBrainer::Document::Types
       end
     end
 
+    def Date(value)
+      value.is_a?(Time) ? value.to_date : value
+    end
+
     def lookup(type)
       public_method(type.to_s)
     rescue NameError
@@ -124,6 +140,10 @@ module NoBrainer::Document::Types
       when :utc       then value.utc
       when :unchanged then value
       end
+    end
+
+    def Date(value)
+      value.is_a?(Date) ? Time.utc(value.year, value.month, value.day) : value
     end
 
     def lookup(type)
@@ -249,10 +269,10 @@ module NoBrainer::Document::Types
     def field(attr, options={})
       type = options[:type]
       if type
-        if type.to_s.in? %w(DateTime Date)
+        if type == DateTime
           STDERR.puts "[NoBrainer] At: #{NoBrainer.user_caller}"
-          STDERR.puts "[NoBrainer] #{type} types are not supported. Please use the Time type instead."
-          STDERR.puts "[NoBrainer] You may read about this caveat at the bottom of http://nobrainer.io/docs/types/"
+          STDERR.puts "[NoBrainer] Please use the Time type instead of DateTime."
+          STDERR.puts "[NoBrainer] You may read about this at the bottom of http://nobrainer.io/docs/types/"
         end
 
         cast_methods = {}

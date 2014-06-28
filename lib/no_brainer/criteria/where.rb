@@ -54,18 +54,18 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class BinaryOperator < Struct.new(:key, :op, :value, :criteria)
+  class BinaryOperator < Struct.new(:key, :op, :value, :criteria, :casted_values)
     def simplify
       key = cast_key(self.key)
       case op
       when :in then
         case value
-        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria)
-        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, criteria)
+        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria, true)
+        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, criteria, true)
         else raise ArgumentError.new ":in takes an array/range, not #{value}"
         end
-      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria)
-      else BinaryOperator.new(key, op, cast_value(value), criteria)
+      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria, true)
+      else BinaryOperator.new(key, op, cast_value(value), criteria, true)
       end
     end
 
@@ -89,6 +89,8 @@ module NoBrainer::Criteria::Where
     end
 
     def cast_value(value)
+      return value if casted_values
+
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata
         target_klass = association.target_klass
@@ -101,6 +103,8 @@ module NoBrainer::Criteria::Where
     end
 
     def cast_key(key)
+      return key if casted_values
+
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata
         association.foreign_key

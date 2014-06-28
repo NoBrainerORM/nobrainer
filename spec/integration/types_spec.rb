@@ -401,6 +401,38 @@ describe 'types' do
     end
   end
 
+  context 'when using Date type' do
+    let(:type) { Date }
+
+    it 'type checks and casts' do
+      today = Date.today
+
+      doc.field1 = today
+      doc.field1.should == today
+      doc.valid?.should == true
+
+      doc.field1 = "2014-06-26T15:34:12-04:00"
+      doc.field1.should == "2014-06-26T15:34:12-04:00"
+      doc.valid?.should == false
+
+      doc.field1 = "2014-06-26"
+      doc.field1.should == Date.parse("2014-06-26")
+      doc.valid?.should == true
+
+      doc.field1 = nil
+      doc.save!
+      doc.reload
+      doc.field1.should == nil
+
+      doc.field1 = "2014-06-26"
+      doc.save!
+      doc.reload
+      doc.field1.should == Date.parse("2014-06-26")
+
+      SimpleDocument.where(:field1 => Date.parse("2014-06-26")).count.should == 1
+    end
+  end
+
   context 'when using a non implemented type' do
     let(:type) { nil }
     before { define_constant(:CustomType) { } }
