@@ -4,7 +4,8 @@ module NoBrainer::Config
   class << self
     mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
-                   :max_reconnection_tries, :durability, :colorize_logger,
+                   :max_reconnection_tries, :durability,
+                   :user_timezone, :db_timezone, :colorize_logger,
                    :distributed_lock_class
 
     def apply_defaults
@@ -15,6 +16,8 @@ module NoBrainer::Config
       self.auto_create_tables      = true
       self.max_reconnection_tries  = 10
       self.durability              = default_durability
+      self.user_timezone           = :local
+      self.db_timezone             = :utc
       self.colorize_logger         = true
       self.distributed_lock_class  = nil
     end
@@ -27,6 +30,7 @@ module NoBrainer::Config
     def configure(&block)
       apply_defaults unless configured?
       block.call(self) if block
+      assert_valid_options!
       @configured = true
 
       NoBrainer.disconnect_if_url_changed
@@ -34,6 +38,18 @@ module NoBrainer::Config
 
     def configured?
       !!@configured
+    end
+
+    def assert_valid_options!
+      assert_array_in :durability,    [:hard, :soft]
+      assert_array_in :user_timezone, [:unchanged, :utc, :local]
+      assert_array_in :db_timezone,   [:unchanged, :utc, :local]
+    end
+
+    def assert_array_in(name, values)
+      unless __send__(name).in?(values)
+        raise ArgumentError.new("Unknown configuration for #{name}: #{__send__(name)}. Valid values are: #{values.inspect}")
+      end
     end
 
     def default_rethinkdb_url

@@ -288,6 +288,117 @@ describe 'types' do
       doc.field1.should == now.utc
       doc.valid?.should == true
     end
+
+    context 'when using different timezones' do
+      let(:time) { Time.new(2002, 10, 31, 2, 2, 2, "+02:00") }
+
+      before do
+        NoBrainer.configure do |config|
+          config.user_timezone = user_timezone
+          config.db_timezone = db_timezone
+        end
+      end
+
+      context 'when user_timezone is unchanged' do
+        let(:user_timezone) { :unchanged }
+        let(:db_timezone)   { :unchanged }
+
+        it 'user inputs timezone does not change' do
+          doc.field1 = time
+          doc.field1.utc_offset.should == time.utc_offset
+        end
+      end
+
+      context 'when user_timezone is local' do
+        let(:user_timezone) { :local }
+        let(:db_timezone)   { :unchanged }
+
+        it 'user inputs timezone changes to local' do
+          doc.field1 = time
+          doc.field1.utc_offset.should == time.utc.getlocal.utc_offset
+        end
+      end
+
+      context 'when user_timezone is utc' do
+        let(:user_timezone) { :utc }
+        let(:db_timezone)   { :unchanged }
+
+        it 'user inputs timezone changes to utc' do
+          doc.field1 = time
+          doc.field1.utc_offset.should == time.utc.utc_offset
+        end
+      end
+
+      context 'when db_timezone is unchanged' do
+        let(:user_timezone) { :unchanged }
+        let(:db_timezone)   { :unchanged }
+
+        it 'db timezone does not change' do
+          doc.field1 = time
+          doc.save
+          r = NoBrainer.run { SimpleDocument.rql_table }
+          db_time = r.first['field1']
+          db_time.utc_offset.should == time.utc_offset
+        end
+      end
+
+      context 'when db_timezone is local' do
+        let(:user_timezone) { :unchanged }
+        let(:db_timezone)   { :local }
+
+        it 'db timezone changes to local' do
+          doc.field1 = time
+          doc.save
+          r = NoBrainer.run { SimpleDocument.rql_table }
+          db_time = r.first['field1']
+          db_time.utc_offset.should == time.utc.getlocal.utc_offset
+        end
+      end
+
+      context 'when db_timezone is utc' do
+        let(:user_timezone) { :unchanged }
+        let(:db_timezone)   { :utc }
+
+        it 'db timezone changes to utc' do
+          doc.field1 = time
+          doc.save
+          r = NoBrainer.run { SimpleDocument.rql_table }
+          db_time = r.first['field1']
+          db_time.utc_offset.should == time.utc.utc_offset
+        end
+      end
+
+      context 'when user_timezone is unchanged' do
+        let(:user_timezone) { :unchanged }
+        let(:db_timezone)   { :unchanged }
+
+
+        it 'db reads timezone does not change' do
+          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          SimpleDocument.first.field1.utc_offset.should == time.utc_offset
+        end
+      end
+
+      context 'when user_timezone is local' do
+        let(:user_timezone) { :local }
+        let(:db_timezone)   { :unchanged }
+
+        it 'db reads timezone changes to local' do
+          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          SimpleDocument.first.field1.utc_offset.should == time.utc.getlocal.utc_offset
+        end
+      end
+
+      context 'when user_timezone is utc' do
+        let(:user_timezone) { :utc }
+        let(:db_timezone)   { :unchanged }
+
+        it 'db reads timezone changes to utc' do
+          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          SimpleDocument.first.field1.utc_offset.should == time.utc.utc_offset
+        end
+      end
+    end
   end
 
   context 'when using a non implemented type' do
@@ -308,7 +419,7 @@ describe 'types' do
     let(:type) { nil }
     before do
       define_constant :Point, Struct.new(:x, :y) do
-        def self.nobrainer_safe_cast_user_to_model(value)
+        def self.nobrainer_cast_user_to_model(value)
           case value
           when Point then value
           when Hash  then new(value[:x] || value['x'], value[:y] || value['y'])

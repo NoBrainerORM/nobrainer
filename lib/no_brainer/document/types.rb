@@ -3,12 +3,13 @@ require 'time'
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  module SafeCastUserToModel
+  module CastUserToModel
     extend self
     InvalidType = NoBrainer::Error::InvalidType
 
     def String(value)
       case value
+      when String then value
       when Symbol then value.to_s
       else raise InvalidType
       end
@@ -16,6 +17,7 @@ module NoBrainer::Document::Types
 
     def Integer(value)
       case value
+      when Integer then value
       when String
         value = value.strip.gsub(/^\+/, '')
         value.to_i.tap { |new_value| new_value.to_s == value or raise InvalidType }
@@ -27,6 +29,7 @@ module NoBrainer::Document::Types
 
     def Float(value)
       case value
+      when Float   then value
       when Integer then value.to_f
       when String
         value = value.strip.gsub(/^\+/, '')
@@ -53,6 +56,7 @@ module NoBrainer::Document::Types
 
     def Symbol(value)
       case value
+      when Symbol then value
       when String
         value = value.strip
         raise InvalidType if value.empty?
@@ -62,17 +66,26 @@ module NoBrainer::Document::Types
     end
 
     def Time(value)
-      raise InvalidType unless value.is_a?(String)
-      value = value.strip
-      time = Time.parse(value) rescue (raise InvalidType)
-      raise InvalidType unless time.iso8601 == value
-      time
+      case value
+      when Time then time = value
+      when String
+        value = value.strip
+        time = Time.parse(value) rescue (raise InvalidType)
+        raise InvalidType unless time.iso8601 == value
+      else raise InvalidType
+      end
+
+      case NoBrainer::Config.user_timezone
+      when :local     then time.getlocal
+      when :utc       then time.utc
+      when :unchanged then time
+      end
     end
 
     def lookup(type)
       public_method(type.to_s)
     rescue NameError
-      proc { raise InvalidType }
+      ->(value) { raise InvalidType unless value.is_a?(type) }
     end
   end
 
@@ -81,6 +94,16 @@ module NoBrainer::Document::Types
 
     def Symbol(value)
       value.to_sym rescue (value.to_s.to_sym rescue value)
+    end
+
+    def Time(value)
+      return value unless value.is_a?(Time)
+
+      case NoBrainer::Config.user_timezone
+      when :local     then value.getlocal
+      when :utc       then value.utc
+      when :unchanged then value
+      end
     end
 
     def lookup(type)
@@ -92,6 +115,16 @@ module NoBrainer::Document::Types
 
   module CastModelToDB
     extend self
+
+    def Time(value)
+      return value unless value.is_a?(Time)
+
+      case NoBrainer::Config.db_timezone
+      when :local     then value.getlocal
+      when :utc       then value.utc
+      when :unchanged then value
+      end
+    end
 
     def lookup(type)
       public_method(type.to_s)
@@ -139,14 +172,7 @@ module NoBrainer::Document::Types
   module ClassMethods
     def __cast__(what, attr, value, options={})
       field_def = fields[attr.to_sym]
-      return value if !field_def
-      return value if value.nil? || field_def[what].nil?
-
-      if options[:lazy]
-        type = field_def[:type]
-        return value if type && value.is_a?(type)
-      end
-
+      return value if value.nil? || !field_def || field_def[what].nil?
       field_def[what].call(value)
     rescue NoBrainer::Error::InvalidType => error
       error.type = field_def[:type]
@@ -155,8 +181,8 @@ module NoBrainer::Document::Types
       raise error
     end
 
-    def safe_cast_user_to_model_for(attr, value)
-      __cast__(:safe_cast_user_to_model, attr, value, :lazy => true)
+    def cast_user_to_model_for(attr, value)
+      __cast__(:cast_user_to_model, attr, value)
     end
 
     def cast_model_to_db_for(attr, value)
@@ -167,8 +193,8 @@ module NoBrainer::Document::Types
       __cast__(:cast_db_to_model, attr, value)
     end
 
-    def safe_cast_user_to_db_for(attr, value)
-      value = safe_cast_user_to_model_for(attr, value)
+    def cast_user_to_db_for(attr, value)
+      value = cast_user_to_model_for(attr, value)
       cast_model_to_db_for(attr, value)
     end
 
@@ -207,7 +233,7 @@ module NoBrainer::Document::Types
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
           begin
-            value = self.class.safe_cast_user_to_model_for(attr, value)
+            value = self.class.cast_user_to_model_for(attr, value)
             @pending_type_errors.try(:delete, attr)
           rescue NoBrainer::Error::InvalidType => error
             @pending_type_errors ||= {}
@@ -230,12 +256,12 @@ module NoBrainer::Document::Types
         end
 
         cast_methods = {}
-        cast_methods[:safe_cast_user_to_model] = type.method(:nobrainer_safe_cast_user_to_model) rescue nil
-        cast_methods[:cast_db_to_model]        = type.method(:nobrainer_cast_db_to_model) rescue nil
-        cast_methods[:cast_model_to_db]        = type.method(:nobrainer_cast_model_to_db) rescue nil
-        cast_methods[:safe_cast_user_to_model] ||= NoBrainer::Document::Types::SafeCastUserToModel.lookup(type)
-        cast_methods[:cast_db_to_model]        ||= NoBrainer::Document::Types::CastDBToModel.lookup(type)
-        cast_methods[:cast_model_to_db]        ||= NoBrainer::Document::Types::CastModelToDB.lookup(type)
+        cast_methods[:cast_user_to_model]  = type.method(:nobrainer_cast_user_to_model) rescue nil
+        cast_methods[:cast_db_to_model]    = type.method(:nobrainer_cast_db_to_model)   rescue nil
+        cast_methods[:cast_model_to_db]    = type.method(:nobrainer_cast_model_to_db)   rescue nil
+        cast_methods[:cast_user_to_model] ||= NoBrainer::Document::Types::CastUserToModel.lookup(type)
+        cast_methods[:cast_db_to_model]   ||= NoBrainer::Document::Types::CastDBToModel.lookup(type)
+        cast_methods[:cast_model_to_db]   ||= NoBrainer::Document::Types::CastModelToDB.lookup(type)
         options = cast_methods.merge(options)
       end
       super
