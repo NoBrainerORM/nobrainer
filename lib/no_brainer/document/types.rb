@@ -1,177 +1,7 @@
-require 'time'
-
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
-  module CastUserToModel
-    extend self
-    InvalidType = NoBrainer::Error::InvalidType
-
-    def String(value)
-      case value
-      when String then value
-      when Symbol then value.to_s
-      else raise InvalidType
-      end
-    end
-
-    def Integer(value)
-      case value
-      when Integer then value
-      when String
-        value = value.strip.gsub(/^\+/, '')
-        value.to_i.tap { |new_value| new_value.to_s == value or raise InvalidType }
-      when Float
-        value.to_i.tap { |new_value| new_value.to_f == value or raise InvalidType }
-      else raise InvalidType
-      end
-    end
-
-    def Float(value)
-      case value
-      when Float   then value
-      when Integer then value.to_f
-      when String
-        value = value.strip.gsub(/^\+/, '')
-        value = value.gsub(/0+$/, '') if value['.']
-        value = value.gsub(/\.$/, '')
-        value = "#{value}.0" unless value['.']
-        value.to_f.tap { |new_value| new_value.to_s == value or raise InvalidType }
-      else raise InvalidType
-      end
-    end
-
-    def Boolean(value)
-      case value
-      when TrueClass  then true
-      when FalseClass then false
-      when String, Integer
-        value = value.to_s.strip.downcase
-        return true  if value.in? %w(true yes t 1)
-        return false if value.in? %w(false no f 0)
-        raise InvalidType
-      else raise InvalidType
-      end
-    end
-
-    def Symbol(value)
-      case value
-      when Symbol then value
-      when String
-        value = value.strip
-        raise InvalidType if value.empty?
-        value.to_sym
-      else raise InvalidType
-      end
-    end
-
-    def Time(value)
-      case value
-      when Time then time = value
-      when String
-        value = value.strip
-        time = Time.parse(value) rescue (raise InvalidType)
-        raise InvalidType unless time.iso8601 == value
-      else raise InvalidType
-      end
-
-      case NoBrainer::Config.user_timezone
-      when :local     then time.getlocal
-      when :utc       then time.utc
-      when :unchanged then time
-      end
-    end
-
-    def Date(value)
-      case value
-      when Date then value
-      when String
-        value = value.strip
-        date = Date.parse(value) rescue (raise InvalidType)
-        raise InvalidType unless date.iso8601 == value
-        date
-      else raise InvalidType
-      end
-    end
-
-    def lookup(type)
-      public_method(type.to_s)
-    rescue NameError
-      ->(value) { raise InvalidType unless value.is_a?(type) }
-    end
-  end
-
-  module CastDBToModel
-    extend self
-
-    def Symbol(value)
-      value.to_sym rescue (value.to_s.to_sym rescue value)
-    end
-
-    def Time(value)
-      return value unless value.is_a?(Time)
-
-      case NoBrainer::Config.user_timezone
-      when :local     then value.getlocal
-      when :utc       then value.utc
-      when :unchanged then value
-      end
-    end
-
-    def Date(value)
-      value.is_a?(Time) ? value.to_date : value
-    end
-
-    def lookup(type)
-      public_method(type.to_s)
-    rescue NameError
-      nil
-    end
-  end
-
-  module CastModelToDB
-    extend self
-
-    def Time(value)
-      return value unless value.is_a?(Time)
-
-      case NoBrainer::Config.db_timezone
-      when :local     then value.getlocal
-      when :utc       then value.utc
-      when :unchanged then value
-      end
-    end
-
-    def Date(value)
-      value.is_a?(Date) ? Time.utc(value.year, value.month, value.day) : value
-    end
-
-    def lookup(type)
-      public_method(type.to_s)
-    rescue NameError
-      nil
-    end
-  end
-
-  included do
-    # We namespace our fake Boolean class to avoid polluting the global namespace
-    class_exec do
-      class Boolean
-        def initialize; raise; end
-        def self.inspect; 'Boolean'; end
-        def self.to_s; inspect; end
-        def self.name; inspect; end
-      end
-    end
-    before_validation :add_type_errors
-
-    # Fast access for db->user cast methods for performance when reading from
-    # the database.
-    singleton_class.send(:attr_accessor, :cast_db_to_model_fields)
-    singleton_class.send(:attr_accessor, :cast_model_to_db_fields)
-    self.cast_db_to_model_fields = Set.new
-    self.cast_model_to_db_fields = Set.new
-  end
+  included { before_validation :add_type_errors }
 
   def add_type_errors
     return unless @pending_type_errors
@@ -183,34 +13,39 @@ module NoBrainer::Document::Types
   def assign_attributes(attrs, options={})
     super
     if options[:from_db]
-      self.class.cast_db_to_model_fields.each do |attr|
-        @_attributes[attr] = self.class.cast_db_to_model_for(attr, @_attributes[attr])
-      end
+      @_attributes = Hash[@_attributes.map do |k,v|
+        [k, self.class.cast_db_to_model_for(k, v)]
+      end].with_indifferent_access
     end
   end
 
   module ClassMethods
-    def __cast__(what, attr, value, options={})
-      field_def = fields[attr.to_sym]
-      return value if value.nil? || !field_def || field_def[what].nil?
-      field_def[what].call(value)
+    def cast_user_to_model_for(attr, value)
+      type = fields[attr.to_sym].try(:[], :type)
+      return value if type.nil? || value.nil?
+      if type.respond_to?(:nobrainer_cast_user_to_model)
+        type.nobrainer_cast_user_to_model(value)
+      else
+        raise NoBrainer::Error::InvalidType unless value.is_a?(type)
+        value
+      end
     rescue NoBrainer::Error::InvalidType => error
-      error.type = field_def[:type]
+      error.type = type
       error.value = value
       error.attr_name = attr
       raise error
     end
 
-    def cast_user_to_model_for(attr, value)
-      __cast__(:cast_user_to_model, attr, value)
-    end
-
     def cast_model_to_db_for(attr, value)
-      __cast__(:cast_model_to_db, attr, value)
+      type = fields[attr.to_sym].try(:[], :type)
+      return value if type.nil? || value.nil? || !type.respond_to?(:nobrainer_cast_model_to_db)
+      type.nobrainer_cast_model_to_db(value)
     end
 
     def cast_db_to_model_for(attr, value)
-      __cast__(:cast_db_to_model, attr, value)
+      type = fields[attr.to_sym].try(:[], :type)
+      return value if type.nil? || value.nil? || !type.respond_to?(:nobrainer_cast_db_to_model)
+      type.nobrainer_cast_db_to_model(value)
     end
 
     def cast_user_to_db_for(attr, value)
@@ -219,36 +54,13 @@ module NoBrainer::Document::Types
     end
 
     def persistable_attributes(attrs)
-      attr_names = cast_model_to_db_fields & attrs.keys
-      if attr_names.present?
-        attrs = attrs.dup
-        attr_names.each do |attr|
-          attrs[attr] = cast_model_to_db_for(attr, attrs[attr])
-        end
-      end
-      attrs
-    end
-
-    def inherited(subclass)
-      super
-      subclass.cast_db_to_model_fields = self.cast_db_to_model_fields.dup
-      subclass.cast_model_to_db_fields = self.cast_model_to_db_fields.dup
+      Hash[attrs.map { |k,v| [k, cast_model_to_db_for(k, v)] }]
     end
 
     def _field(attr, options={})
       super
 
-      if options[:cast_db_to_model]
-        ([self] + descendants).each do |klass|
-          klass.cast_db_to_model_fields << attr.to_s
-        end
-      end
-
-      if options[:cast_model_to_db]
-        ([self] + descendants).each do |klass|
-          klass.cast_model_to_db_fields << attr.to_s
-        end
-      end
+      NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
@@ -266,38 +78,29 @@ module NoBrainer::Document::Types
       end
     end
 
-    def field(attr, options={})
-      type = options[:type]
-      if type
-        if type == DateTime
-          STDERR.puts "[NoBrainer] At: #{NoBrainer.user_caller}"
-          STDERR.puts "[NoBrainer] Please use the Time type instead of DateTime."
-          STDERR.puts "[NoBrainer] You may read about this at the bottom of http://nobrainer.io/docs/types/"
-        end
-
-        cast_methods = {}
-        cast_methods[:cast_user_to_model]  = type.method(:nobrainer_cast_user_to_model) rescue nil
-        cast_methods[:cast_db_to_model]    = type.method(:nobrainer_cast_db_to_model)   rescue nil
-        cast_methods[:cast_model_to_db]    = type.method(:nobrainer_cast_model_to_db)   rescue nil
-        cast_methods[:cast_user_to_model] ||= NoBrainer::Document::Types::CastUserToModel.lookup(type)
-        cast_methods[:cast_db_to_model]   ||= NoBrainer::Document::Types::CastDBToModel.lookup(type)
-        cast_methods[:cast_model_to_db]   ||= NoBrainer::Document::Types::CastModelToDB.lookup(type)
-        options = cast_methods.merge(options)
-      end
-      super
-    end
-
     def _remove_field(attr, options={})
       super
-
-      ([self] + descendants).each do |klass|
-        klass.cast_db_to_model_fields.delete(attr.to_s)
-        klass.cast_model_to_db_fields.delete(attr.to_s)
-      end
 
       inject_in_layer :types do
         remove_method("#{attr}=")
         remove_method("#{attr}?") if method_defined?("#{attr}?")
+      end
+    end
+  end
+
+  require File.join(File.dirname(__FILE__), 'types', 'boolean')
+  Boolean = NoBrainer::Boolean
+
+  class << self
+    mattr_accessor :loaded_extensions
+    self.loaded_extensions = Set.new
+    def load_type_extensions(klass)
+      unless loaded_extensions.include?(klass)
+        begin
+          require File.join(File.dirname(__FILE__), 'types', klass.name.underscore)
+        rescue LoadError
+        end
+        loaded_extensions << klass
       end
     end
   end
