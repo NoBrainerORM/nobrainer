@@ -149,6 +149,18 @@ describe 'NoBrainer callbacks' do
     end
   end
 
+  context 'when using in on the field' do
+    before { SimpleDocument.field :field1, :in => %w(a b c) }
+
+    it 'validates' do
+      SimpleDocument.new(:field1 => nil).valid?.should == false
+      SimpleDocument.new(:field1 => 'a').valid?.should == true
+      SimpleDocument.new(:field1 => 'b').valid?.should == true
+      SimpleDocument.new(:field1 => 'c').valid?.should == true
+      SimpleDocument.new(:field1 => 'd').valid?.should == false
+    end
+  end
+
   context 'when using required on a belongs_to' do
     before { load_blog_models }
     before { Comment.belongs_to :post, :required => true }
