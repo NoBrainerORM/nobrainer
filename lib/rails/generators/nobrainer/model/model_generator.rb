@@ -2,7 +2,10 @@ require "rails/generators/nobrainer"
 
 module NoBrainer::Generators
   class ModelGenerator < Base
-    argument :attributes, :type => :array, default: [], banner: "field ... field"
+    argument(:attributes,
+             :type => :array,
+             default: [],
+             banner: "field[:type][:index] ... field[:type][:index]")
 
     check_class_collision
 
