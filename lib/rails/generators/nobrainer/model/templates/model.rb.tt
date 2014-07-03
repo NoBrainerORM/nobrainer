@@ -3,11 +3,17 @@ class <%= class_name %><%= " < #{options[:parent].classify}" if options[:parent]
 <% unless options[:parent] -%>
   include NoBrainer::Document
 <% end -%>
+
 <% attributes.reject(&:reference?).each do |attribute| -%>
-  field :<%= attribute.name %>
+  field :<%= attribute.name %><%=
+   ", :type => #{attribute.type.to_s.capitalize}" if attribute.type != :string %>
 <% end -%>
 <% attributes.select(&:reference?).each do |attribute| -%>
   belongs_to :<%= attribute.name %>
+<% end -%>
+
+<% attributes.select(&:has_index?).each do |attribute| -%>
+  index :<%= attribute.name %>
 <% end -%>
 end
 <% end -%>
