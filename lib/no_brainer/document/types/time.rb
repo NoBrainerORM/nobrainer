@@ -8,8 +8,10 @@ class Time
       case value
       when Time then time = value
       when String
-        value = value.strip
-        time = Time.parse(value) rescue (raise InvalidType)
+        value = value.strip.sub(/Z$/, '+00:00')
+        # Using DateTime to preserve the timezone offset
+        dt = DateTime.parse(value) rescue (raise InvalidType)
+        time = Time.new(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.zone)
         raise InvalidType unless time.iso8601 == value
       else raise InvalidType
       end
@@ -30,7 +32,7 @@ class Time
     def nobrainer_timezoned(tz, value)
       case tz
       when :local     then value.getlocal
-      when :utc       then value.utc
+      when :utc       then value.getutc
       when :unchanged then value
       end
     end

@@ -260,20 +260,20 @@ describe 'types' do
       doc.field1.should == "hello"
       doc.valid?.should == false
 
-      doc.field1 = "2014-06-26T15:34:12-04:00"
-      doc.field1.should == Time.parse("2014-06-26T15:34:12-04:00")
+      doc.field1 = "2014-06-26T15:34:12-02:00"
+      doc.field1.should == Time.parse("2014-06-26T15:34:12-02:00")
       doc.valid?.should == true
 
-      doc.field1 = "  2014-06-26T15:34:12-04:00  "
-      doc.field1.should == Time.parse("2014-06-26T15:34:12-04:00")
+      doc.field1 = "  2014-06-26T15:34:12-02:00  "
+      doc.field1.should == Time.parse("2014-06-26T15:34:12-02:00")
       doc.valid?.should == true
 
-      doc.field1 = "2014-06-26 T 15:34:12-04:00"
-      doc.field1.should == "2014-06-26 T 15:34:12-04:00"
+      doc.field1 = "2014-06-26 T 15:34:12-02:00"
+      doc.field1.should == "2014-06-26 T 15:34:12-02:00"
       doc.valid?.should == false
 
-      doc.field1 = "2014-06-26x15:34:12-04:00"
-      doc.field1.should == "2014-06-26x15:34:12-04:00"
+      doc.field1 = "2014-06-26x15:34:12-02:00"
+      doc.field1.should == "2014-06-26x15:34:12-02:00"
       doc.valid?.should == false
 
       doc.field1 = "2014-06-26T15:34:12Z"
@@ -411,8 +411,8 @@ describe 'types' do
       doc.field1.should == today
       doc.valid?.should == true
 
-      doc.field1 = "2014-06-26T15:34:12-04:00"
-      doc.field1.should == "2014-06-26T15:34:12-04:00"
+      doc.field1 = "2014-06-26T15:34:12-02:00"
+      doc.field1.should == "2014-06-26T15:34:12-02:00"
       doc.valid?.should == false
 
       doc.field1 = "2014-06-26"
