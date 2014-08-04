@@ -38,7 +38,7 @@ class NoBrainer::Railtie < Rails::Railtie
       STDERR.puts "[NoBrainer] This is a problem!"
     end
 
-    ActionDispatch::Reloader.to_cleanup do
+    ActionDispatch::Reloader.to_prepare do
       NoBrainer::Loader.cleanup
     end
   end
