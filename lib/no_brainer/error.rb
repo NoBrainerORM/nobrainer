@@ -36,4 +36,19 @@ module NoBrainer::Error
       "#{attr_name} should be used with a #{human_type_name}. Got `#{value}` (#{value.class})"
     end
   end
+
+  class CannotUseIndex < RuntimeError
+    attr_accessor :index_name
+    def initialize(index_name)
+      @index_name = index_name
+    end
+
+    def message
+      if index_name == true
+        "Cannot use any indexes"
+      else
+        "Cannot use index #{index_name}"
+      end
+    end
+  end
 end

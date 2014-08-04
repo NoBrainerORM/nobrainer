@@ -12,7 +12,7 @@ module NoBrainer::Criteria::Where
     chain { |criteria| criteria.where_ast = parse_clause([*args, block].compact) }
   end
 
-  def with_index(index_name)
+  def with_index(index_name=true)
     chain { |criteria| criteria.with_index_name = index_name }
   end
 
@@ -198,7 +198,9 @@ module NoBrainer::Criteria::Where
     def get_usable_indexes(*types)
       indexes = criteria.klass.indexes
       indexes = indexes.select { |k,v| types.include?(v[:kind]) } if types.present?
-      indexes = indexes.select { |k,v| k == criteria.with_index_name.to_sym } if criteria.with_index_name
+      if criteria.with_index_name && criteria.with_index_name != true
+        indexes = indexes.select { |k,v| k == criteria.with_index_name.to_sym }
+      end
       indexes
     end
 
@@ -259,7 +261,7 @@ module NoBrainer::Criteria::Where
       return if criteria.__send__(:without_index?)
       find_index_canonical || find_index_compound || find_index_hidden_between
       if criteria.with_index_name && !could_find_index?
-        raise NoBrainer::Error::CannotUseIndex.new("Cannot use index #{criteria.with_index_name}")
+        raise NoBrainer::Error::CannotUseIndex.new(criteria.with_index_name)
       end
     end
   end

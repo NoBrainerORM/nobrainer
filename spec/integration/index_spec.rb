@@ -137,9 +137,17 @@ describe 'NoBrainer index' do
       SimpleDocument.with_index(:field2).where(:field2 => 'yay', :field1 => 'ohai').count.should == 1
 
       expect { SimpleDocument.with_index(:field3).where(:field2 => 'yay', :field1 => 'ohai').count }
-        .to raise_error(NoBrainer::Error::CannotUseIndex)
+        .to raise_error(NoBrainer::Error::CannotUseIndex, "Cannot use index field3")
       expect { SimpleDocument.with_index(:field1).where(:field2 => 'yay').count }
-        .to raise_error(NoBrainer::Error::CannotUseIndex)
+        .to raise_error(NoBrainer::Error::CannotUseIndex, "Cannot use index field1")
+    end
+
+    it 'allow to specify some index to be used' do
+      SimpleDocument.with_index.where(:field1 => 'yay').used_index.should == :field1
+      SimpleDocument.with_index.where(:field2 => 'yay').used_index.should == :field2
+
+      expect { SimpleDocument.with_index.where(:field3 => 'yay').count }
+        .to raise_error(NoBrainer::Error::CannotUseIndex, "Cannot use any indexes")
     end
   end
 
