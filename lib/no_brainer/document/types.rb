@@ -88,6 +88,7 @@ module NoBrainer::Document::Types
     end
 
     def field(attr, options={})
+      options[:real_type] = options[:type]
       if options[:type] == Array || options[:type] == Hash
         # XXX For the moment, NoBrainer does not support these complex types
         options.delete(:type)
