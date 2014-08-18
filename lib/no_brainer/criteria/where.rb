@@ -12,28 +12,24 @@ module NoBrainer::Criteria::Where
     chain { |criteria| criteria.where_ast = parse_clause([*args, block].compact) }
   end
 
-  def with_index(index_name=true)
-    chain { |criteria| criteria.with_index_name = index_name }
-  end
-
-  def without_index
-    with_index(false)
-  end
-
-  def used_index
-    index_finder.index_name
-  end
-
-  def indexed?
-    index_finder.could_find_index?
-  end
-
   def merge!(criteria, options={})
     super
     clauses = self.where_ast.clauses + criteria.where_ast.clauses
     self.where_ast = MultiOperator.new(:and, clauses).simplify
     self.with_index_name = criteria.with_index_name unless criteria.with_index_name.nil?
     self
+  end
+
+  def where_indexed?
+    !!where_index_name
+  end
+
+  def where_index_name
+    where_index_finder.index_name
+  end
+
+  def where_index_type
+    where_index_finder.index_type
   end
 
   private
@@ -175,11 +171,7 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  def without_index?
-    self.with_index_name == false
-  end
-
-  class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc, :ast)
+  class IndexFinder < Struct.new(:criteria, :index_name, :index_type, :rql_proc, :ast)
     def initialize(*args)
       super
       find_index
@@ -212,6 +204,7 @@ module NoBrainer::Criteria::Where
         clause = clauses[index_name]
         self.index_name = index_name
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [clause])
+        self.index_type = clause.op == :between ? :between : :get_all
         self.rql_proc = case clause.op
           when :eq      then ->(rql){ rql.get_all(clause.value, :index => index_name) }
           when :in      then ->(rql){ rql.get_all(*clause.value, :index => index_name) }
@@ -235,6 +228,7 @@ module NoBrainer::Criteria::Where
         self.index_name = index_name
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - indexed_clauses)
         self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => index_name) }
+        self.index_type = :get_all
       end
     end
 
@@ -254,32 +248,30 @@ module NoBrainer::Criteria::Where
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
         self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }
+        self.index_type = :between
       end
     end
 
     def find_index
-      return if criteria.__send__(:without_index?)
+      return if criteria.without_index?
       find_index_canonical || find_index_compound || find_index_hidden_between
-      if criteria.with_index_name && !could_find_index?
-        raise NoBrainer::Error::CannotUseIndex.new(criteria.with_index_name)
-      end
     end
   end
 
-  def index_finder
-    return with_default_scope_applied.__send__(:index_finder) if should_apply_default_scope?
-    @index_finder ||= IndexFinder.new(self)
+  def where_index_finder
+    return with_default_scope_applied.__send__(:where_index_finder) if should_apply_default_scope?
+    @where_index_finder ||= IndexFinder.new(self)
   end
 
   def compile_rql_pass1
     rql = super
-    rql = index_finder.rql_proc.call(rql) if index_finder.could_find_index?
+    rql = where_index_finder.rql_proc.call(rql) if where_index_finder.could_find_index?
     rql
   end
 
   def compile_rql_pass2
     rql = super
-    ast = index_finder.could_find_index? ? index_finder.ast : self.where_ast
+    ast = where_index_finder.could_find_index? ? where_index_finder.ast : self.where_ast
     rql = rql.filter { |doc| ast.to_rql(doc) } if ast.clauses.present?
     rql
   end

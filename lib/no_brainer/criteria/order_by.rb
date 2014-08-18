@@ -51,6 +51,14 @@ module NoBrainer::Criteria::OrderBy
     end
   end
 
+  def order_by_indexed?
+    !!order_by_index_name
+  end
+
+  def order_by_index_name
+    order_by_index_finder.index_name
+  end
+
   private
 
   def effective_order
@@ -63,6 +71,46 @@ module NoBrainer::Criteria::OrderBy
 
   def should_order?
     self.ordering_mode != :disabled
+  end
+
+  class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc, :ast)
+    def initialize(*args)
+      super
+      find_index
+    end
+
+    def could_find_index?
+      !!self.index_name
+    end
+
+    def first_key
+      @first_key ||= criteria.__send__(:effective_order).first.try(:[], 0)
+    end
+
+    def first_key_indexable?
+      (first_key.is_a?(Symbol) || first_key.is_a?(String)) && criteria.klass.has_index?(first_key)
+    end
+
+    def find_index
+      return if criteria.without_index?
+      return unless first_key_indexable?
+
+      if criteria.with_index_name && criteria.with_index_name != true
+        return unless first_key.to_s == criteria.with_index_name.to_s
+      end
+
+      # We need make sure that the where index finder has been invoked, it has priority.
+      # If it doesn't find anything, we are free to go with our indexes.
+      if !criteria.where_indexed? || (criteria.where_index_type == :between &&
+                                      first_key.to_s == criteria.where_index_name.to_s)
+        self.index_name = first_key
+      end
+    end
+  end
+
+  def order_by_index_finder
+    return with_default_scope_applied.__send__(:order_by_index_finder) if should_apply_default_scope?
+    @order_by_index_finder ||= IndexFinder.new(self)
   end
 
   def compile_rql_pass1
@@ -81,18 +129,12 @@ module NoBrainer::Criteria::OrderBy
     # We can only apply an index order_by on a table() term.
     # We are going to try to go so and if we cannot, we'll simply apply
     # the ordering in pass2, which will happen after a potential filter().
-
-    if NoBrainer::RQL.is_table?(rql) && !without_index?
+    if order_by_index_finder.could_find_index?
       options = {}
-      first_key = _effective_order.first[0]
-      if (first_key.is_a?(Symbol) || first_key.is_a?(String)) && klass.has_index?(first_key)
-        options[:index] = rql_rules.shift
-      end
-
+      options[:index] = rql_rules.shift
       rql = rql.order_by(*rql_rules, options)
     else
-      # Stashing @rql_rules for pass2, which is a pretty gross hack.
-      # We should really use more of a middleware pattern to build the RQL.
+      # Stashing @rql_rules for pass2
       @rql_rules_pass2 = rql_rules
     end
 

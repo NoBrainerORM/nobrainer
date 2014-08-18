@@ -27,7 +27,7 @@ describe 'NoBrainer index' do
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello') }
 
     it 'uses the primary key index' do
-      SimpleDocument.where(SimpleDocument.pk_name => doc1.pk_value).indexed?.should == true
+      SimpleDocument.where(SimpleDocument.pk_name => doc1.pk_value).where_indexed?.should == true
       SimpleDocument.where(SimpleDocument.pk_name => doc1.pk_value).count.should == 1
     end
   end
@@ -42,7 +42,7 @@ describe 'NoBrainer index' do
     let!(:doc2) { SimpleDocument.create(:field4 => 'ohai') }
 
     it 'uses the index' do
-      SimpleDocument.where(:field4 => 'ohai').indexed?.should == true
+      SimpleDocument.where(:field4 => 'ohai').where_indexed?.should == true
       SimpleDocument.where(:field4 => 'ohai').count.should == 1
     end
   end
@@ -58,7 +58,7 @@ describe 'NoBrainer index' do
     let!(:comment) { Comment.create(:post => post) }
 
     it 'uses the index' do
-      post.comments.indexed?.should == true
+      post.comments.where_indexed?.should == true
       post.comments.count.should == 1
     end
   end
@@ -67,7 +67,7 @@ describe 'NoBrainer index' do
     before { SimpleDocument.index :field1 }
 
     it 'raises' do
-      SimpleDocument.where(:field1 => 'ohai').indexed?.should == true
+      SimpleDocument.where(:field1 => 'ohai').where_indexed?.should == true
       expect { SimpleDocument.where(:field1 => 'ohai').count }.to raise_error(
         NoBrainer::Error::MissingIndex, /Please run.*to create the index `field1` in the table `#{NoBrainer.connection.parsed_uri[:db]}\.simple_documents`/)
     end
@@ -85,31 +85,31 @@ describe 'NoBrainer index' do
     let!(:doc4) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'ola') }
 
     it 'uses the index' do
-      SimpleDocument.where(:field1 => 'ohai').indexed?.should == true
+      SimpleDocument.where(:field1 => 'ohai').where_indexed?.should == true
       SimpleDocument.where(:field1 => 'ohai').count.should == 2
-      SimpleDocument.where(:field2 => 'yay').indexed?.should == false
+      SimpleDocument.where(:field2 => 'yay').where_indexed?.should == false
       SimpleDocument.where(:field2 => 'yay').count.should == 2
     end
 
     context 'when using a without_index where' do
       it 'does not use an index' do
-        SimpleDocument.without_index.where(:field1 => 'ohai').indexed?.should == false
+        SimpleDocument.without_index.where(:field1 => 'ohai').where_indexed?.should == false
         SimpleDocument.without_index.where(:field1 => 'ohai').count.should == 2
-        SimpleDocument.where(:field1 => 'ohai').without_index.indexed?.should == false
+        SimpleDocument.where(:field1 => 'ohai').without_index.where_indexed?.should == false
         SimpleDocument.where(:field1 => 'ohai').without_index.count.should == 2
       end
     end
 
     context 'when using multiple where' do
       it 'uses the index' do
-        SimpleDocument.where(:field1 => 'ohai', :field2 => 'sup').indexed?.should == true
+        SimpleDocument.where(:field1 => 'ohai', :field2 => 'sup').where_indexed?.should == true
         SimpleDocument.where(:field1 => 'ohai', :field2 => 'sup').count.should == 1
       end
     end
 
     context 'when using in' do
       it 'uses the index' do
-        SimpleDocument.where(:field1.in => ['hello', 'world']).indexed?.should == true
+        SimpleDocument.where(:field1.in => ['hello', 'world']).where_indexed?.should == true
         SimpleDocument.where(:field1.in => ['hello', 'world']).count.should == 2
       end
     end
@@ -146,6 +146,7 @@ describe 'NoBrainer index' do
       SimpleDocument.with_index.where(:field1 => 'yay').used_index.should == :field1
       SimpleDocument.with_index.where(:field2 => 'yay').used_index.should == :field2
 
+      # The implicit ordering on the indexed pk does not count.
       expect { SimpleDocument.with_index.where(:field3 => 'yay').count }
         .to raise_error(NoBrainer::Error::CannotUseIndex, "Cannot use any indexes")
     end
@@ -195,7 +196,7 @@ describe 'NoBrainer index' do
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
 
     it 'uses the index' do
-      SimpleDocument.where(:field12 => 'hello_world').indexed?.should == true
+      SimpleDocument.where(:field12 => 'hello_world').where_indexed?.should == true
       SimpleDocument.where(:field12 => 'hello_world').count.should == 1
     end
 
@@ -238,7 +239,7 @@ describe 'NoBrainer index' do
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
 
     it 'uses the index' do
-      SimpleDocument.where(:field12 => ['hello', 'world']).indexed?.should == true
+      SimpleDocument.where(:field12 => ['hello', 'world']).where_indexed?.should == true
       SimpleDocument.where(:field12 => ['hello', 'world']).count.should == 1
     end
 
@@ -267,7 +268,7 @@ describe 'NoBrainer index' do
     end
 
     it 'reports the index to be used' do
-      SimpleDocument.indexed?.should == true
+      SimpleDocument.where_indexed?.should == true
       SimpleDocument.used_index.should == :field1
     end
   end
@@ -286,9 +287,9 @@ describe 'NoBrainer index' do
         SimpleDocument.where(:field1.in => (3..8)).count.should == 6
         SimpleDocument.where(:field1.in => [3,5,9,33]).count.should == 3
 
-        SimpleDocument.where(:field1 => (3..8)).indexed?.should == true
-        SimpleDocument.where(:field1.in => (3..8)).indexed?.should == true
-        SimpleDocument.where(:field1.in => [3,5,9,33]).indexed?.should == true
+        SimpleDocument.where(:field1 => (3..8)).where_indexed?.should == true
+        SimpleDocument.where(:field1.in => (3..8)).where_indexed?.should == true
+        SimpleDocument.where(:field1.in => [3,5,9,33]).where_indexed?.should == true
 
         SimpleDocument.where(:field1.gt => 7).count.should == 3
         SimpleDocument.where(:field1.ge => 7).count.should == 4
@@ -298,13 +299,13 @@ describe 'NoBrainer index' do
         SimpleDocument.where(:field1.ge => 4, :field1.le => 6).count.should == 3
         SimpleDocument.where(:field1.gt => 4, :field1.gte => 2, :field1.lt => 6, :field1.lte => 8).count.should == 1
 
-        SimpleDocument.where(:field1.gt => 7).indexed?.should == true
-        SimpleDocument.where(:field1.ge => 7).indexed?.should == true
-        SimpleDocument.where(:field1.lt => 7).indexed?.should == true
-        SimpleDocument.where(:field1.le => 7).indexed?.should == true
-        SimpleDocument.where(:field1.gt => 4, :field1.lt => 6).indexed?.should == true
-        SimpleDocument.where(:field1.ge => 4, :field1.le => 6).indexed?.should == true
-        SimpleDocument.where(:field1.gt => 4, :field1.gte => 2, :field1.lt => 6, :field1.lte => 8).indexed?.should == true
+        SimpleDocument.where(:field1.gt => 7).where_indexed?.should == true
+        SimpleDocument.where(:field1.ge => 7).where_indexed?.should == true
+        SimpleDocument.where(:field1.lt => 7).where_indexed?.should == true
+        SimpleDocument.where(:field1.le => 7).where_indexed?.should == true
+        SimpleDocument.where(:field1.gt => 4, :field1.lt => 6).where_indexed?.should == true
+        SimpleDocument.where(:field1.ge => 4, :field1.le => 6).where_indexed?.should == true
+        SimpleDocument.where(:field1.gt => 4, :field1.gte => 2, :field1.lt => 6, :field1.lte => 8).where_indexed?.should == true
       end
     end
 

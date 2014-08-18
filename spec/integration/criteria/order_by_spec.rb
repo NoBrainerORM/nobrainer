@@ -94,6 +94,7 @@ describe 'order_by' do
   context 'when using indexes' do
     before do
       SimpleDocument.field :field1,  :index => true
+      SimpleDocument.field :field2,  :index => true
       SimpleDocument.index :field12, [:field1, :field2]
       NoBrainer.update_indexes
     end
@@ -169,10 +170,29 @@ describe 'order_by' do
       end
     end
 
-    context 'when using a filter' do
+    context 'when using an indexed filter' do
       it 'orders documents properly' do
-        SimpleDocument.where(:field2 => 1).order_by(:field1)
-          .map(&:field1).should == [1,2]
+        # between + indexed order_by works
+        criteria = SimpleDocument.where(:field1.le => 2).order_by(:field1)
+        criteria.map(&:field1).should == [1,1,2,2]
+        criteria.where_indexed?.should == true
+        criteria.order_by_indexed?.should == true
+
+        # but not on a get_all...
+        criteria = SimpleDocument.where(:field1 => 1).order_by(:field1)
+        criteria.map(&:field1).should == [1,1]
+        criteria.where_indexed?.should == true
+        criteria.order_by_indexed?.should == false
+
+        # if ambiguous, we can select the index to use
+        criteria = SimpleDocument.where(:field1 => 1).order_by(:field2)
+        criteria.with_index(:field1).map(&:field2).should == [1,2]
+        criteria.with_index(:field1).where_indexed?.should == true
+        criteria.with_index(:field1).order_by_indexed?.should == false
+
+        criteria.with_index(:field2).map(&:field2).should == [1,2]
+        criteria.with_index(:field2).where_indexed?.should == false
+        criteria.with_index(:field2).order_by_indexed?.should == true
       end
     end
   end
