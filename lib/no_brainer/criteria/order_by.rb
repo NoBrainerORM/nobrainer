@@ -83,7 +83,6 @@ module NoBrainer::Criteria::OrderBy
     # We are going to try to go so and if we cannot, we'll simply apply
     # the ordering in pass2, which will happen after a potential filter().
 
-    NoBrainer::RQL.is_table?(rql)
     if NoBrainer::RQL.is_table?(rql) && !without_index?
       options = {}
       first_key = _effective_order.first[0]
