@@ -34,6 +34,29 @@ describe 'order_by' do
     end
   end
 
+  context 'when using regular strings' do
+    context 'when not specifying orders' do
+      it 'orders documents in ascending order' do
+        SimpleDocument.all.order_by('field1', 'field2')
+          .map(&:field1).should == [1,1,2,2]
+      end
+    end
+
+    context 'when using :asc' do
+      it 'orders documents in ascending order' do
+        SimpleDocument.all.order_by('field1' => :asc)
+          .map(&:field1).should == [1,1,2,2]
+      end
+    end
+
+    context 'when using :desc' do
+      it 'orders documents in descending order' do
+        SimpleDocument.all.order_by('field1' => :desc)
+          .map(&:field1).should == [1,1,2,2].reverse
+      end
+    end
+  end
+
   context 'when using lambdas' do
     context 'when not specifying orders' do
       it 'orders documents in ascending order' do

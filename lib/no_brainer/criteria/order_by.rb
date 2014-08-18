@@ -16,8 +16,7 @@ module NoBrainer::Criteria::OrderBy
         bad_rule = rule.values.reject { |v| v.in? [:asc, :desc] }.first
         raise_bad_rule(bad_rule) if bad_rule
         rule
-      when Symbol then { rule => :asc }
-      when Proc   then { rule => :asc }
+      when String, Symbol, Proc then { rule => :asc }
       else raise_bad_rule(rule)
       end
     end.reduce({}, :merge)
