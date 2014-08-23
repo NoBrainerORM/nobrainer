@@ -1,5 +1,5 @@
 module NoBrainer::Document::Index
-  VALID_INDEX_OPTIONS = [:multi]
+  VALID_INDEX_OPTIONS = [:multi, :as]
   extend ActiveSupport::Concern
 
   included do
@@ -25,11 +25,17 @@ module NoBrainer::Document::Index
       if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
         raise "Cannot use a reserved field name: #{name}"
       end
+
       if has_field?(name) && kind != :single
         raise "Cannot reuse field name #{name}"
       end
 
-      indexes[name] = {:kind => kind, :what => what, :options => options}
+      as = options.delete(:as)
+      as ||= fields[name][:as] if has_field?(name)
+      as ||= name
+      as = as.to_sym
+
+      indexes[name] = {:kind => kind, :what => what, :as => as, :options => options}
     end
 
     def remove_index(name)
@@ -40,6 +46,10 @@ module NoBrainer::Document::Index
       !!indexes[name.to_sym]
     end
 
+    def lookup_index_alias(attr)
+      indexes[attr.to_sym].try(:[], :as) || attr
+    end
+
     def _field(attr, options={})
       if has_index?(attr) && indexes[attr][:kind] != :single
         raise "Cannot reuse index attr #{attr}"
@@ -47,11 +57,12 @@ module NoBrainer::Document::Index
 
       super
 
+      as = {:as => options[:as]}
       case options[:index]
       when nil    then
-      when Hash   then index(attr, options[:index])
-      when Symbol then index(attr, options[:index] => true)
-      when true   then index(attr)
+      when Hash   then index(attr, as.merge(options[:index]))
+      when Symbol then index(attr, as.merge(options[:index] => true))
+      when true   then index(attr, as)
       when false  then remove_index(attr)
       end
     end
@@ -66,23 +77,47 @@ module NoBrainer::Document::Index
       index_args = self.indexes[index_name]
 
       index_proc = case index_args[:kind]
-        when :single   then nil
-        when :compound then ->(doc) { index_args[:what].map { |field| doc[field] } }
+        when :single   then ->(doc) { doc[lookup_field_alias(index_name)] }
+        when :compound then ->(doc) { index_args[:what].map { |field| doc[lookup_field_alias(field)] } }
         when :proc     then index_args[:what]
       end
 
-      NoBrainer.run(self.rql_table.index_create(index_name, index_args[:options], &index_proc))
+      NoBrainer.run(self.rql_table.index_create(index_args[:as], index_args[:options], &index_proc))
       wait_for_index(index_name) unless options[:wait] == false
-      STDERR.puts "Created index #{self}.#{index_name}" if options[:verbose]
+
+      if options[:verbose]
+        if index_name == index_args[:as]
+          STDERR.puts "Created index #{self}.#{index_name}"
+        else
+          STDERR.puts "Created index #{self}.#{index_name} as #{index_args[:as]}"
+        end
+      end
     end
 
     def perform_drop_index(index_name, options={})
-      NoBrainer.run(self.rql_table.index_drop(index_name))
-      STDERR.puts "Dropped index #{self}.#{index_name}" if options[:verbose]
+      aliased_name = self.indexes[index_name].try(:[], :as) || index_name
+      NoBrainer.run(self.rql_table.index_drop(aliased_name))
+
+      if options[:verbose]
+        if index_name == index_args[:as]
+          STDERR.puts "Dropped index #{self}.#{index_name}"
+        else
+          STDERR.puts "Dreated index #{self}.#{index_name} as #{index_args[:as]}"
+        end
+      end
+    end
+
+    def get_index_alias_reverse_map
+      Hash[self.indexes.map { |k,v| [v[:as], k] }].tap do |mapping|
+        raise "Detected clashing index aliases" if mapping.count != self.indexes.count
+      end
     end
 
     def perform_update_indexes(options={})
-      current_indexes = NoBrainer.run(self.rql_table.index_list).map(&:to_sym)
+      alias_mapping = self.get_index_alias_reverse_map
+      current_indexes = NoBrainer.run(self.rql_table.index_list).map do |index|
+        alias_mapping[index.to_sym] || index.to_sym
+      end
       wanted_indexes = self.indexes.keys - [self.pk_name]
 
       (current_indexes - wanted_indexes).each do |index_name|

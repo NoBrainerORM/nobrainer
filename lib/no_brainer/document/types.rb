@@ -53,8 +53,8 @@ module NoBrainer::Document::Types
       cast_model_to_db_for(attr, value)
     end
 
-    def persistable_attributes(attrs)
-      Hash[attrs.map { |k,v| [k, cast_model_to_db_for(k, v)] }]
+    def persistable_value(k, v)
+      cast_model_to_db_for(k, super)
     end
 
     def _field(attr, options={})

@@ -102,5 +102,17 @@ module NoBrainer::Document::Persistance
     def sync
       NoBrainer.run(rql_table.sync)['synced'] == 1
     end
+
+    def persistable_key(k)
+      k
+    end
+
+    def persistable_value(k, v)
+      v
+    end
+
+    def persistable_attributes(attrs)
+      Hash[attrs.map { |k,v| [persistable_key(k), persistable_value(k, v)] }]
+    end
   end
 end

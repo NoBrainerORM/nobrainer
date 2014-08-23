@@ -66,6 +66,7 @@ module NoBrainer::Criteria::Where
     end
 
     def to_rql(doc)
+      key = criteria.klass.lookup_field_alias(self.key)
       case op
       when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
       when :between then (doc[key] >= value.min) & (doc[key] <= value.max)
@@ -102,10 +103,8 @@ module NoBrainer::Criteria::Where
       return key if casted_values
 
       case association
-      when NoBrainer::Document::Association::BelongsTo::Metadata
-        association.foreign_key
-      else
-        key
+      when NoBrainer::Document::Association::BelongsTo::Metadata then association.foreign_key
+      else key
       end
     end
   end
@@ -202,13 +201,14 @@ module NoBrainer::Criteria::Where
 
       if index_name = (get_usable_indexes.keys & clauses.keys).first
         clause = clauses[index_name]
+        aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [clause])
         self.index_type = clause.op == :between ? :between : :get_all
         self.rql_proc = case clause.op
-          when :eq      then ->(rql){ rql.get_all(clause.value, :index => index_name) }
-          when :in      then ->(rql){ rql.get_all(*clause.value, :index => index_name) }
-          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => index_name,
+          when :eq      then ->(rql){ rql.get_all(clause.value, :index => aliased_index) }
+          when :in      then ->(rql){ rql.get_all(*clause.value, :index => aliased_index) }
+          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => aliased_index,
                                                   :left_bound => :closed, :right_bound => :closed) }
         end
       end
@@ -225,9 +225,10 @@ module NoBrainer::Criteria::Where
 
       if index_name
         indexed_clauses = index_values.map { |field| clauses[field] }
+        aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - indexed_clauses)
-        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => index_name) }
+        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => aliased_index) }
         self.index_type = :get_all
       end
     end
@@ -241,10 +242,12 @@ module NoBrainer::Criteria::Where
         left_bound = op_clauses[:gt] || op_clauses[:ge]
         right_bound = op_clauses[:lt] || op_clauses[:le]
 
+        aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
         self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [left_bound, right_bound].compact)
 
-        options = {:index => index_name}
+        options = {}
+        options[:index] = aliased_index
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
         self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }

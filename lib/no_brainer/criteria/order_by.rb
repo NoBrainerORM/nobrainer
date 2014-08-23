@@ -120,6 +120,12 @@ module NoBrainer::Criteria::OrderBy
     return rql if _effective_order.empty?
 
     rql_rules = _effective_order.map do |k,v|
+      if order_by_index_finder.index_name == k
+        k = klass.lookup_index_alias(k)
+      else
+        k = klass.lookup_field_alias(k)
+      end
+
       case v
       when :asc  then reverse_order? ? RethinkDB::RQL.new.desc(k) : RethinkDB::RQL.new.asc(k)
       when :desc then reverse_order? ? RethinkDB::RQL.new.asc(k)  : RethinkDB::RQL.new.desc(k)
@@ -130,8 +136,7 @@ module NoBrainer::Criteria::OrderBy
     # We are going to try to go so and if we cannot, we'll simply apply
     # the ordering in pass2, which will happen after a potential filter().
     if order_by_index_finder.could_find_index?
-      options = {}
-      options[:index] = rql_rules.shift
+      options = { :index => rql_rules.shift }
       rql = rql.order_by(*rql_rules, options)
     else
       # Stashing @rql_rules for pass2
