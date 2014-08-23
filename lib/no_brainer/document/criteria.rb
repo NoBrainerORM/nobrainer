@@ -9,6 +9,7 @@ module NoBrainer::Document::Criteria
 
   module ClassMethods
     delegate :to_rql,                        # Core
+             :raw,                           # Raw
              :limit, :offset, :skip,         # Limit
              :order_by, :reverse_order, :without_ordering, :order_by_indexed?, :order_by_index_name, # OrderBy
              :scoped, :unscoped,             # Scope
