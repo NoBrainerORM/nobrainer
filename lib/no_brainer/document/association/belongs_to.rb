@@ -2,7 +2,7 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :index, :validates, :required]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_as, :index, :validates, :required]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
@@ -29,7 +29,7 @@ class NoBrainer::Document::Association::BelongsTo
       # This would have the effect of loading all the models because they
       # are likely to be related to each other. So we don't know the type
       # of the primary key of the target.
-      owner_klass.field(foreign_key, :index => options[:index])
+      owner_klass.field(foreign_key, :as => options[:foreign_key_as], :index => options[:index])
       owner_klass.validates(target_name, { :presence => true }) if options[:required]
       owner_klass.validates(target_name, options[:validates]) if options[:validates]
 

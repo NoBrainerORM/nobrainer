@@ -171,4 +171,25 @@ describe 'NoBrainer aliases' do
       end
     end
   end
+
+  context 'when using associations' do
+    before do
+      load_blog_models
+      Post.belongs_to :author, :foreign_key_as => :a_id
+      Comment.belongs_to :post, :foreign_key_as => :p_id
+
+      Comment.has_one :author, :through => :post
+    end
+
+    let!(:author)  { Author.create }
+    let!(:post)    { Post.create(:author => author) }
+    let!(:comment) { Comment.create(:post => post) }
+
+    it 'aliases' do
+      Post.raw.first['a_id'].should == author.pk_value
+      Post.first.author.should == author
+      Comment.first.author.should == author
+      Author.preload(:posts => Post.preload(:comments)).first.posts.first.comments.first.should == comment
+    end
+  end
 end
