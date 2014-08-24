@@ -8,8 +8,10 @@ class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
       table_name = $3
 
       klass = NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
+      index_name = klass.get_index_alias_reverse_map[index_name.to_sym]
+
       if klass && klass.pk_name.to_s == index_name
-        err_msg  = "Please run update the primary key `#{index_name}` in the table `#{database_name}.#{table_name}`."
+        err_msg  = "Please update the primary key `#{index_name}` in the table `#{database_name}.#{table_name}`."
       else
         err_msg  = "Please run \"rake db:update_indexes\" to create the index `#{index_name}`"
         err_msg += " in the table `#{database_name}.#{table_name}`."

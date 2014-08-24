@@ -119,4 +119,56 @@ describe 'NoBrainer aliases' do
       end
     end
   end
+
+  context 'when using insert_all' do
+    it 'aliases fields' do
+      SimpleDocument.insert_all(100.times.map { |i| {:field1 => i+1} })
+      SimpleDocument.count.should == 100
+      SimpleDocument.where(:field1.gt 50).count.should == 50
+    end
+  end
+
+  context 'when using update_all' do
+    let!(:doc) { SimpleDocument.create(:field1 => 1) }
+
+    it 'aliases fields' do
+      SimpleDocument.update_all(:field1 => 2)
+      SimpleDocument.where(:field1 => 2).count.should == 1
+      SimpleDocument.replace_all(doc.attributes.merge('field1' => 3))
+      SimpleDocument.where(:field1 => 3).count.should == 1
+    end
+  end
+
+  context 'when using aggregates' do
+    before { 10.times { |i| SimpleDocument.create(:field1 => i+1) } }
+    context 'when using a field' do
+      context 'when using min' do
+        it 'computes the minimum' do
+          SimpleDocument.min(:field1).field1.should == 1
+          SimpleDocument.where(:field1.gt 5).min(:field1).field1.should == 6
+        end
+      end
+
+      context 'when using max' do
+        it 'computes the maximum' do
+          SimpleDocument.max(:field1).field1.should == 10
+          SimpleDocument.where(:field1.lt 5).max(:field1).field1.should == 4
+        end
+      end
+
+      context 'when using sum' do
+        it 'computes the sum' do
+          SimpleDocument.sum(:field1).should == (1..10).to_a.reduce(:+)
+          SimpleDocument.where(:field1.lt 5).sum(:field1).should == (1..4).to_a.reduce(:+)
+        end
+      end
+
+      context 'when using avg' do
+        it 'computes the avg' do
+          SimpleDocument.avg(:field1).should == (1..10).to_a.reduce(:+).to_f/10
+          SimpleDocument.where(:field1.lt 5).avg(:field1).should == (1..4).to_a.reduce(:+).to_f/4
+        end
+      end
+    end
+  end
 end

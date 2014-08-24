@@ -28,13 +28,14 @@ module NoBrainer::Document::Persistance
 
   def _create(options={})
     return false if options[:validate] && !valid?
-    keys = self.class.insert_all(self.class.persistable_attributes(@_attributes))
+    keys = self.class.insert_all(@_attributes)
     self.pk_value ||= keys.first
     @new_record = false
     true
   end
 
   def _update(attrs)
+    attrs = self.class.persistable_attributes(attrs)
     NoBrainer.run { selector.update(attrs) }
   end
 
@@ -50,7 +51,7 @@ module NoBrainer::Document::Persistance
       attr = RethinkDB::RQL.new.literal(attr) if attr.is_a?(Hash)
       [k, attr]
     end]
-    _update(self.class.persistable_attributes(attrs)) if attrs.present?
+    _update(attrs) if attrs.present?
     true
   end
 
@@ -94,8 +95,11 @@ module NoBrainer::Document::Persistance
       new(attrs, options).tap { |doc| doc.save!(options) }
     end
 
-    def insert_all(*attrs)
-      result = NoBrainer.run(rql_table.insert(*attrs))
+    def insert_all(*args)
+      docs = args.shift
+      docs = [docs] unless docs.is_a?(Array)
+      docs = docs.map { |doc| persistable_attributes(doc) }
+      result = NoBrainer.run(rql_table.insert(docs, *args))
       result['generated_keys'].to_a
     end
 
