@@ -46,8 +46,7 @@ module NoBrainer::Document::Criteria
       rql_table.get(pk)
     end
 
-    # XXX this doesn't have the same semantics as
-    # other ORMs. the equivalent is find!.
+    # XXX this doesn't have the same semantics as other ORMs. the equivalent is find!.
     def find(pk)
       attrs = NoBrainer.run { selector_for(pk) }
       new_from_db(attrs).tap { |doc| doc.run_callbacks(:find) } if attrs

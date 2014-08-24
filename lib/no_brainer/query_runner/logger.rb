@@ -18,7 +18,7 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
     msg_duration = " " * [0, 5 - msg_duration.size].max + msg_duration
     msg_duration = "[#{msg_duration}ms] "
 
-    msg_db = "[#{env[:db_name]}] " if env[:db_name]
+    msg_db = "[#{env[:db_name]}] " if env[:db_name] && env[:db_name].to_s != NoBrainer.connection.parsed_uri[:db]
     msg_query = env[:query].inspect.gsub(/\n/, '').gsub(/ +/, ' ')
     msg_exception = " #{exception.class} #{exception.message.split("\n").first}" if exception
     msg_last = nil
