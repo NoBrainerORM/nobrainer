@@ -5,7 +5,6 @@ module NoBrainer::Criteria::Where
 
   def initialize(options={})
     super
-    self.where_ast = MultiOperator.new(:and, [])
   end
 
   def where(*args, &block)
@@ -14,8 +13,16 @@ module NoBrainer::Criteria::Where
 
   def merge!(criteria, options={})
     super
-    clauses = self.where_ast.clauses + criteria.where_ast.clauses
-    self.where_ast = MultiOperator.new(:and, clauses).simplify
+
+    if criteria.where_ast
+      if self.where_ast
+        self.where_ast = MultiOperator.new(:and, [self.where_ast, criteria.where_ast])
+      else
+        self.where_ast = criteria.where_ast
+      end
+      self.where_ast = self.where_ast.simplify
+    end
+
     self.with_index_name = criteria.with_index_name unless criteria.with_index_name.nil?
     self
   end
@@ -36,8 +43,14 @@ module NoBrainer::Criteria::Where
 
   class MultiOperator < Struct.new(:op, :clauses)
     def simplify
-      same_op_clauses, other_clauses = self.clauses.map(&:simplify)
-        .partition { |v| v.is_a?(MultiOperator) && self.op == v.op }
+      clauses = self.clauses.map(&:simplify)
+      if self.clauses.size == 1 && self.clauses.first.is_a?(MultiOperator)
+        return clauses.first
+      end
+
+      same_op_clauses, other_clauses = clauses.partition do |v|
+        v.is_a?(MultiOperator) && (v.clauses.size == 1 || v.op == self.op)
+      end
       simplified_clauses = other_clauses + same_op_clauses.map(&:clauses).flatten(1)
       MultiOperator.new(op, simplified_clauses.uniq)
     end
@@ -256,7 +269,7 @@ module NoBrainer::Criteria::Where
     end
 
     def find_index
-      return if criteria.without_index?
+      return if criteria.where_ast.nil? || criteria.without_index?
       find_index_canonical || find_index_compound || find_index_hidden_between
     end
   end
@@ -275,7 +288,7 @@ module NoBrainer::Criteria::Where
   def compile_rql_pass2
     rql = super
     ast = where_index_finder.could_find_index? ? where_index_finder.ast : self.where_ast
-    rql = rql.filter { |doc| ast.to_rql(doc) } if ast.clauses.present?
+    rql = rql.filter { |doc| ast.to_rql(doc) } if ast.try(:clauses).present?
     rql
   end
 end

@@ -22,6 +22,7 @@ module NoBrainer::Criteria::Pluck
       self.missing_attributes[type] = new_attrs
       self.missing_attributes.delete(type) if new_attrs.empty?
     end
+    self
   end
 
   private
