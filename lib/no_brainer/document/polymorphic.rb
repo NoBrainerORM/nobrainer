@@ -3,8 +3,9 @@ module NoBrainer::Document::Polymorphic
   include ActiveSupport::DescendantsTracker
 
   included do
-    cattr_accessor :root_class
+    cattr_accessor :root_class, :is_polymorphic
     self.root_class = self
+    self.is_polymorphic = false
   end
 
   def assign_attributes(*args)
@@ -15,6 +16,7 @@ module NoBrainer::Document::Polymorphic
   module ClassMethods
     def inherited(subclass)
       super
+      subclass.is_polymorphic = true
       subclass.field :_type if is_root_class?
     end
 

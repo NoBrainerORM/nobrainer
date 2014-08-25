@@ -23,6 +23,7 @@ module NoBrainer::Document::Criteria
              :first, :last, :first!, :last!, :sample, # First
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
+             :pluck, :without,               # Pluck
              :to => :all
 
     def all

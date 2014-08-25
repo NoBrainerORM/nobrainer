@@ -41,6 +41,13 @@ module NoBrainer::Document::Aliases
       alias_map[attr.to_s] || attr
     end
 
+    def with_fields_aliased(attrs)
+      case attrs
+      when Array then attrs.map { |k| lookup_field_alias(k) }
+      when Hash  then Hash[attrs.map { |k,v| [lookup_field_alias(k), v] }]
+      end
+    end
+
     def persistable_key(k)
       lookup_field_alias(super)
     end

@@ -8,6 +8,7 @@ module NoBrainer::Error
   class InvalidType             < RuntimeError; end
   class AssociationNotPersisted < RuntimeError; end
   class ReadonlyField           < RuntimeError; end
+  class MissingAttribute        < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance

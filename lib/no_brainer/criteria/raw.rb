@@ -15,11 +15,15 @@ module NoBrainer::Criteria::Raw
 
   private
 
-  def raw?
-    !!_raw
+  def instantiate_doc(attrs)
+    raw? ? attrs : instantiate_model(attrs)
   end
 
-  def instantiate_doc(attrs)
-    raw? ? attrs : klass.new_from_db(attrs)
+  def instantiate_model(attrs, options={})
+    klass.new_from_db(attrs, options)
+  end
+
+  def raw?
+    !!_raw
   end
 end

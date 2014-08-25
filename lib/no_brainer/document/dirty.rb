@@ -38,7 +38,18 @@ module NoBrainer::Document::Dirty
     result
   end
 
-  def attribute_may_change(attr, current_value)
+  def attribute_may_change(*args)
+    attr = args.first
+    current_value = begin
+      case args.size
+      when 1 then read_attribute(attr)
+      when 2 then args.last
+      else raise
+      end
+    rescue NoBrainer::Error::MissingAttribute => e
+      e
+    end
+
     unless @_old_attributes.has_key?(attr)
       @_old_attributes[attr] = current_value.deep_dup
     end
@@ -74,7 +85,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{attr}=") do |value|
-          attribute_may_change(attr, read_attribute(attr))
+          attribute_may_change(attr)
           super(value)
         end
       end
