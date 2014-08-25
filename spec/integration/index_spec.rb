@@ -321,4 +321,22 @@ describe 'NoBrainer index' do
       end
     end
   end
+
+  context 'when using :or' do
+    before do
+      SimpleDocument.index :field1
+      SimpleDocument.index :field2
+      NoBrainer.update_indexes
+    end
+
+    let!(:docs) { 10.times.map { |i| SimpleDocument.create(:field1 => i, :field2 => i, :field3 => i) } }
+
+    it 'uses indexes when all clauses can be indexed' do
+      SimpleDocument.where(:or => [{:field1 => 1}, {:field3 => 3}]).where_indexed?.should == false
+      criteria = SimpleDocument.where(:or => [{:field1 => 1}, {:field1 => 3}, {:field2 => 4}]).order_by(:field1 => :desc)
+      criteria.to_a.should == [docs[4], docs[3], docs[1]]
+      criteria.where_indexed?.should == true
+      criteria.where_index_name.should =~ [:field1, :field2]
+    end
+  end
 end

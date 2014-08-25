@@ -21,6 +21,7 @@ module NoBrainer::Criteria::Where
         self.where_ast = criteria.where_ast
       end
       self.where_ast = self.where_ast.simplify
+      raise unless criteria.where_ast.is_a?(MultiOperator)
     end
 
     self.with_index_name = criteria.with_index_name unless criteria.with_index_name.nil?
@@ -44,15 +45,16 @@ module NoBrainer::Criteria::Where
   class MultiOperator < Struct.new(:op, :clauses)
     def simplify
       clauses = self.clauses.map(&:simplify)
-      if self.clauses.size == 1 && self.clauses.first.is_a?(MultiOperator)
+      if self.clauses.size == 1 && self.clauses.first.is_a?(self.class)
         return clauses.first
       end
 
       same_op_clauses, other_clauses = clauses.partition do |v|
-        v.is_a?(MultiOperator) && (v.clauses.size == 1 || v.op == self.op)
+        v.is_a?(self.class) && (v.clauses.size == 1 || v.op == self.op)
       end
       simplified_clauses = other_clauses + same_op_clauses.map(&:clauses).flatten(1)
-      MultiOperator.new(op, simplified_clauses.uniq)
+      simplified_clauses =  BinaryOperator.simplify_clauses(op, simplified_clauses.uniq)
+      self.class.new(op, simplified_clauses)
     end
 
     def to_rql(doc)
@@ -63,23 +65,48 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class BinaryOperator < Struct.new(:key, :op, :value, :criteria, :casted_values)
+  class BinaryOperator < Struct.new(:key, :op, :value, :model, :casted_values)
+    def self.get_candidate_clauses(clauses, *types)
+      clauses.select { |c| c.is_a?(self) && types.include?(c.op) }
+    end
+
+    def self.simplify_clauses(op, ast_clauses)
+      # This code assumes that simplfy() has already been called on all clauses.
+      if op == :or
+        eq_clauses = get_candidate_clauses(ast_clauses, :in, :eq)
+        new_clauses = eq_clauses.group_by(&:key).map do |key, clauses|
+          case clauses.size
+          when 1 then clauses.first
+          else
+            values = clauses.map { |c| c.op == :in ? c.value : [c.value] }.flatten(1).uniq
+            BinaryOperator.new(key, :in, values, clauses.first.model, true)
+          end
+        end
+
+        if new_clauses.size != eq_clauses.size
+          ast_clauses = ast_clauses - eq_clauses + new_clauses
+        end
+      end
+
+      ast_clauses
+    end
+
     def simplify
       key = cast_key(self.key)
       case op
       when :in then
         case value
-        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria, true)
-        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, criteria, true)
+        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), model, true)
+        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, model, true)
         else raise ArgumentError.new ":in takes an array/range, not #{value}"
         end
-      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), criteria, true)
-      else BinaryOperator.new(key, op, cast_value(value), criteria, true)
+      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), model, true)
+      else BinaryOperator.new(key, op, cast_value(value), model, true)
       end
     end
 
     def to_rql(doc)
-      key = criteria.klass.lookup_field_alias(self.key)
+      key = model.lookup_field_alias(self.key)
       case op
       when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
       when :between then (doc[key] >= value.min) & (doc[key] <= value.max)
@@ -94,7 +121,7 @@ module NoBrainer::Criteria::Where
       # FIXME This leaks memory with dynamic attributes. The internals of type
       # checking will convert the key to a symbol, and Ruby does not garbage
       # collect symbols.
-      @association ||= [criteria.klass.association_metadata[key.to_sym]]
+      @association ||= [model.association_metadata[key.to_sym]]
       @association.first
     end
 
@@ -108,7 +135,7 @@ module NoBrainer::Criteria::Where
         raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_klass)
         value.pk_value
       else
-        criteria.klass.cast_user_to_db_for(key, value)
+        model.cast_user_to_db_for(key, value)
       end
     end
 
@@ -169,7 +196,7 @@ module NoBrainer::Criteria::Where
       when :nin then parse_clause(:not => { key.symbol.in => value })
       when :ne  then parse_clause(:not => { key.symbol.eq => value })
       when :eq  then parse_clause_stub_eq(key.symbol, value)
-      else BinaryOperator.new(key.symbol, key.modifier, value, self)
+      else BinaryOperator.new(key.symbol, key.modifier, value, self.klass)
       end
     else raise "Invalid key: #{key}"
     end
@@ -177,35 +204,40 @@ module NoBrainer::Criteria::Where
 
   def parse_clause_stub_eq(key, value)
     case value
-    when Range  then BinaryOperator.new(key, :between, value, self)
-    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self)
-    else BinaryOperator.new(key, :eq, value, self)
+    when Range  then BinaryOperator.new(key, :between, value, self.klass)
+    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self.klass)
+    else BinaryOperator.new(key, :eq, value, self.klass)
     end
   end
 
-  class IndexFinder < Struct.new(:criteria, :index_name, :index_type, :rql_proc, :ast)
+  class IndexFinder < Struct.new(:criteria, :ast, :index_name, :index_type, :rql_proc)
     def initialize(*args)
       super
-      find_index
     end
 
     def could_find_index?
       !!self.index_name
     end
 
-    private
-
     def get_candidate_clauses(*types)
-      criteria.where_ast.clauses.select { |c| c.is_a?(BinaryOperator) && types.include?(c.op) }
+      BinaryOperator.get_candidate_clauses(ast.clauses, *types)
     end
 
     def get_usable_indexes(*types)
-      indexes = criteria.klass.indexes
-      indexes = indexes.select { |k,v| types.include?(v[:kind]) } if types.present?
-      if criteria.with_index_name && criteria.with_index_name != true
-        indexes = indexes.select { |k,v| k == criteria.with_index_name.to_sym }
+      @usable_indexes = {}
+      @usable_indexes[types] ||= begin
+        indexes = criteria.klass.indexes
+        indexes = indexes.select { |k,v| types.include?(v[:kind]) } if types.present?
+        if criteria.with_index_name && criteria.with_index_name != true
+          indexes = indexes.select { |k,v| k == criteria.with_index_name.to_sym }
+        end
+        indexes
       end
-      indexes
+    end
+
+    def remove_from_ast(clauses)
+      new_ast = MultiOperator.new(ast.op, ast.clauses - clauses)
+      return new_ast if new_ast.clauses.present?
     end
 
     def find_index_canonical
@@ -216,7 +248,7 @@ module NoBrainer::Criteria::Where
         clause = clauses[index_name]
         aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
-        self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [clause])
+        self.ast = remove_from_ast([clause])
         self.index_type = clause.op == :between ? :between : :get_all
         self.rql_proc = case clause.op
           when :eq      then ->(rql){ rql.get_all(clause.value, :index => aliased_index) }
@@ -240,9 +272,9 @@ module NoBrainer::Criteria::Where
         indexed_clauses = index_values.map { |field| clauses[field] }
         aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
-        self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - indexed_clauses)
-        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => aliased_index) }
+        self.ast = remove_from_ast(indexed_clauses)
         self.index_type = :get_all
+        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => aliased_index) }
       end
     end
 
@@ -257,26 +289,49 @@ module NoBrainer::Criteria::Where
 
         aliased_index = criteria.klass.indexes[index_name][:as]
         self.index_name = index_name
-        self.ast = MultiOperator.new(:and, criteria.where_ast.clauses - [left_bound, right_bound].compact)
+        self.ast = remove_from_ast([left_bound, right_bound].compact)
 
         options = {}
         options[:index] = aliased_index
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
-        self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }
         self.index_type = :between
+        self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }
+      end
+    end
+
+    def find_union_index
+      indexes = []
+      index_finder = self
+
+      loop do
+        index_finder = index_finder.dup
+        break unless index_finder.find_index_canonical
+        # TODO To use a compound index, we'd have to add all permutations in the query
+        indexes << index_finder
+        break unless index_finder.ast
+      end
+
+      if indexes.present? && !index_finder.ast
+        self.ast = nil
+        self.index_name = indexes.map(&:index_name)
+        self.index_type = indexes.map(&:index_type)
+        self.rql_proc = ->(rql){ indexes.map { |index| index.rql_proc.call(rql) }.reduce { |a,b| a.union(b) } }
       end
     end
 
     def find_index
-      return if criteria.where_ast.nil? || criteria.without_index?
-      find_index_canonical || find_index_compound || find_index_hidden_between
+      return if ast.nil? || criteria.without_index?
+      case ast.op
+      when :and then find_index_compound || find_index_canonical || find_index_hidden_between
+      when :or  then find_union_index
+      end
     end
   end
 
   def where_index_finder
     return with_default_scope_applied.__send__(:where_index_finder) if should_apply_default_scope?
-    @where_index_finder ||= IndexFinder.new(self)
+    @where_index_finder ||= IndexFinder.new(self, where_ast).tap { |index_finder| index_finder.find_index }
   end
 
   def compile_rql_pass1

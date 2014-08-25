@@ -73,12 +73,7 @@ module NoBrainer::Criteria::OrderBy
     self.ordering_mode != :disabled
   end
 
-  class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc, :ast)
-    def initialize(*args)
-      super
-      find_index
-    end
-
+  class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc)
     def could_find_index?
       !!self.index_name
     end
@@ -110,7 +105,7 @@ module NoBrainer::Criteria::OrderBy
 
   def order_by_index_finder
     return with_default_scope_applied.__send__(:order_by_index_finder) if should_apply_default_scope?
-    @order_by_index_finder ||= IndexFinder.new(self)
+    @order_by_index_finder ||= IndexFinder.new(self).tap { |index_finder| index_finder.find_index }
   end
 
   def compile_rql_pass1
