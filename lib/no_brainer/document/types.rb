@@ -97,7 +97,9 @@ module NoBrainer::Document::Types
     end
   end
 
+  require File.join(File.dirname(__FILE__), 'types', 'binary')
   require File.join(File.dirname(__FILE__), 'types', 'boolean')
+  Binary = NoBrainer::Binary
   Boolean = NoBrainer::Boolean
 
   class << self

@@ -204,6 +204,30 @@ describe 'types' do
     end
   end
 
+  context 'when using Binary type' do
+    let(:type) { SimpleDocument::Binary }
+    let(:data) { 255.times.map { |i| i.chr }.join }
+
+    it 'type checks and casts' do
+      doc.field1 = 'hello'
+      doc.valid?.should == true
+      doc.field1 = 123
+      doc.valid?.should == false
+      doc.field1 = :hello
+      doc.valid?.should == false
+      doc.field1 = data
+      doc.valid?.should == true
+    end
+
+    it 'reads back a binary from the db' do
+      doc.field1 = data
+      doc.save
+      doc.reload
+      doc.field1.should be_a(RethinkDB::Binary)
+      doc.field1.should == RethinkDB::Binary.new(data)
+    end
+  end
+
   context 'when using Symbol type' do
     let(:type) { Symbol }
 
