@@ -4,5 +4,6 @@ module NoBrainer::IndexManager
     unless options[:wait] == false
       NoBrainer::Document.all.each { |model| model.wait_for_index(nil) }
     end
+    true
   end
 end
