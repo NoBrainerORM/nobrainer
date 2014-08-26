@@ -3,16 +3,19 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
     start_time = Time.now
     @runner.call(env).tap { log_query(env, start_time) }
   rescue Exception => e
-    log_query(env, start_time, e) rescue nil
+    log_query(env, start_time, e)
     raise e
   end
 
   private
 
   def log_query(env, start_time, exception=nil)
-    return unless NoBrainer.logger.debug?
+    level = exception && !on_demand_exception?(exception) ? Logger::ERROR : Logger::DEBUG
+    return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
 
     duration = Time.now - start_time
+
+    not_indexed = env[:criteria] && env[:criteria].where_present? && !env[:criteria].where_indexed?
 
     msg_duration = (duration * 1000.0).round(1).to_s
     msg_duration = " " * [0, 5 - msg_duration.size].max + msg_duration
@@ -20,7 +23,10 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
 
     msg_db = "[#{env[:db_name]}] " if env[:db_name] && env[:db_name].to_s != NoBrainer.connection.parsed_uri[:db]
     msg_query = env[:query].inspect.gsub(/\n/, '').gsub(/ +/, ' ')
+
     msg_exception = " #{exception.class} #{exception.message.split("\n").first}" if exception
+    msg_exception ||= " warn: filtering without using an index" if not_indexed
+
     msg_last = nil
 
     if NoBrainer::Config.colorize_logger
@@ -31,11 +37,20 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
                     end
       msg_duration = [query_color, msg_duration].join
       msg_db = ["\e[0;34m", msg_db, query_color].join if msg_db
-      msg_exception = ["\e[0;31m", msg_exception].join if msg_exception
+      if msg_exception
+        exception_color = level == Logger::DEBUG ? "\e[0;39m" : "\e[0;31m"
+        msg_exception = [exception_color, msg_exception].join
+      end
       msg_last = "\e[0m"
     end
 
     msg = [msg_duration, msg_db, msg_query, msg_exception, msg_last].join
-    NoBrainer.logger.debug(msg)
+    NoBrainer.logger.add(level, msg)
+  end
+
+  def on_demand_exception?(e)
+    # pretty gross I must say.
+    NoBrainer::QueryRunner::DatabaseOnDemand.new(nil).database_on_demand_exception?(e) ||
+      NoBrainer::QueryRunner::TableOnDemand.new(nil).table_on_demand_exception?(e)
   end
 end

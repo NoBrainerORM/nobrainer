@@ -28,6 +28,10 @@ module NoBrainer::Criteria::Where
     self
   end
 
+  def where_present?
+    where_ast.try(:clauses).present?
+  end
+
   def where_indexed?
     !!where_index_name
   end

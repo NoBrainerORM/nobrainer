@@ -2,12 +2,15 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
   def call(env)
     @runner.call(env)
   rescue RuntimeError => e
-    if NoBrainer::Config.auto_create_databases &&
-       e.message =~ /^Database `(.+)` does not exist\.$/
-      auto_create_database(env, $1)
+    if database_name = database_on_demand_exception?(e)
+      auto_create_database(env, database_name)
       retry
     end
     raise
+  end
+
+  def database_on_demand_exception?(e)
+    NoBrainer::Config.auto_create_databases && e.message =~ /^Database `(.+)` does not exist\.$/ && $1
   end
 
   private

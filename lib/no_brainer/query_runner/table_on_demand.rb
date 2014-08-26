@@ -2,12 +2,15 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
   rescue RuntimeError => e
-    if NoBrainer::Config.auto_create_tables &&
-       e.message =~ /^Table `(.+)\.(.+)` does not exist\.$/
-      auto_create_table(env, $1, $2)
+    if table_info = table_on_demand_exception?(e)
+      auto_create_table(env, *table_info)
       retry
     end
     raise
+  end
+
+  def table_on_demand_exception?(e)
+    NoBrainer::Config.auto_create_tables && e.message =~ /^Table `(.+)\.(.+)` does not exist\.$/ && [$1, $2]
   end
 
   private

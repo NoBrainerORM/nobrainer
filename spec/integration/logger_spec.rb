@@ -10,16 +10,18 @@ describe 'NoBrainer logging' do
         @logs = []
       end
 
-      def debug(message)
+      def add(level, message)
         @logs << message
+      end
+
+      %w(fatal error warn info debug).each do |level|
+        define_method(level) do |message|
+          add(level, message)
+        end
       end
 
       def level
         Logger::DEBUG
-      end
-
-      def debug?
-        true
       end
     end
   end
