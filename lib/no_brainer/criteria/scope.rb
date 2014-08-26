@@ -35,11 +35,13 @@ module NoBrainer::Criteria::Scope
   end
 
   def with_default_scope_applied
-    if should_apply_default_scope?
-      # XXX If default_scope.class != self.class, oops
-      klass.default_scope_proc.call.merge(self).unscoped
-    else
-      self
+    @with_default_scope_applied ||= begin
+      if should_apply_default_scope?
+        # XXX If default_scope.class != self.class, oops
+        klass.default_scope_proc.call.merge(self).unscoped
+      else
+        self
+      end
     end
   end
 end
