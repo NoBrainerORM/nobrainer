@@ -13,17 +13,21 @@ module NoBrainer::Criteria::Raw
     self
   end
 
+  def raw?
+    !!finalized_criteria._raw
+  end
+
   private
 
   def instantiate_doc(attrs)
-    raw? ? attrs : instantiate_model(attrs)
+    finalized_criteria._instantiate_doc(attrs)
   end
 
-  def instantiate_model(attrs, options={})
+  def _instantiate_doc(attrs)
+    raw? ? attrs : _instantiate_model(attrs)
+  end
+
+  def _instantiate_model(attrs, options={})
     klass.new_from_db(attrs, options)
-  end
-
-  def raw?
-    !!_raw
   end
 end

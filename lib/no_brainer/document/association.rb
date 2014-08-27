@@ -16,8 +16,8 @@ module NoBrainer::Document::Association
 
   module ClassMethods
     def inherited(subclass)
-      super
       subclass.association_metadata = self.association_metadata.dup
+      super
     end
 
     METHODS.each do |association|

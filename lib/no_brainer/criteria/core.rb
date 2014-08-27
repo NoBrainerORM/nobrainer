@@ -12,7 +12,7 @@ module NoBrainer::Criteria::Core
   end
 
   def to_rql
-    with_default_scope_applied.__send__(:compile_rql_pass2)
+    finalized_criteria.__send__(:compile_rql_pass2)
   end
 
   def inspect
@@ -55,5 +55,19 @@ module NoBrainer::Criteria::Core
   def compile_rql_pass2
     # This method is overriden by other modules.
     compile_rql_pass1
+  end
+
+  def finalized?
+    !!init_options[:finalized]
+  end
+
+  def finalized_criteria
+    @finalized_criteria ||= finalized? ? self : self.class._finalize_criteria(self)
+  end
+
+  module ClassMethods
+    def _finalize_criteria(base)
+      base.merge(base.class.new(:finalized => true))
+    end
   end
 end

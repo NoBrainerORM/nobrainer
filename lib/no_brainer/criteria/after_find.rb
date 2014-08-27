@@ -15,7 +15,7 @@ module NoBrainer::Criteria::AfterFind
     self
   end
 
-  def instantiate_doc(attrs)
+  def _instantiate_doc(attrs)
     super.tap do |doc|
       self._after_find.to_a.each { |block| block.call(doc) }
       doc.run_callbacks(:find) if doc.is_a?(NoBrainer::Document)

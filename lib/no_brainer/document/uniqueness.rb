@@ -55,8 +55,8 @@ module NoBrainer::Document::Uniqueness
     end
 
     def inherited(subclass)
-      super
       subclass.unique_validators = self.unique_validators.dup
+      super
     end
 
   end

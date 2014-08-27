@@ -104,7 +104,7 @@ module NoBrainer::Criteria::OrderBy
   end
 
   def order_by_index_finder
-    return with_default_scope_applied.__send__(:order_by_index_finder) if should_apply_default_scope?
+    return finalized_criteria.__send__(:order_by_index_finder) unless finalized?
     @order_by_index_finder ||= IndexFinder.new(self).tap { |index_finder| index_finder.find_index }
   end
 

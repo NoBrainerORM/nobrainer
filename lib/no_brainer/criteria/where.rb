@@ -29,7 +29,7 @@ module NoBrainer::Criteria::Where
   end
 
   def where_present?
-    where_ast.try(:clauses).present?
+    finalized_criteria.where_ast.try(:clauses).present?
   end
 
   def where_indexed?
@@ -334,7 +334,7 @@ module NoBrainer::Criteria::Where
   end
 
   def where_index_finder
-    return with_default_scope_applied.__send__(:where_index_finder) if should_apply_default_scope?
+    return finalized_criteria.__send__(:where_index_finder) unless finalized?
     @where_index_finder ||= IndexFinder.new(self, where_ast).tap { |index_finder| index_finder.find_index }
   end
 

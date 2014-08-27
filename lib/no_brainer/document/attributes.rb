@@ -1,6 +1,6 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default, :type, :real_type, :validates,
-                         :required, :unique, :in, :readonly, :primary_key, :as]
+  VALID_FIELD_OPTIONS = [:index, :default, :type, :real_type, :validates, :required, :unique,
+                         :in, :readonly, :primary_key, :as, :lazy_fetch]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
                           + NoBrainer::DecoratedSymbol::MODIFIERS.keys
   extend ActiveSupport::Concern
@@ -35,9 +35,18 @@ module NoBrainer::Document::Attributes
   end
   def []=(*args); write_attribute(*args); end
 
-  def assign_defaults
+  def assign_defaults(options)
     self.class.fields.each do |name, field_options|
-      if field_options.has_key?(:default) && !@_attributes.has_key?(name)
+      if field_options.has_key?(:default) &&
+         !@_attributes.has_key?(name)
+
+         if opt = options[:missing_attributes]
+           if (opt[:pluck] && !opt[:pluck][name]) ||
+              (opt[:without] && opt[:without][name])
+             next
+           end
+         end
+
         default_value = field_options[:default]
         default_value = default_value.call if default_value.is_a?(Proc)
         self.write_attribute(name, default_value)
@@ -46,15 +55,23 @@ module NoBrainer::Document::Attributes
   end
 
   def assign_attributes(attrs, options={})
-    @_attributes.clear if options[:pristine]
+    if options[:pristine]
+      if options[:keep_ivars] && options[:missing_attributes].try(:[], :pluck)
+        options[:missing_attributes][:pluck].keys.each { |k| @_attributes.delete(k) }
+      else
+        @_attributes.clear
+      end
+    end
+
     if options[:from_db]
+      attrs = self.class.with_fields_reverse_aliased(attrs)
       @_attributes.merge!(attrs)
-      clear_dirtiness
+      clear_dirtiness(options)
     else
-      clear_dirtiness if options[:pristine]
+      clear_dirtiness(options) if options[:pristine]
       attrs.each { |k,v| self.write_attribute(k,v) }
     end
-    assign_defaults if options[:pristine]
+    assign_defaults(options) if options[:pristine]
     self
   end
 
@@ -78,8 +95,8 @@ module NoBrainer::Document::Attributes
     end
 
     def inherited(subclass)
-      super
       subclass.fields = self.fields.dup
+      super
     end
 
     def _field(attr, options={})

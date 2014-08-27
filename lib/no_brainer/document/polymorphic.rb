@@ -15,8 +15,8 @@ module NoBrainer::Document::Polymorphic
 
   module ClassMethods
     def inherited(subclass)
-      super
       subclass.is_polymorphic = true
+      super
       subclass.field :_type if is_root_class?
     end
 
@@ -24,12 +24,16 @@ module NoBrainer::Document::Polymorphic
       name
     end
 
-    def descendants_type_values
-      ([self] + descendants).map(&:type_value)
-    end
-
     def is_root_class?
       self == root_class
+    end
+
+    def for_each_subclass(&block)
+      ([self] + self.descendants).each(&block)
+    end
+
+    def descendants_type_values
+      for_each_subclass.map(&:type_value)
     end
 
     def klass_from_attrs(attrs)
@@ -37,9 +41,9 @@ module NoBrainer::Document::Polymorphic
     end
 
     def all
-      criterion = super
-      criterion = criterion.where(:_type.in => descendants_type_values) unless is_root_class?
-      criterion
+      criteria = super
+      criteria = criteria.where(:_type.in => descendants_type_values) unless is_root_class?
+      criteria
     end
   end
 end

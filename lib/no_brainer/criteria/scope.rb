@@ -34,14 +34,17 @@ module NoBrainer::Criteria::Scope
     klass.default_scope_proc && use_default_scope != false
   end
 
-  def with_default_scope_applied
-    @with_default_scope_applied ||= begin
-      if should_apply_default_scope?
-        # XXX If default_scope.class != self.class, oops
-        klass.default_scope_proc.call.merge(self).unscoped
-      else
-        self
-      end
+  def _apply_default_scope
+    return unless should_apply_default_scope?
+    criteria = klass.default_scope_proc.call
+    raise "Mixing model issue. Contact developer." if [criteria.klass, self.klass].compact.uniq.size == 2
+    criteria.merge(self)
+  end
+
+  module ClassMethods
+    def _finalize_criteria(base)
+      criteria = super
+      criteria.__send__(:_apply_default_scope) || criteria
     end
   end
 end

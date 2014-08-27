@@ -14,8 +14,14 @@ module NoBrainer::Document::Dirty
     super.tap { clear_dirtiness }
   end
 
-  def clear_dirtiness
-    @_old_attributes = {}.with_indifferent_access
+  def clear_dirtiness(options={})
+    if options[:keep_ivars] && options[:missing_attributes].try(:[], :pluck)
+      attrs = options[:missing_attributes][:pluck].keys
+      @_old_attributes = @_old_attributes.reject { |k,v| attrs.include?(k) }
+    else
+      @_old_attributes = {}.with_indifferent_access
+    end
+
     @_old_attributes_keys = @_attributes.keys # to track undefined -> nil changes
   end
 
@@ -42,7 +48,7 @@ module NoBrainer::Document::Dirty
     attr = args.first
     current_value = begin
       case args.size
-      when 1 then read_attribute(attr)
+      when 1 then assert_access_field(attr); read_attribute(attr)
       when 2 then args.last
       else raise
       end

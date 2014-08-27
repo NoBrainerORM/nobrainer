@@ -10,13 +10,6 @@ module NoBrainer::Document::Aliases
     self.alias_reverse_map = {}
   end
 
-  def assign_attributes(attrs, options={})
-    if options[:from_db]
-      attrs = Hash[attrs.map { |k,v| [self.class.reverse_lookup_field_alias(k), v] }]
-    end
-    super(attrs, options)
-  end
-
   module ClassMethods
     def _field(attr, options={})
       if options[:as]
@@ -39,6 +32,13 @@ module NoBrainer::Document::Aliases
 
     def lookup_field_alias(attr)
       alias_map[attr.to_s] || attr
+    end
+
+    def with_fields_reverse_aliased(attrs)
+      case attrs
+      when Array then attrs.map { |k| reverse_lookup_field_alias(k) }
+      when Hash  then Hash[attrs.map { |k,v| [reverse_lookup_field_alias(k), v] }]
+      end
     end
 
     def with_fields_aliased(attrs)

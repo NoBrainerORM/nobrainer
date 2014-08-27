@@ -18,12 +18,45 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
-  def reload(options={})
-    attrs = NoBrainer.run { self.class.selector_for(pk_value) }
+  def _reload_selector(options={})
+    rql = selector
+    if opt = options[:missing_attributes]
+      rql = rql.pluck(self.class.with_fields_aliased(opt[:pluck])) if opt[:pluck]
+      rql = rql.without(self.class.with_fields_aliased(opt[:without])) if opt[:without]
+    end
+    rql
+  end
+
+  def _reload(options={})
+    attrs = NoBrainer.run { _reload_selector(options) }
     raise NoBrainer::Error::DocumentNotFound, "#{self.class} #{self.class.pk_name}: #{pk_value} not found" unless attrs
-    instance_variables.each { |ivar| remove_instance_variable(ivar) } unless options[:keep_ivars]
-    initialize(attrs, :pristine => true, :from_db => true)
+
+    options = options.merge(:pristine => true, :from_db => true)
+
+    if options[:keep_ivars]
+      assign_attributes(attrs, options)
+    else
+      instance_variables.each { |ivar| remove_instance_variable(ivar) }
+      initialize(attrs, options)
+    end
+
     self
+  end
+
+  def reload(options={})
+    [:without, :pluck].each do |type|
+      if v = options.delete(type)
+        v = Hash[v.flatten.map { |k| [k, true] }] if v.is_a?(Array)
+        v = {v => true} if !v.is_a?(Hash)
+        v = v.select { |k,_v| _v }
+        v = v.with_indifferent_access
+        next unless v.present?
+
+        options[:missing_attributes] ||= {}
+        options[:missing_attributes][type] = v
+      end
+    end
+    _reload(options)
   end
 
   def _create(options={})
