@@ -33,10 +33,14 @@ module NoBrainer::Document::Dirty
     changes.keys
   end
 
+  def read_attribute_for_change(attr)
+    read_attribute(attr)
+  end
+
   def changes
     result = {}.with_indifferent_access
     @_old_attributes.each do |attr, old_value|
-      current_value = read_attribute(attr)
+      current_value = read_attribute_for_change(attr)
       if current_value != old_value || !@_old_attributes_keys.include?(attr)
         result[attr] = [old_value, current_value]
       end
@@ -48,7 +52,7 @@ module NoBrainer::Document::Dirty
     attr = args.first
     current_value = begin
       case args.size
-      when 1 then assert_access_field(attr); read_attribute(attr)
+      when 1 then assert_access_field(attr); read_attribute_for_change(attr)
       when 2 then args.last
       else raise
       end
@@ -61,6 +65,19 @@ module NoBrainer::Document::Dirty
     end
   end
 
+  def _read_attribute(name)
+    super.tap do |value|
+      # This take care of string/arrays/hashes that could change without going
+      # through the setter.
+      attribute_may_change(name, value) if value.respond_to?(:size)
+    end
+  end
+
+  def _write_attribute(name, value)
+    attribute_may_change(name)
+    super
+  end
+
   module ClassMethods
     def _field(attr, options={})
       super
@@ -69,7 +86,7 @@ module NoBrainer::Document::Dirty
       inject_in_layer :dirty_tracking do
         define_method("#{attr}_change") do
           if @_old_attributes.has_key?(attr)
-            result = [@_old_attributes[attr], read_attribute(attr)]
+            result = [@_old_attributes[attr], read_attribute_for_change(attr)]
             result if result.first != result.last || !@_old_attributes_keys.include?(attr)
           end
         end
@@ -79,20 +96,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{attr}_was") do
-          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute(attr)
-        end
-
-        define_method("#{attr}") do
-          super().tap do |value|
-            # This take care of string/arrays/hashes that could change without going
-            # through the setter.
-            attribute_may_change(attr, value) if value.respond_to?(:size)
-          end
-        end
-
-        define_method("#{attr}=") do |value|
-          attribute_may_change(attr)
-          super(value)
+          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute_for_change(attr)
         end
       end
     end
@@ -103,8 +107,6 @@ module NoBrainer::Document::Dirty
         remove_method("#{attr}_change")
         remove_method("#{attr}_changed?")
         remove_method("#{attr}_was")
-        remove_method("#{attr}=")
-        remove_method("#{attr}")
       end
     end
   end

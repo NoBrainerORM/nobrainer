@@ -25,6 +25,14 @@ module NoBrainer::Document::Attributes
     Hash[readable_attributes.map { |k| [k, read_attribute(k)] }].with_indifferent_access.freeze
   end
 
+  def _read_attribute(name)
+    @_attributes[name]
+  end
+
+  def _write_attribute(name, value)
+    @_attributes[name] = value
+  end
+
   def read_attribute(name)
     __send__("#{name}")
   end
@@ -103,8 +111,8 @@ module NoBrainer::Document::Attributes
       # Using a layer so the user can use super when overriding these methods
       attr = attr.to_s
       inject_in_layer :attributes do
-        define_method("#{attr}=") { |value| @_attributes[attr] = value }
-        define_method("#{attr}")  { @_attributes[attr] }
+        define_method("#{attr}=") { |value| _write_attribute(attr, value) }
+        define_method("#{attr}") { _read_attribute(attr) }
       end
     end
 

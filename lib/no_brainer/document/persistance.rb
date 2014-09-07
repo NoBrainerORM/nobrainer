@@ -61,15 +61,16 @@ module NoBrainer::Document::Persistance
 
   def _create(options={})
     return false if options[:validate] && !valid?
-    keys = self.class.insert_all(@_attributes)
-    self.pk_value ||= keys.first
+    attrs = self.class.persistable_attributes(@_attributes, :instance => self)
+    result = NoBrainer.run(self.class.rql_table.insert(attrs))
+    self.pk_value ||= result['generated_keys'].to_a.first
     @new_record = false
     true
   end
 
   def _update(attrs)
-    attrs = self.class.persistable_attributes(attrs)
-    NoBrainer.run { selector.update(attrs) }
+    rql = ->(doc){ self.class.persistable_attributes(attrs, :instance => self, :rql_doc => doc) }
+    NoBrainer.run { selector.update(&rql) }
   end
 
   def _update_only_changed_attrs(options={})
@@ -140,16 +141,16 @@ module NoBrainer::Document::Persistance
       NoBrainer.run(rql_table.sync)['synced'] == 1
     end
 
-    def persistable_key(k)
+    def persistable_key(k, options={})
       k
     end
 
-    def persistable_value(k, v)
+    def persistable_value(k, v, options={})
       v
     end
 
-    def persistable_attributes(attrs)
-      Hash[attrs.map { |k,v| [persistable_key(k), persistable_value(k, v)] }]
+    def persistable_attributes(attrs, options={})
+      Hash[attrs.map { |k,v| [persistable_key(k, options), persistable_value(k, v, options)] }]
     end
   end
 end

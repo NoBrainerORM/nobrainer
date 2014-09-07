@@ -45,29 +45,12 @@ module NoBrainer::Document::MissingAttributes
     end
   end
 
+  def _read_attribute(name)
+    assert_access_field(name)
+    super
+  end
 
-  module ClassMethods
-    def _field(attr, options={})
-      super
-
-      inject_in_layer :missing_attributes do
-        define_method("#{attr}") do
-          assert_access_field(attr)
-          super()
-        end
-
-        define_method("#{attr}=") do |value|
-          super(value).tap { clear_missing_field(attr) }
-        end
-      end
-    end
-
-    def _remove_field(attr, options={})
-      super
-      inject_in_layer :missing_attributes do
-        remove_method("#{attr}=")
-        remove_method("#{attr}")
-      end
-    end
+  def _write_attribute(name, value)
+    super.tap { clear_missing_field(name) }
   end
 end

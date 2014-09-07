@@ -2,23 +2,11 @@ module NoBrainer::Document::DynamicAttributes
   extend ActiveSupport::Concern
 
   def read_attribute(name)
-    if self.respond_to?("#{name}") 
-      super
-    else
-      assert_access_field(name)
-      @_attributes[name].tap { |value| attribute_may_change(name, value) if value.respond_to?(:size) }
-    end
+    self.respond_to?("#{name}") ? super : _read_attribute(name)
   end
 
   def write_attribute(name, value)
-    if self.respond_to?("#{name}=")
-      super
-    else
-      attribute_may_change(name)
-      @_attributes[name] = value
-      clear_missing_field(name)
-      value
-    end
+    self.respond_to?("#{name}=") ? super : _write_attribute(name, value)
   end
 
   def readable_attributes

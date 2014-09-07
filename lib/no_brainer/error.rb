@@ -10,6 +10,19 @@ module NoBrainer::Error
   class ReadonlyField           < RuntimeError; end
   class MissingAttribute        < RuntimeError; end
 
+  class CannotReadAtomic < RuntimeError
+    attr_accessor :instance, :field, :value
+    def initialize(instance, field, value)
+      @instance = instance
+      @field = field
+      @value = value
+    end
+
+    def message
+      "Cannot read #{field}, atomic operations are pending"
+    end
+  end
+
   class DocumentInvalid < RuntimeError
     attr_accessor :instance
     def initialize(instance)

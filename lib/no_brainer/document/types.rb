@@ -22,7 +22,7 @@ module NoBrainer::Document::Types
   module ClassMethods
     def cast_user_to_model_for(attr, value)
       type = fields[attr.to_sym].try(:[], :type)
-      return value if type.nil? || value.nil?
+      return value if type.nil? || value.nil? || value.is_a?(NoBrainer::Document::AtomicOps::PendingAtomic)
       if type.respond_to?(:nobrainer_cast_user_to_model)
         type.nobrainer_cast_user_to_model(value)
       else
@@ -53,7 +53,7 @@ module NoBrainer::Document::Types
       cast_model_to_db_for(attr, value)
     end
 
-    def persistable_value(k, v)
+    def persistable_value(k, v, options={})
       cast_model_to_db_for(k, super)
     end
 

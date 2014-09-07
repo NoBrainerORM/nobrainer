@@ -48,7 +48,7 @@ module NoBrainer::Document::Aliases
       end
     end
 
-    def persistable_key(k)
+    def persistable_key(k, options={})
       lookup_field_alias(super)
     end
   end
