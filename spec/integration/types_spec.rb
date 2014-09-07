@@ -522,4 +522,37 @@ describe 'types' do
       SimpleDocument.first.field1.should == '1'
     end
   end
+
+  context 'when using Set type' do
+    let(:type) { Set }
+
+    it 'type checks and casts' do
+      doc.field1 = 'invalid'
+      doc.field1.should == 'invalid'
+      doc.valid?.should == false
+
+      doc.field1 = []
+      doc.field1.should == Set.new
+      doc.valid?.should == true
+
+      doc.field1 = ['foo']
+      doc.field1.should == Set.new(['foo'])
+      doc.valid?.should == true
+
+      doc.field1 = Set.new
+      doc.field1.should == Set.new
+      doc.valid?.should == true
+
+      doc.field1 = Set.new(['foo'])
+      doc.field1.should == Set.new(['foo'])
+      doc.valid?.should == true
+    end
+
+    it 'reads back a set from the db' do
+      doc.field1 = ['foo']
+      doc.save
+      doc.reload
+      doc.field1.should == Set.new(['foo'])
+    end
+  end
 end
