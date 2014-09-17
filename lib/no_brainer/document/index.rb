@@ -75,6 +75,7 @@ module NoBrainer::Document::Index
     def perform_create_index(index_name, options={})
       index_name = index_name.to_sym
       index_args = self.indexes[index_name]
+      aliased_name = index_args[:as]
 
       index_proc = case index_args[:kind]
         when :single   then ->(doc) { doc[lookup_field_alias(index_name)] }
@@ -82,29 +83,33 @@ module NoBrainer::Document::Index
         when :proc     then index_args[:what]
       end
 
-      NoBrainer.run(self.rql_table.index_create(index_args[:as], index_args[:options], &index_proc))
+      NoBrainer.run(self.rql_table.index_create(aliased_name, index_args[:options], &index_proc))
       wait_for_index(index_name) unless options[:wait] == false
 
-      if options[:verbose]
-        if index_name == index_args[:as]
-          STDERR.puts "Created index #{self}.#{index_name}"
-        else
-          STDERR.puts "Created index #{self}.#{index_name} as #{index_args[:as]}"
-        end
-      end
+      readable_index_name = "index #{self}.#{index_name}"
+      readable_index_name += " as #{aliased_name}" unless index_name == aliased_name
+
+      STDERR.puts "Created index #{readable_index_name}" if options[:verbose]
     end
 
     def perform_drop_index(index_name, options={})
+      index_name = index_name.to_sym
       aliased_name = self.indexes[index_name].try(:[], :as) || index_name
-      NoBrainer.run(self.rql_table.index_drop(aliased_name))
 
-      if options[:verbose]
-        if index_name == index_args[:as]
-          STDERR.puts "Dropped index #{self}.#{index_name}"
-        else
-          STDERR.puts "Dreated index #{self}.#{index_name} as #{index_args[:as]}"
+      readable_index_name = "index #{self}.#{index_name}"
+      readable_index_name += " as #{aliased_name}" unless index_name == aliased_name
+
+      if STDIN.stat.chardev? && STDERR.stat.chardev? && !options[:no_confirmation]
+        STDERR.print "Confirm dropping #{readable_index_name} [yna]: "
+        case STDIN.gets.strip.chomp
+        when 'y' then
+        when 'n' then return
+        when 'a' then options[:no_confirmation] = true
         end
       end
+
+      NoBrainer.run(self.rql_table.index_drop(aliased_name))
+      STDERR.puts "Dropped #{readable_index_name}" if options[:verbose]
     end
 
     def get_index_alias_reverse_map
@@ -119,6 +124,8 @@ module NoBrainer::Document::Index
         alias_mapping[index.to_sym] || index.to_sym
       end
       wanted_indexes = self.indexes.keys - [self.pk_name]
+
+      # FIXME removing an aliased field is not going to work well with this method
 
       (current_indexes - wanted_indexes).each do |index_name|
         perform_drop_index(index_name, options)

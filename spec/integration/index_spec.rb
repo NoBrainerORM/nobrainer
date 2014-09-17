@@ -9,16 +9,16 @@ describe 'NoBrainer index' do
     it 'keeps indexes in sync' do
       SimpleDocument.index :field1
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
-      NoBrainer.update_indexes
+      NoBrainer.update_indexes :no_confirmation => true
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field1']
       SimpleDocument.index :field2
-      NoBrainer.update_indexes
+      NoBrainer.update_indexes :no_confirmation => true
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field1', 'field2']
       SimpleDocument.remove_index :field1
-      NoBrainer.update_indexes
+      NoBrainer.update_indexes :no_confirmation => true
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field2']
       SimpleDocument.remove_index :field2
-      NoBrainer.update_indexes
+      NoBrainer.update_indexes :no_confirmation => true
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
     end
   end
