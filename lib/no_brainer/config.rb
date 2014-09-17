@@ -6,7 +6,7 @@ module NoBrainer::Config
                    :auto_create_databases, :auto_create_tables,
                    :max_reconnection_tries, :durability,
                    :user_timezone, :db_timezone, :colorize_logger,
-                   :distributed_lock_class
+                   :distributed_lock_class, :per_thread_connection
 
     def apply_defaults
       self.rethinkdb_url           = default_rethinkdb_url
@@ -20,6 +20,7 @@ module NoBrainer::Config
       self.db_timezone             = :utc
       self.colorize_logger         = true
       self.distributed_lock_class  = nil
+      self.per_thread_connection   = false
     end
 
     def reset!

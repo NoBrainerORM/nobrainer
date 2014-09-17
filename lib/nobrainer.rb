@@ -14,17 +14,39 @@ module NoBrainer
 
   class << self
     # A connection is tied to a database.
+    def get_new_connection
+      url = NoBrainer::Config.rethinkdb_url
+      raise "Please specify a database connection to RethinkDB" unless url
+      Connection.new(url)
+    end
+
+    def current_connection
+      if NoBrainer::Config.per_thread_connection
+        Thread.current[:nobrainer_connection]
+      else
+        @connection
+      end
+    end
+
+    def current_connection=(value)
+      if NoBrainer::Config.per_thread_connection
+        Thread.current[:nobrainer_connection] = value
+      else
+        @connection = value
+      end
+    end
+
     def connection
-      @connection ||= begin
-        url = NoBrainer::Config.rethinkdb_url
-        raise "Please specify a database connection to RethinkDB" unless url
-        Connection.new(url)
+      if c = self.current_connection
+        c
+      else
+        self.current_connection = get_new_connection
       end
     end
 
     def disconnect
-      @connection.try(:disconnect, :noreply_wait => true)
-      @connection = nil
+      self.current_connection.try(:disconnect, :noreply_wait => true)
+      self.current_connection = nil
     end
 
     def disconnect_if_url_changed
