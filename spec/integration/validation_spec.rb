@@ -21,14 +21,43 @@ describe 'NoBrainer callbacks' do
     end
 
     it 'adds errors' do
-      SimpleDocument.create.errors.should be_present
+      doc = SimpleDocument.new
+      doc.save?
+      doc.errors.should be_present
     end
 
-    context 'when not using the bang version' do
+    context 'when using the ? version' do
       let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
 
       it 'prevents create if invalid' do
         SimpleDocument.count.should == 0
+      end
+
+      context 'when passing :validate => false' do
+        it 'returns true for save?' do
+          doc.field1 = nil
+          doc.save?(:validate => false).should == true
+        end
+      end
+
+      context 'when passing nothing' do
+        it 'returns false for save?' do
+          doc.field1 = nil
+          doc.save?.should == false
+        end
+      end
+
+      it 'returns false for update_attributes?' do
+        doc.update_attributes?(:field1 => nil).should == false
+      end
+    end
+
+    context 'when using the normal version' do
+      let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
+
+      it 'throws an exception for create' do
+        expect { SimpleDocument.create }
+          .to raise_error(NoBrainer::Error::DocumentInvalid, /Field1 can't be blank/)
       end
 
       context 'when passing :validate => false' do
@@ -39,41 +68,14 @@ describe 'NoBrainer callbacks' do
       end
 
       context 'when passing nothing' do
-        it 'returns false for save' do
+        it 'throws an exception for save' do
           doc.field1 = nil
-          doc.save.should == false
+          expect { doc.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
         end
       end
 
-      it 'returns false for update_attributes' do
-        doc.update_attributes(:field1 => nil).should == false
-      end
-    end
-
-    context 'when using the bang version' do
-      let(:doc) { SimpleDocument.create(:field1 => 'ohai') }
-
-      it 'throws an exception for create!' do
-        expect { SimpleDocument.create! }
-          .to raise_error(NoBrainer::Error::DocumentInvalid, /Field1 can't be blank/)
-      end
-
-      context 'when passing :validate => false' do
-        it 'returns true for save!' do
-          doc.field1 = nil
-          doc.save!(:validate => false).should == true
-        end
-      end
-
-      context 'when passing nothing' do
-        it 'throws an exception for save!' do
-          doc.field1 = nil
-          expect { doc.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
-        end
-      end
-
-      it 'throws an exception for update_attributes!' do
-        expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      it 'throws an exception for update_attributes' do
+        expect { doc.update_attributes(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
     end
   end
@@ -135,8 +137,8 @@ describe 'NoBrainer callbacks' do
     before { SimpleDocument.field :field1, :unique => true }
 
     it 'validates' do
-      SimpleDocument.new(:field1 => 123).save.should == true
-      SimpleDocument.new(:field1 => 123).save.should == false
+      SimpleDocument.new(:field1 => 123).save?.should == true
+      SimpleDocument.new(:field1 => 123).save?.should == false
     end
   end
 

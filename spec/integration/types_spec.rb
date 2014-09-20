@@ -444,12 +444,12 @@ describe 'types' do
       doc.valid?.should == true
 
       doc.field1 = nil
-      doc.save!
+      doc.save
       doc.reload
       doc.field1.should == nil
 
       doc.field1 = "2014-06-26"
-      doc.save!
+      doc.save
       doc.reload
       doc.field1.should == Date.parse("2014-06-26")
 

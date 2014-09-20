@@ -89,22 +89,22 @@ module NoBrainer::Document::Persistance
     true
   end
 
-  def save(options={})
+  def save?(options={})
     options = options.reverse_merge(:validate => true)
     new_record? ? _create(options) : _update_only_changed_attrs(options)
   end
 
-  def save!(*args)
-    save(*args) or raise NoBrainer::Error::DocumentInvalid, self
+  def save(*args)
+    save?(*args) or raise NoBrainer::Error::DocumentInvalid, self
   end
 
-  def update_attributes(attrs, options={})
+  def update_attributes?(attrs, options={})
     assign_attributes(attrs, options)
-    save(options)
+    save?(options)
   end
 
-  def update_attributes!(*args)
-    update_attributes(*args) or raise NoBrainer::Error::DocumentInvalid, self
+  def update_attributes(*args)
+    update_attributes?(*args) or raise NoBrainer::Error::DocumentInvalid, self
   end
 
   def delete
@@ -123,10 +123,6 @@ module NoBrainer::Document::Persistance
   module ClassMethods
     def create(attrs={}, options={})
       new(attrs, options).tap { |doc| doc.save(options) }
-    end
-
-    def create!(attrs={}, options={})
-      new(attrs, options).tap { |doc| doc.save!(options) }
     end
 
     def insert_all(*args)
