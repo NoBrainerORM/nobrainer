@@ -34,7 +34,7 @@ module NoBrainer::Config
       assert_valid_options!
       @configured = true
 
-      NoBrainer.disconnect_if_url_changed
+      NoBrainer::ConnectionManager.disconnect_if_url_changed
     end
 
     def configured?
