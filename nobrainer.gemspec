@@ -3,7 +3,7 @@ $:.unshift File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "nobrainer"
-  s.version     = '0.16.0'
+  s.version     = '0.17.0'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Nicolas Viennot"]
   s.email       = ["nicolas@viennot.biz"]
@@ -22,4 +22,10 @@ Gem::Specification.new do |s|
   s.has_rdoc     = false
 
   s.required_ruby_version = '>= 1.9.0'
+
+  s.post_install_message =
+"""
+WARNING [NoBrainer] API change: save() is now save?() and save!() is now save()
+WARNING [NoBrainer] Same for update_attributes
+"""
 end
