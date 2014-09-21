@@ -125,5 +125,16 @@ describe 'atomic ops' do
     end
   end
 
-  # TODO Validators
+  context 'when using validators' do
+    before { SimpleDocument.field :field1, :type => Integer, :validates => { numericality: true } }
+
+    it 'skip validations on atomic ops' do
+      doc.queue_atomic do
+        doc.field1 += 10
+      end
+      doc.save
+      doc.reload
+      doc.field1.should == 10
+    end
+  end
 end

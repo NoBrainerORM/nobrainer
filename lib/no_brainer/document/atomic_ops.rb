@@ -102,9 +102,27 @@ module NoBrainer::Document::AtomicOps
     e.value
   end
 
+  def read_attribute_for_validation(attr)
+    super
+  rescue NoBrainer::Error::CannotReadAtomic => e
+    e.value
+  end
+
   module ClassMethods
     def persistable_value(k, v, options={})
       v.is_a?(PendingAtomic) ? v.compile_rql_value(options[:rql_doc]) : super
+    end
+  end
+end
+
+class ActiveModel::EachValidator
+  # XXX Monkey Patching :(
+  def validate(record)
+    attributes.each do |attribute|
+      value = record.read_attribute_for_validation(attribute)
+      next if value.is_a?(NoBrainer::Document::AtomicOps::PendingAtomic) # <--- This is the added line
+      next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+      validate_each(record, attribute, value)
     end
   end
 end
