@@ -91,6 +91,39 @@ describe 'atomic ops' do
     end
   end
 
-  # TODO new classes should not be affected during init
+  context 'atomic block restrictions' do
+    context 'when using .save' do
+      it 'raises' do
+        doc.queue_atomic do
+          expect { doc.save }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /You may persist documents only outside of queue_atomic blocks/)
+        end
+      end
+    end
+
+    context 'when read/write attributes' do
+      it 'raises' do
+        other_doc = SimpleDocument.new
+        doc.queue_atomic do
+          expect { other_doc.attributes }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /You may not access other documents within an atomic block/)
+          expect { other_doc.field1 }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /You may not access other documents within an atomic block/)
+          expect { other_doc.field1 = nil }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /You may not access other documents within an atomic block/)
+        end
+      end
+    end
+
+    context 'when reading a doc' do
+      it 'raises' do
+        doc.queue_atomic do
+          expect { SimpleDocument.first }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /You may not access other documents within an atomic block/)
+        end
+      end
+    end
+  end
+
   # TODO Validators
 end

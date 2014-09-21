@@ -9,6 +9,7 @@ module NoBrainer::Error
   class AssociationNotPersisted < RuntimeError; end
   class ReadonlyField           < RuntimeError; end
   class MissingAttribute        < RuntimeError; end
+  class AtomicBlock             < RuntimeError; end
 
   class CannotReadAtomic < RuntimeError
     attr_accessor :instance, :field, :value

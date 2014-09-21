@@ -46,18 +46,32 @@ module NoBrainer::Document::AtomicOps
     end
   end
 
-  def queue_atomic(&block)
-    old_atomic, Thread.current[:nobrainer_atomic] = Thread.current[:nobrainer_atomic], true
-    block.call(RethinkDB::RQL.new)
-  ensure
-    Thread.current[:nobrainer_atomic] = old_atomic
-  end
-
   def in_atomic?
     !!Thread.current[:nobrainer_atomic]
   end
 
+  def in_other_atomic?
+    v = Thread.current[:nobrainer_atomic]
+    !v.nil? && !v.equal?(self)
+  end
+
+  def ensure_exclusive_atomic!
+    raise NoBrainer::Error::AtomicBlock.new('You may not access other documents within an atomic block') if in_other_atomic?
+  end
+
+  def queue_atomic(&block)
+    ensure_exclusive_atomic!
+
+    begin
+      old_atomic, Thread.current[:nobrainer_atomic] = Thread.current[:nobrainer_atomic], self
+      block.call(RethinkDB::RQL.new)
+    ensure
+      Thread.current[:nobrainer_atomic] = old_atomic
+    end
+  end
+
   def _read_attribute(name)
+    ensure_exclusive_atomic!
     value = super
     case [in_atomic?, value.is_a?(PendingAtomic)]
     when [true, true]   then value
@@ -65,6 +79,21 @@ module NoBrainer::Document::AtomicOps
     when [false, true]  then raise NoBrainer::Error::CannotReadAtomic.new(self, name, value)
     when [false, false] then value
     end
+  end
+
+  def _write_attribute(name, value)
+    ensure_exclusive_atomic!
+    super
+  end
+
+  def assign_attributes(attrs, options={})
+    ensure_exclusive_atomic!
+    super
+  end
+
+  def save?(options={})
+    raise NoBrainer::Error::AtomicBlock.new('You may persist documents only outside of queue_atomic blocks') if in_atomic?
+    super
   end
 
   def read_attribute_for_change(attr)

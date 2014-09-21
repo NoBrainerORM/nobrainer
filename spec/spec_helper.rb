@@ -46,6 +46,15 @@ RSpec.configure do |config|
   config.include ModelsHelper
   config.include CallbacksHelper
 
+  if ENV['TRACE']
+    config.before do
+      $trace_file = File.open(ENV['TRACE'], 'w')
+      TracePoint.new(:call, :raise) do |tp|
+        $trace_file.puts "#{tp.event} #{tp.path} #{tp.method_id}:#{tp.lineno}"
+      end.enable
+    end
+  end
+
   config.before(:each) do
     NoBrainer.configure do |c|
       c.reset!
