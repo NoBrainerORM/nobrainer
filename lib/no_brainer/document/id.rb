@@ -17,6 +17,7 @@ module NoBrainer::Document::Id
 
   def ==(other)
     return super unless self.class == other.class
+    return self.equal?(other) if in_atomic?
     !pk_value.nil? && pk_value == other.pk_value
   end
   alias_method :eql?, :==

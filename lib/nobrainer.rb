@@ -1,3 +1,4 @@
+require 'set'
 require 'active_support'
 %w(module/delegation module/attribute_accessors class/attribute object/blank object/inclusion object/deep_dup
    object/try hash/keys hash/indifferent_access hash/reverse_merge hash/deep_merge array/extract_options)

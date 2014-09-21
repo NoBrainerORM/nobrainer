@@ -2,10 +2,20 @@ module NoBrainer::Document::AtomicOps
   extend ActiveSupport::Concern
 
   class PendingAtomic
-    def initialize(instance, field, orig_value, options={})
+    def self._new(instance, field, user_value, options={})
+      klass = case user_value
+              when Array then PendingAtomicArray
+              when Set   then PendingAtomicSet
+              else self
+              end
+      klass.new(instance, field, user_value, options)
+    end
+
+    def initialize(instance, field, user_value, options={})
       @instance = instance
       @field = field
-      @orig_value = orig_value
+      @user_value = user_value
+      @value_tainted = instance._is_attribute_tainted?(field)
       @options = options
       @ops = []
     end
@@ -31,19 +41,79 @@ module NoBrainer::Document::AtomicOps
       self
     end
 
-    def <<(value)
-      method = @orig_value.is_a?(Set) ? :set_insert : :append
-      @ops << [method, value]
-      ensure_writeable!
-      self
-    end
-
     def compile_rql_value(rql_doc)
       field = @instance.class.lookup_field_alias(@field)
-      value = rql_doc[field]
+      value = @value_tainted ? RethinkDB::RQL.new.expr(@user_value) : rql_doc[field]
       @ops.each { |method_name, a, b| value = value.__send__(method_name, *a, &b) }
       value
     end
+  end
+
+  class PendingAtomicArray < PendingAtomic
+    def -(value)
+      @ops << [:difference, [value.to_a]]
+      self
+    end
+    def difference(v); self - v; end
+
+    def delete(value)
+      difference([value])
+    end
+
+    def +(value)
+      @ops << [:+, [value.to_a]]
+      self
+    end
+    def add(v); self + v; end
+
+    def &(value)
+      @ops << [:set_intersection, [value.to_a]]
+      self
+    end
+    def intersection(v); self & v; end
+
+    def |(value)
+      @ops << [:set_union, [value.to_a]]
+      self
+    end
+    def union(v); self | v; end
+
+    def <<(value)
+      @ops << [:append, [value]]
+      ensure_writeable!
+      self
+    end
+  end
+
+  class PendingAtomicSet < PendingAtomicArray
+    def -(value)
+      @ops << [:set_difference, [value.to_a]]
+      self
+    end
+
+    def +(value)
+      @ops << [:set_union, [value.to_a]]
+      self
+    end
+
+    def <<(value)
+      @ops << [:set_union, [[value]]]
+      ensure_writeable!
+      self
+    end
+  end
+
+  def clear_dirtiness(options={})
+    super
+    @_tainted_attributes = Set.new
+  end
+
+  def _taint_attribute(name)
+    @_tainted_attributes << name
+  end
+
+  def _is_attribute_tainted?(name)
+    @_tainted_attributes.include?(name)
   end
 
   def in_atomic?
@@ -73,9 +143,10 @@ module NoBrainer::Document::AtomicOps
   def _read_attribute(name)
     ensure_exclusive_atomic!
     value = super
+
     case [in_atomic?, value.is_a?(PendingAtomic)]
     when [true, true]   then value
-    when [true, false]  then PendingAtomic.new(self, name.to_s, value, :write_access => false)
+    when [true, false]  then PendingAtomic._new(self, name.to_s, value, :write_access => false)
     when [false, true]  then raise NoBrainer::Error::CannotReadAtomic.new(self, name, value)
     when [false, false] then value
     end
@@ -88,7 +159,7 @@ module NoBrainer::Document::AtomicOps
     when [true, true]   then super
     when [true, false]  then raise NoBrainer::Error::AtomicBlock.new('Avoid the use of atomic blocks for non atomic operations')
     when [false, true]  then raise NoBrainer::Error::AtomicBlock.new('Use atomic blocks for atomic operations')
-    when [false, false] then super
+    when [false, false] then super.tap { _taint_attribute(name.to_s) }
     end
   end
 

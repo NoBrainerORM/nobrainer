@@ -8,13 +8,19 @@ describe 'atomic ops' do
 
   context 'when using queue_atomic' do
     it 'increments' do
-      doc.queue_atomic do
-        doc.field1 += 1
-      end
+      doc
 
-      doc.save
+      doc1 = SimpleDocument.first
+      doc2 = SimpleDocument.first
+
+      doc1.queue_atomic { doc1.field1 += 1 }
+      doc2.queue_atomic { doc2.field1 += 1 }
+
+      doc1.save
+      doc2.save
+
       doc.reload
-      doc.field1.should == 1
+      doc.field1.should == 2
     end
 
     it 'increments' do
@@ -45,6 +51,20 @@ describe 'atomic ops' do
     end
   end
 
+  context 'when not using the original value' do
+    it 'operates on the user value' do
+      doc.field1 = ['foo']
+
+      doc.queue_atomic do
+        doc.field1 += ['bar']
+      end
+
+      doc.save
+      doc.reload
+      doc.field1.should == %w(foo bar)
+    end
+  end
+
   context 'when using dynamic attributes' do
     before do
       SimpleDocument.send(:include, NoBrainer::Document::DynamicAttributes)
@@ -66,28 +86,83 @@ describe 'atomic ops' do
   context 'when using arrays' do
     before { SimpleDocument.field :field1, :type => Array, :default => [] }
 
-    it 'appends' do
+    it 'appends with <<' do
       doc.queue_atomic do
         doc.field1 << 'foo'
+        doc.field1 << 'bar'
         doc.field1 << 'foo'
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should == ['foo', 'foo']
+      SimpleDocument.raw.first['field1'].should == %w(foo bar foo)
+    end
+
+    it 'appends with +' do
+      doc.queue_atomic do
+        doc.field1 += ['foo', 'bar']
+        doc.field1 += ['hello', 'world', 'foo']
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world foo)
+    end
+
+    it 'removes with -' do
+      doc.queue_atomic do
+        doc.field1 += ['foo', 'bar']
+        doc.field1 += ['hello', 'world', 'foo']
+        doc.field1 -= ['foo', 'hello']
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar world)
+    end
+
+    it 'intersects with -' do
+      doc.queue_atomic do
+        doc.field1 += ['foo', 'bar']
+        doc.field1 += ['hello', 'world', 'foo']
+        doc.field1 -= ['foo', 'hello']
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar world)
     end
   end
 
   context 'when using sets' do
     before { SimpleDocument.field :field1, :type => Set, :default => [] }
 
-    it 'adds a new value' do
+    it 'appends with <<' do
       doc.queue_atomic do
         doc.field1 << 'foo'
+        doc.field1 << 'bar'
         doc.field1 << 'foo'
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should == ['foo']
+      SimpleDocument.raw.first['field1'].should =~ %w(foo bar)
+    end
+
+    it 'appends with +' do
+      doc.queue_atomic do
+        doc.field1 += ['foo', 'bar']
+        doc.field1 += ['hello', 'world', 'foo']
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should =~ %w(foo bar hello world)
+    end
+
+    it 'removes with -' do
+      doc.queue_atomic do
+        doc.field1 += ['foo', 'bar']
+        doc.field1 += ['hello', 'world', 'foo']
+        doc.field1 -= ['foo', 'hello']
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar world)
     end
   end
 
