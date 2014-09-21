@@ -101,7 +101,7 @@ describe 'atomic ops' do
       end
     end
 
-    context 'when read/write attributes' do
+    context 'when accessing another document' do
       it 'raises' do
         other_doc = SimpleDocument.new
         doc.queue_atomic do
@@ -115,12 +115,28 @@ describe 'atomic ops' do
       end
     end
 
-    context 'when reading a doc' do
+    context 'when reading a doc from the db' do
       it 'raises' do
         doc.queue_atomic do
           expect { SimpleDocument.first }.to raise_error(NoBrainer::Error::AtomicBlock,
             /You may not access other documents within an atomic block/)
         end
+      end
+    end
+
+    context 'when using non atomic operations' do
+      it 'raises' do
+        doc.queue_atomic do
+          expect { doc.field1 = 'x' }.to raise_error(NoBrainer::Error::AtomicBlock,
+            /Avoid the use of atomic blocks for non atomic operations/)
+        end
+      end
+    end
+
+    context 'when using atomic operations outside a block' do
+      it 'raises' do
+        expect { doc.field1 = doc.queue_atomic { doc.field1 } }.to raise_error(NoBrainer::Error::AtomicBlock,
+          /Use atomic blocks for atomic operations/)
       end
     end
   end

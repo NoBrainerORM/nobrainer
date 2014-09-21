@@ -83,7 +83,13 @@ module NoBrainer::Document::AtomicOps
 
   def _write_attribute(name, value)
     ensure_exclusive_atomic!
-    super
+
+    case [in_atomic?, value.is_a?(PendingAtomic)]
+    when [true, true]   then super
+    when [true, false]  then raise NoBrainer::Error::AtomicBlock.new('Avoid the use of atomic blocks for non atomic operations')
+    when [false, true]  then raise NoBrainer::Error::AtomicBlock.new('Use atomic blocks for atomic operations')
+    when [false, false] then super
+    end
   end
 
   def assign_attributes(attrs, options={})
