@@ -5,9 +5,9 @@ class NoBrainer::Railtie < Rails::Railtie
   config.eager_load_namespaces << NoBrainer
 
   config.action_dispatch.rescue_responses.merge!(
-    "NoBrainer::Errors::DocumentNotFound" => :not_found,
-    "NoBrainer::Errors::DocumentInvalid"  => :unprocessable_entity,
-    "NoBrainer::Errors::InvalidType"      => :bad_request,
+    "NoBrainer::Error::DocumentNotFound" => :not_found,
+    "NoBrainer::Error::DocumentInvalid"  => :unprocessable_entity,
+    "NoBrainer::Error::InvalidType"      => :bad_request,
   )
 
   rake_tasks do
