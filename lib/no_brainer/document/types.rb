@@ -60,6 +60,8 @@ module NoBrainer::Document::Types
     def _field(attr, options={})
       super
 
+      return unless options[:type]
+
       NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
 
       inject_in_layer :types do
