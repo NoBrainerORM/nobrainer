@@ -92,6 +92,12 @@ module NoBrainer::Document::Index
       STDERR.puts "Created index #{readable_index_name}" if options[:verbose]
     end
 
+    def need_confirmation?(options)
+      return false if options[:no_confirmation]
+      return false if defined?(Rails) && Rails.env.test?
+      return STDIN.stat.chardev? && STDERR.stat.chardev?
+    end
+
     def perform_drop_index(index_name, options={})
       index_name = index_name.to_sym
       aliased_name = self.indexes[index_name].try(:[], :as) || index_name
@@ -99,7 +105,7 @@ module NoBrainer::Document::Index
       readable_index_name = "index #{self}.#{index_name}"
       readable_index_name += " as #{aliased_name}" unless index_name == aliased_name
 
-      if STDIN.stat.chardev? && STDERR.stat.chardev? && !options[:no_confirmation]
+      if need_confirmation?(options)
         STDERR.print "Confirm dropping #{readable_index_name} [yna]: "
         case STDIN.gets.strip.chomp
         when 'y' then
