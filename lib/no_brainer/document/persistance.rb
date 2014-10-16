@@ -60,7 +60,8 @@ module NoBrainer::Document::Persistance
   end
 
   def _create(options={})
-    return false if options[:validate] && !valid?
+    return false if options[:validate] != false && !valid?(nil, :clear_errors => false)
+
     attrs = self.class.persistable_attributes(@_attributes, :instance => self)
     result = NoBrainer.run(self.class.rql_table.insert(attrs))
     self.pk_value ||= result['generated_keys'].to_a.first
@@ -74,7 +75,7 @@ module NoBrainer::Document::Persistance
   end
 
   def _update_only_changed_attrs(options={})
-    return false if options[:validate] && !valid?
+    return false if options[:validate] != false && !valid?(nil, :clear_errors => false)
 
     # We won't be using the `changes` values, because they went through
     # read_attribute(), and we want the raw values.
@@ -89,9 +90,13 @@ module NoBrainer::Document::Persistance
     true
   end
 
-  def save?(options={})
-    options = options.reverse_merge(:validate => true)
+  def _save?(options)
     new_record? ? _create(options) : _update_only_changed_attrs(options)
+  end
+
+  def save?(options={})
+    errors.clear
+    _save?(options)
   end
 
   def save(*args)

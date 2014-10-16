@@ -5,12 +5,19 @@ module NoBrainer::Document::Validation
 
   included do
     # We don't want before_validation returning false to halt the chain.
-    define_callbacks :validation, :skip_after_callbacks_if_terminated => true, :scope => [:kind, :name],
-                     :terminator => proc { false }
+    define_callbacks :validation, :skip_after_callbacks_if_terminated => true,
+                     :scope => [:kind, :name], :terminator => proc { false }
   end
 
-  def valid?(context=nil)
-    super(context || (new_record? ? :create : :update))
+  def valid?(context=nil, options={})
+    context ||= new_record? ? :create : :update
+
+  # copy/pasted, because we need to have control on errors.clear
+    current_context, self.validation_context = validation_context, context
+    errors.clear unless options[:clear_errors] == false
+    run_validations!
+  ensure
+    self.validation_context = current_context
   end
 
   module ClassMethods
