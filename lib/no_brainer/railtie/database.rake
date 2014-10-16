@@ -1,4 +1,4 @@
-namespace :db do
+namespace :nobrainer do
   desc 'Drop the database'
   task :drop => :environment do
     NoBrainer.drop!

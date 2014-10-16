@@ -13,7 +13,7 @@ class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
       if klass && klass.pk_name.to_s == index_name
         err_msg  = "Please update the primary key `#{index_name}` in the table `#{database_name}.#{table_name}`."
       else
-        err_msg  = "Please run `NoBrainer.update_indexes' or `rake db:update_indexes' to create the index `#{index_name}`"
+        err_msg  = "Please run `NoBrainer.update_indexes' or `rake nobrainer:update_indexes' to create the index `#{index_name}`"
         err_msg += " in the table `#{database_name}.#{table_name}`."
         err_msg += " Read http://nobrainer.io/docs/indexes for more information."
       end
