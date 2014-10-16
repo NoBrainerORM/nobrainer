@@ -3,12 +3,12 @@ module NoBrainer::Criteria::Update
 
   def update_all(*a, &b)
     prepare_args_for_update!(a)
-    run(without_ordering.without_plucking.to_rql.update(*a, &b))
+    run { without_ordering.without_plucking.to_rql.update(*a, &b) }
   end
 
   def replace_all(*a, &b)
     prepare_args_for_update!(a)
-    run(without_ordering.without_plucking.to_rql.replace(*a, &b))
+    run { without_ordering.without_plucking.to_rql.replace(*a, &b) }
   end
 
   private

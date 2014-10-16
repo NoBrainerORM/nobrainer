@@ -20,8 +20,9 @@ module NoBrainer::Criteria::Core
     to_rql.inspect rescue super
   end
 
-  def run(rql=nil)
-    NoBrainer.run(:criteria => self) { (rql || to_rql) }
+  def run(&block)
+    block ||= proc { to_rql }
+    NoBrainer.run(:criteria => self, &block)
   end
 
   def merge!(criteria, options={})

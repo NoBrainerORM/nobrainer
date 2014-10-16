@@ -18,7 +18,7 @@ module NoBrainer::Criteria::First
   end
 
   def sample(n=nil)
-    result = NoBrainer.run { self.without_ordering.to_rql.sample(n.nil? ? 1 : n) }
+    result = run { self.without_ordering.to_rql.sample(n.nil? ? 1 : n) }
     result = result.map(&method(:instantiate_doc))
     n.nil? ? result.first : result
   end
