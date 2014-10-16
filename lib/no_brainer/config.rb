@@ -14,7 +14,7 @@ module NoBrainer::Config
       self.warn_on_active_record   = true
       self.auto_create_databases   = true
       self.auto_create_tables      = true
-      self.max_reconnection_tries  = 10
+      self.max_reconnection_tries  = default_max_reconnection_tries
       self.durability              = default_durability
       self.user_timezone           = :local
       self.db_timezone             = :utc
@@ -69,7 +69,15 @@ module NoBrainer::Config
     end
 
     def default_durability
-      (defined?(Rails.env) && (Rails.env.test? || Rails.env.development?)) ? :soft : :hard
+      dev_mode? ? :soft : :hard
+    end
+
+    def default_max_reconnection_tries
+      dev_mode? ? 1 : 15
+    end
+
+    def dev_mode?
+      (defined?(Rails.env) && (Rails.env.test? || Rails.env.development?)) || false
     end
   end
 end
