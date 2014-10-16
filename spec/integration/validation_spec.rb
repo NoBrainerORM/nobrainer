@@ -63,7 +63,7 @@ describe 'NoBrainer callbacks' do
       context 'when passing :validate => false' do
         it 'returns true for save' do
           doc.field1 = nil
-          doc.save(:validate => false).should == true
+          doc.save?(:validate => false).should == true
         end
       end
 

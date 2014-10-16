@@ -96,6 +96,12 @@ module NoBrainer::Document::Persistance
 
   def save(*args)
     save?(*args) or raise NoBrainer::Error::DocumentInvalid, self
+    nil
+  end
+
+  def save!(*args)
+    save(*args)
+    :you_should_be_using_the_non_bang_version_of_save
   end
 
   def update_attributes?(attrs, options={})
@@ -105,6 +111,12 @@ module NoBrainer::Document::Persistance
 
   def update_attributes(*args)
     update_attributes?(*args) or raise NoBrainer::Error::DocumentInvalid, self
+    nil
+  end
+
+  def update_attributes!(*args)
+    update_attributes(*args)
+    :you_should_be_using_the_non_bang_version_of_update_attributes
   end
 
   def delete

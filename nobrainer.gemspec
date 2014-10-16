@@ -22,10 +22,4 @@ Gem::Specification.new do |s|
   s.has_rdoc     = false
 
   s.required_ruby_version = '>= 1.9.0'
-
-  s.post_install_message =
-"""
-WARNING [NoBrainer] API change: save() is now save?() and save!() is now save()
-WARNING [NoBrainer] Same for update_attributes
-"""
 end

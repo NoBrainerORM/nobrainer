@@ -33,7 +33,7 @@ describe 'NoBrainer callbacks' do
 
     it 'can save an existing document' do
       doc.valid?.should == true
-      doc.save.should == true
+      doc.save?.should == true
     end
 
     it 'cannot save a non-unique value' do
@@ -45,7 +45,7 @@ describe 'NoBrainer callbacks' do
     it 'can save a unique value' do
       doc2 = SimpleDocument.new field1: 'okbai'
       doc2.valid?.should == true
-      doc2.save.should == true
+      doc2.save?.should == true
     end
   end
 
@@ -77,13 +77,13 @@ describe 'NoBrainer callbacks' do
     it 'can save a unique value in the same scope' do
       doc2 = SimpleDocument.new field1: 'okbai', field2: 'there'
       doc2.valid?.should == true
-      doc2.save.should == true
+      doc2.save?.should == true
     end
 
     it 'can save a non-unique value in a different scope' do
       doc2 = SimpleDocument.new field1: 'ohai', field2: 'now'
       doc2.valid?.should == true
-      doc2.save.should == true
+      doc2.save?.should == true
     end
 
     it 'validates only when the field changes' do
@@ -109,16 +109,16 @@ describe 'NoBrainer callbacks' do
     it 'can save a unique value in all of the same scopes' do
       doc2 = SimpleDocument.new field1: 'okbai', field2: 'there', field3: 'bob'
       doc2.valid?.should == true
-      doc2.save.should == true
+      doc2.save?.should == true
     end
 
     it 'can save a non-unique value when not all of the scopes match' do
       doc2 = SimpleDocument.new field1: 'ohai', field2: 'there', field3: 'jimmy'
       doc2.valid?.should == true
-      doc2.save.should == true
+      doc2.save?.should == true
       doc3 = SimpleDocument.new field1: 'ohai', field2: 'now', field3: 'bob'
       doc3.valid?.should == true
-      doc3.save.should == true
+      doc3.save?.should == true
     end
   end
 
