@@ -151,6 +151,15 @@ describe 'NoBrainer callbacks' do
     end
   end
 
+  context 'when using format on the field' do
+    before { SimpleDocument.field :field1, :format => /\A[a-z]+\z/ }
+
+    it 'validates' do
+      SimpleDocument.new(:field1 => 'Ohai').valid?.should == false
+      SimpleDocument.new(:field1 => 'ohai').valid?.should == true
+    end
+  end
+
   context 'when using in on the field' do
     before { SimpleDocument.field :field1, :in => %w(a b c) }
 
