@@ -10,7 +10,7 @@ module NoBrainer::Criteria::OrderBy
 
   def order_by(*rules, &block)
     # Note: We are relying on the fact that Hashes are ordered (since 1.9)
-    rules = [*rules, block].compact.map do |rule|
+    rules = [*rules, block].flatten.compact.map do |rule|
       case rule
       when Hash then
         bad_rule = rule.values.reject { |v| v.in? [:asc, :desc] }.first
