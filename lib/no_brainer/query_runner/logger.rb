@@ -11,7 +11,11 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
 
   def log_query(env, start_time, exception=nil)
     return if on_demand_exception?(exception)
-    not_indexed = env[:criteria] && env[:criteria].where_present? && !env[:criteria].where_indexed?
+
+    not_indexed = env[:criteria] && env[:criteria].where_present? &&
+                    !env[:criteria].where_indexed? &&
+                    !env[:criteria].klass.try(:perf_warnings_disabled)
+
     level = exception ? Logger::ERROR :
              not_indexed ? Logger::INFO : Logger::DEBUG
     return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
