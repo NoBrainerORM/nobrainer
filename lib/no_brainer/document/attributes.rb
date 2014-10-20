@@ -29,20 +29,20 @@ module NoBrainer::Document::Attributes
   def _read_attribute(name)
     @_attributes[name]
   end
+  def [](*args); _read_attribute(*args); end
 
   def _write_attribute(name, value)
     @_attributes[name] = value
   end
+  def []=(*args); _write_attribute(*args); end
 
   def read_attribute(name)
     __send__("#{name}")
   end
-  def [](*args); read_attribute(*args); end
 
   def write_attribute(name, value)
     __send__("#{name}=", value)
   end
-  def []=(*args); write_attribute(*args); end
 
   def assign_defaults(options)
     self.class.fields.each do |name, field_options|
