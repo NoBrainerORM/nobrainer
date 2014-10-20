@@ -10,6 +10,11 @@ describe 'NoBrainer persistance' do
     doc.field1.should == 'hello'
     doc.field2.should == 'world'
   end
+  
+  it 'returns the document with successful save' do
+    result = doc.save
+    result.should_not == nil
+  end
 
   it 'updates with save' do
     doc.field1 = 'ohai'
@@ -22,6 +27,13 @@ describe 'NoBrainer persistance' do
 
   it 'updates with update_attributes' do
     doc.update_attributes(:field1 => 'please', :field2 => 'halp')
+    doc.reload
+    doc.field1.should == 'please'
+    doc.field2.should == 'halp'
+  end
+
+  it 'updates with update' do
+    doc.update(:field1 => 'please', :field2 => 'halp')
     doc.reload
     doc.field1.should == 'please'
     doc.field2.should == 'halp'
