@@ -8,12 +8,13 @@ class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
       table_name = $3
 
       klass = NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
-      index_name = klass.get_index_alias_reverse_map[index_name.to_sym]
+      index = klass.indexes.values.select { |i| i.aliased_name == index_name.to_sym }.first if klass
+      index_name = index.name if index
 
-      if klass && klass.pk_name.to_s == index_name
+      if klass.try(:pk_name).try(:to_s) == index_name
         err_msg  = "Please update the primary key `#{index_name}` in the table `#{database_name}.#{table_name}`."
       else
-        err_msg  = "Please run `NoBrainer.update_indexes' or `rake nobrainer:update_indexes' to create the index `#{index_name}`"
+        err_msg  = "Please run `NoBrainer.sync_indexes' or `rake nobrainer:sync_indexes' to create the index `#{index_name}`"
         err_msg += " in the table `#{database_name}.#{table_name}`."
         err_msg += " Read http://nobrainer.io/docs/indexes for more information."
       end

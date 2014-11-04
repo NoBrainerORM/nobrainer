@@ -230,10 +230,10 @@ module NoBrainer::Criteria::Where
     def get_usable_indexes(*types)
       @usable_indexes = {}
       @usable_indexes[types] ||= begin
-        indexes = criteria.klass.indexes
-        indexes = indexes.select { |k,v| types.include?(v[:kind]) } if types.present?
+        indexes = criteria.klass.indexes.values
+        indexes = indexes.select { |i| types.include?(i.kind) } if types.present?
         if criteria.with_index_name && criteria.with_index_name != true
-          indexes = indexes.select { |k,v| k == criteria.with_index_name.to_sym }
+          indexes = indexes.select { |i| i.name == criteria.with_index_name.to_sym }
         end
         indexes
       end
@@ -248,16 +248,15 @@ module NoBrainer::Criteria::Where
       clauses = Hash[get_candidate_clauses(:eq, :in, :between).map { |c| [c.key, c] }]
       return unless clauses.present?
 
-      if index_name = (get_usable_indexes.keys & clauses.keys).first
-        clause = clauses[index_name]
-        aliased_index = criteria.klass.indexes[index_name][:as]
-        self.index_name = index_name
+      if index = get_usable_indexes.select { |i| clauses[i.name] }.first
+        clause = clauses[index.name]
+        self.index_name = index.name
         self.ast = remove_from_ast([clause])
         self.index_type = clause.op == :between ? :between : :get_all
         self.rql_proc = case clause.op
-          when :eq      then ->(rql){ rql.get_all(clause.value, :index => aliased_index) }
-          when :in      then ->(rql){ rql.get_all(*clause.value, :index => aliased_index) }
-          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => aliased_index,
+          when :eq      then ->(rql){ rql.get_all(clause.value, :index => index.aliased_name) }
+          when :in      then ->(rql){ rql.get_all(*clause.value, :index => index.aliased_name) }
+          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => index.aliased_name,
                                                   :left_bound => :closed, :right_bound => :closed) }
         end
       end
@@ -267,18 +266,12 @@ module NoBrainer::Criteria::Where
       clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
       return unless clauses.present?
 
-      index_name, index_values = get_usable_indexes(:compound)
-        .map    { |name, option| [name, option[:what]] }
-        .select { |name, values| values & clauses.keys == values }
-        .first
-
-      if index_name
-        indexed_clauses = index_values.map { |field| clauses[field] }
-        aliased_index = criteria.klass.indexes[index_name][:as]
-        self.index_name = index_name
+      if index = get_usable_indexes(:compound).select { |i| i.what & clauses.keys == i.what }.first
+        indexed_clauses = index.what.map { |field| clauses[field] }
+        self.index_name = index.name
         self.ast = remove_from_ast(indexed_clauses)
         self.index_type = :get_all
-        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => aliased_index) }
+        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => index.aliased_name) }
       end
     end
 
@@ -286,17 +279,16 @@ module NoBrainer::Criteria::Where
       clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key)
       return unless clauses.present?
 
-      if index_name = (get_usable_indexes.keys & clauses.keys).first
-        op_clauses = Hash[clauses[index_name].map { |c| [c.op, c] }]
+      if index = get_usable_indexes.select { |i| clauses[i.name] }.first
+        op_clauses = Hash[clauses[index.name].map { |c| [c.op, c] }]
         left_bound = op_clauses[:gt] || op_clauses[:ge]
         right_bound = op_clauses[:lt] || op_clauses[:le]
 
-        aliased_index = criteria.klass.indexes[index_name][:as]
-        self.index_name = index_name
+        self.index_name = index.name
         self.ast = remove_from_ast([left_bound, right_bound].compact)
 
         options = {}
-        options[:index] = aliased_index
+        options[:index] = index.aliased_name
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
         self.index_type = :between

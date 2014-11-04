@@ -96,7 +96,7 @@ describe 'order_by' do
       SimpleDocument.field :field1,  :index => true
       SimpleDocument.field :field2,  :index => true
       SimpleDocument.index :field12, [:field1, :field2]
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     after { NoBrainer.drop! }

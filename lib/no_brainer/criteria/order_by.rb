@@ -127,14 +127,13 @@ module NoBrainer::Criteria::OrderBy
       end
     end
 
-    # We can only apply an index order_by on a table() term.
-    # We are going to try to go so and if we cannot, we'll simply apply
-    # the ordering in pass2, which will happen after a potential filter().
+    # We can only apply an indexed order_by on a table() RQL term.
+    # If we can, great. Otherwise, the ordering is applied in pass2, which will
+    # happen after a potential filter(), which is better for perfs.
     if order_by_index_finder.could_find_index?
       options = { :index => rql_rules.shift }
       rql = rql.order_by(*rql_rules, options)
     else
-      # Stashing @rql_rules for pass2
       @rql_rules_pass2 = rql_rules
     end
 

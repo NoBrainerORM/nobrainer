@@ -46,14 +46,14 @@ describe 'NoBrainer aliases' do
 
       it 'correctly uses the index' do
         NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['f1', 'field3']
 
         SimpleDocument.where(:field1 => 1).count.should == 1
       end
 
       it 'aliases queries' do
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         SimpleDocument.create(:field1 => 2)
         SimpleDocument.where(:field1 => 1).count.should == 1
         SimpleDocument.order_by(:field1 => :asc).map(&:field1).should == [1,2]
@@ -69,7 +69,7 @@ describe 'NoBrainer aliases' do
       let!(:doc1) { SimpleDocument.create(:field1 => 1, :field2 => 2, :field3 => 3) }
 
       it 'correctly ues the index' do
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         SimpleDocument.where(:field1 => 1, :field2 => 2, :field3 => 3).count.should == 1
         SimpleDocument.where(:field1 => 1, :field2 => 2, :field3 => 3).used_index.should == :field123
       end
@@ -90,14 +90,14 @@ describe 'NoBrainer aliases' do
 
       it 'correctly uses the index' do
         NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['index_f1', 'index_f3']
 
         SimpleDocument.where(:field1 => 1).count.should == 1
       end
 
       it 'aliases queries' do
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         SimpleDocument.create(:field1 => 2)
         SimpleDocument.where(:field1 => 1).count.should == 1
         SimpleDocument.order_by(:field1 => :asc).map(&:field1).should == [1,2]
@@ -113,7 +113,7 @@ describe 'NoBrainer aliases' do
       let!(:doc) { SimpleDocument.create(:field1 => 1, :field2 => 2, :field3 => 3) }
 
       it 'correctly ues the index' do
-        NoBrainer.update_indexes
+        NoBrainer.sync_indexes
         SimpleDocument.where(:field1 => 1, :field2 => 2, :field3 => 3).count.should == 1
         SimpleDocument.where(:field1 => 1, :field2 => 2, :field3 => 3).used_index.should == :field123
       end
