@@ -109,20 +109,23 @@ module NoBrainer::Document::Persistance
     :you_should_be_using_the_non_bang_version_of_save
   end
 
-  def update_attributes?(attrs, options={})
+  def update?(attrs, options={})
     assign_attributes(attrs, options)
     save?(options)
   end
+  alias_method :update_attributes?, :update?
 
-  def update_attributes(*args)
-    update_attributes?(*args) or raise NoBrainer::Error::DocumentInvalid, self
+  def update(*args)
+    update?(*args) or raise NoBrainer::Error::DocumentInvalid, self
     nil
   end
+  alias_method :update_attributes, :update
 
-  def update_attributes!(*args)
-    update_attributes(*args)
-    :you_should_be_using_the_non_bang_version_of_update_attributes
+  def update!(*args)
+    update(*args)
+    :you_should_be_using_the_non_bang_version_of_update
   end
+  alias_method :update_attributes!, :update!
 
   def delete
     unless @destroyed

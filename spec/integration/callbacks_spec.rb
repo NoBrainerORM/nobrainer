@@ -20,7 +20,7 @@ describe 'NoBrainer callbacks' do
     context 'when updating with save' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.clear
-        doc.update_attributes(:field1 => 'hi')
+        doc.update(:field1 => 'hi')
         SimpleDocument.callbacks.should ==
           [ :before_save, :before_update,
             :before_validation, :after_validation,
@@ -31,7 +31,7 @@ describe 'NoBrainer callbacks' do
     context 'when updating with save, but nothing changed' do
       it 'fires the proper callbacks' do
         SimpleDocument.callbacks.clear
-        doc.update_attributes(:field1 => 'hello')
+        doc.update(:field1 => 'hello')
         SimpleDocument.callbacks.should ==
           [ :before_save, :before_update,
             :before_validation, :after_validation,
@@ -88,7 +88,7 @@ describe 'NoBrainer callbacks' do
       SimpleDocument.after_update { raise "oh no" }
       SimpleDocument.validates_presence_of :field1
       doc = SimpleDocument.create(:field1 => 'hello')
-      doc.update_attributes?(:field1 => nil).should == false
+      doc.update?(:field1 => nil).should == false
     end
   end
 
@@ -97,7 +97,7 @@ describe 'NoBrainer callbacks' do
       SimpleDocument.validates_presence_of :field1
       doc = SimpleDocument.create(:field1 => 'hello')
       SimpleDocument.after_save { raise "oh no" }
-      doc.update_attributes?(:field1 => nil).should == false
+      doc.update?(:field1 => nil).should == false
     end
   end
 
@@ -119,7 +119,7 @@ describe 'NoBrainer callbacks' do
     it 'does not halt updates' do
       SimpleDocument.before_update { new_record? }
       doc = SimpleDocument.create(:field1 => 'hello')
-      doc.update_attributes(:field1 => 'hi')
+      doc.update(:field1 => 'hi')
       doc.reload
       doc.field1.should == 'hi'
     end

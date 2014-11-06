@@ -15,7 +15,7 @@ describe 'NoBrainer layers' do
       doc.field1.should == 'ohai!'
       doc.save
       SimpleDocument.first.field1.should == 'ohai!'
-      doc.update_attributes(:field1 => 'hello')
+      doc.update(:field1 => 'hello')
       SimpleDocument.first.field1.should == 'hello!'
     end
   end
@@ -33,7 +33,7 @@ describe 'NoBrainer layers' do
       doc.field1.should == '1'
       doc.save
       SimpleDocument.first.field1.should == '1'
-      doc.update_attributes(:field1 => 1)
+      doc.update(:field1 => 1)
       SimpleDocument.first.field1.should == '1'
     end
   end

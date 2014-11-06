@@ -46,16 +46,16 @@ describe 'where' do
     it 'filters documents without yelling' do
       SimpleDocument.where(:field_new => 'hi').count.should == 0
       SimpleDocument.field :field_new
-      SimpleDocument.first.update_attributes(:field_new => 'hi')
+      SimpleDocument.first.update(:field_new => 'hi')
       SimpleDocument.where(:field_new => 'hi').count.should == 1
     end
 
     it 'does not return documents that have the field set to nil' do
       SimpleDocument.where(:field_new => nil).count.should == 0
       SimpleDocument.field :field_new
-      SimpleDocument.first.update_attributes(:field_new => 'hi')
+      SimpleDocument.first.update(:field_new => 'hi')
       SimpleDocument.where(:field_new => 'hi').count.should == 1
-      SimpleDocument.first.update_attributes(:field_new => nil)
+      SimpleDocument.first.update(:field_new => nil)
       SimpleDocument.where(:field_new => nil).count.should == 1
     end
   end
@@ -79,7 +79,7 @@ describe 'where' do
 
     it 'can filter using that regex and normal syntax combined' do
       SimpleDocument.create(:field2 => 'sayonara')
-      SimpleDocument.where(:field1 => 'hola').first.update_attributes(:field2 => 'sayonara')
+      SimpleDocument.where(:field1 => 'hola').first.update(:field2 => 'sayonara')
       SimpleDocument.where(:field1 => /h/, :field2 => 'sayonara').count.should == 1
       SimpleDocument.where(:field1 => /o/, :field2 => /o/).count.should == 1
     end

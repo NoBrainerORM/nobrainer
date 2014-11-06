@@ -20,6 +20,13 @@ describe 'NoBrainer persistance' do
     doc.field2.should == ':)'
   end
 
+  it 'updates with update' do
+    doc.update(:field1 => 'please', :field2 => 'halp')
+    doc.reload
+    doc.field1.should == 'please'
+    doc.field2.should == 'halp'
+  end
+
   it 'updates with update_attributes' do
     doc.update_attributes(:field1 => 'please', :field2 => 'halp')
     doc.reload
@@ -59,7 +66,7 @@ describe 'NoBrainer persistance' do
     end
 
     it 'does not raise when updating' do
-      expect { doc.update_attributes(:field1 => 'x') }.to_not raise_error
+      expect { doc.update(:field1 => 'x') }.to_not raise_error
     end
 
     it 'does not raise when deleting' do
