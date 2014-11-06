@@ -10,8 +10,12 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
   private
 
   def log_query(env, start_time, exception=nil)
-    return if on_demand_exception?(exception)
-    not_indexed = env[:criteria] && env[:criteria].where_present? && !env[:criteria].where_indexed?
+    return if handle_on_demand_exception?(env, exception)
+
+    not_indexed = env[:criteria] && env[:criteria].where_present? &&
+                    !env[:criteria].where_indexed? &&
+                    !env[:criteria].klass.try(:perf_warnings_disabled)
+
     level = exception ? Logger::ERROR :
              not_indexed ? Logger::INFO : Logger::DEBUG
     return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
@@ -49,9 +53,9 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
     NoBrainer.logger.add(level, msg)
   end
 
-  def on_demand_exception?(e)
+  def handle_on_demand_exception?(env, e)
     # pretty gross I must say.
-    e && (NoBrainer::QueryRunner::DatabaseOnDemand.new(nil).database_on_demand_exception?(e) ||
-          NoBrainer::QueryRunner::TableOnDemand.new(nil).table_on_demand_exception?(e))
+    e && (NoBrainer::QueryRunner::DatabaseOnDemand.new(nil).handle_database_on_demand_exception?(env, e) ||
+          NoBrainer::QueryRunner::TableOnDemand.new(nil).handle_table_on_demand_exception?(env, e))
   end
 end

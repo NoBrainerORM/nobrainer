@@ -2,6 +2,15 @@ module NoBrainer::RQL
   include RethinkDB::Term::TermType
   extend self
 
+  def reset_lambda_var_counter
+    RethinkDB::RQL.class_variable_set(:@@gensym_cnt, 0)
+  end
+
+  def rql_proc_as_json(block)
+    reset_lambda_var_counter
+    RethinkDB::RQL.new.new_func(&block).as_json
+  end
+
   def is_write_query?(rql_query)
     type_of(rql_query) == :write
   end

@@ -23,7 +23,7 @@ module NoBrainer
 
     delegate :configure, :logger,   :to => 'NoBrainer::Config'
     delegate :run,                  :to => 'NoBrainer::QueryRunner'
-    delegate :update_indexes,       :to => 'NoBrainer::IndexManager'
+    delegate :sync_indexes,         :to => 'NoBrainer::Document::Index::Synchronizer'
     delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
 
     def jruby?

@@ -30,6 +30,9 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
 
     env[:criteria] = env[:options].delete(:criteria)
 
+    env[:auto_create_tables] = env[:options].delete(:auto_create_tables)
+    env[:auto_create_databases] = env[:options].delete(:auto_create_databases)
+
     @runner.call(env)
   end
 end

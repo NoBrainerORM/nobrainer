@@ -5,7 +5,10 @@ module NoBrainer::Document::Criteria
     self.class.selector_for(pk_value)
   end
 
-  included { cattr_accessor :default_scope_proc, :instance_accessor => false }
+  included do
+    cattr_accessor :default_scope_proc,     :instance_accessor => false
+    cattr_accessor :perf_warnings_disabled, :instance_accessor => false
+  end
 
   module ClassMethods
     delegate :to_rql,                        # Core
@@ -58,6 +61,10 @@ module NoBrainer::Document::Criteria
       find(pk).tap do |doc|
         raise NoBrainer::Error::DocumentNotFound, "#{self} #{pk_name}: #{pk} not found" unless doc
       end
+    end
+
+    def disable_perf_warnings
+      self.perf_warnings_disabled = true
     end
   end
 end

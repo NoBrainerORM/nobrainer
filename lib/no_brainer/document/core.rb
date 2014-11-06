@@ -22,6 +22,6 @@ module NoBrainer::Document::Core
     extend ActiveModel::Naming
     extend ActiveModel::Translation
 
-    NoBrainer::Document::Core._all << self
+    NoBrainer::Document::Core._all << self unless self.name =~ /^NoBrainer::/
   end
 end

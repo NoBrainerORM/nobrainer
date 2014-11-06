@@ -2,26 +2,26 @@ module NoBrainer::Document::AtomicOps
   extend ActiveSupport::Concern
 
   class PendingAtomic
-    def self._new(instance, field, user_value, options={})
-      klass = case user_value
+    def self._new(instance, field, value, is_user_value, options={})
+      klass = case value
               when Array then PendingAtomicArray
               when Set   then PendingAtomicSet
               else self
               end
-      klass.new(instance, field, user_value, options)
+      klass.new(instance, field, value, is_user_value, options)
     end
 
-    def initialize(instance, field, user_value, options={})
+    def initialize(instance, field, value, is_user_value, options={})
       @instance = instance
-      @field = field
-      @user_value = user_value
-      @value_tainted = instance._is_attribute_tainted?(field)
-      @options = options
+      @field = field.to_s
+      @value = value
+      @is_user_value = is_user_value
+      @options = options.dup
       @ops = []
     end
 
     def write_access?
-      @options[:write_access] == true
+      !!@options[:write_access]
     end
 
     def ensure_writeable!
@@ -43,7 +43,7 @@ module NoBrainer::Document::AtomicOps
 
     def compile_rql_value(rql_doc)
       field = @instance.class.lookup_field_alias(@field)
-      value = @value_tainted ? RethinkDB::RQL.new.expr(@user_value) : rql_doc[field]
+      value = @is_user_value ? RethinkDB::RQL.new.expr(@value) : rql_doc[field]
       @ops.each { |method_name, a, b| value = value.__send__(method_name, *a, &b) }
       value
     end
@@ -105,15 +105,15 @@ module NoBrainer::Document::AtomicOps
 
   def clear_dirtiness(options={})
     super
-    @_tainted_attributes = Set.new
+    @_touched_attributes = Set.new
   end
 
-  def _taint_attribute(name)
-    @_tainted_attributes << name
+  def _touch_attribute(name)
+    @_touched_attributes << name.to_s
   end
 
-  def _is_attribute_tainted?(name)
-    @_tainted_attributes.include?(name)
+  def _is_attribute_touched?(name)
+    @_touched_attributes.include?(name.to_s)
   end
 
   def in_atomic?
@@ -146,7 +146,7 @@ module NoBrainer::Document::AtomicOps
 
     case [in_atomic?, value.is_a?(PendingAtomic)]
     when [true, true]   then value
-    when [true, false]  then PendingAtomic._new(self, name.to_s, value, :write_access => false)
+    when [true, false]  then PendingAtomic._new(self, name, value, _is_attribute_touched?(name))
     when [false, true]  then raise NoBrainer::Error::CannotReadAtomic.new(self, name, value)
     when [false, false] then value
     end
@@ -159,7 +159,7 @@ module NoBrainer::Document::AtomicOps
     when [true, true]   then super
     when [true, false]  then raise NoBrainer::Error::AtomicBlock.new('Avoid the use of atomic blocks for non atomic operations')
     when [false, true]  then raise NoBrainer::Error::AtomicBlock.new('Use atomic blocks for atomic operations')
-    when [false, false] then super.tap { _taint_attribute(name.to_s) }
+    when [false, false] then super.tap { _touch_attribute(name) }
     end
   end
 
@@ -169,8 +169,16 @@ module NoBrainer::Document::AtomicOps
   end
 
   def save?(options={})
+    # TODO allow reload => true as an option to save+reload in a single op.
     raise NoBrainer::Error::AtomicBlock.new('You may persist documents only outside of queue_atomic blocks') if in_atomic?
-    super
+    super.tap do |saved|
+      if saved
+        @_attributes.each do |attr, value|
+          next unless value.is_a?(PendingAtomic)
+          @_attributes[attr] = value.class.new(self, attr, nil, false)
+        end
+      end
+    end
   end
 
   def read_attribute_for_change(attr)

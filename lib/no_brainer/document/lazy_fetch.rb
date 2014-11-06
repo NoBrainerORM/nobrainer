@@ -19,7 +19,7 @@ module NoBrainer::Document::LazyFetch
     lazy_fetch = self.class.fields_to_lazy_fetch.to_a
     return super unless lazy_fetch.present?
     return super if options[:pluck]
-    super(options.merge(:without => lazy_fetch, :lazy_fetch => lazy_fetch))
+    super(options.deep_merge(:without => lazy_fetch, :lazy_fetch => lazy_fetch))
   end
 
   module ClassMethods

@@ -5,21 +5,131 @@ describe 'NoBrainer index' do
   before { NoBrainer.drop! }
   after  { NoBrainer.drop! }
 
-  context 'when updating indexes' do
+  context 'when creating/removing indexes' do
     it 'keeps indexes in sync' do
       SimpleDocument.index :field1
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
-      NoBrainer.update_indexes :no_confirmation => true
+      NoBrainer.sync_indexes
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field1']
       SimpleDocument.index :field2
-      NoBrainer.update_indexes :no_confirmation => true
+      NoBrainer.sync_indexes
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field1', 'field2']
       SimpleDocument.remove_index :field1
-      NoBrainer.update_indexes :no_confirmation => true
+      NoBrainer.sync_indexes
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ ['field2']
       SimpleDocument.remove_index :field2
-      NoBrainer.update_indexes :no_confirmation => true
+      NoBrainer.sync_indexes
       NoBrainer.run(SimpleDocument.rql_table.index_list).should =~ []
+    end
+  end
+
+  context 'when updating indexes' do
+    it 'keeps indexes in sync' do
+      SimpleDocument.create(:field1 => 1, :field2 => 2)
+
+      SimpleDocument.index :idx, ->(doc){ doc['field1'] }
+      NoBrainer.sync_indexes
+
+      SimpleDocument.where(:idx => 1).count.should == 1
+      SimpleDocument.where(:idx => 2).count.should == 0
+
+      SimpleDocument.index :idx, ->(doc){ doc['field2'] }
+      NoBrainer.sync_indexes
+
+      SimpleDocument.where(:idx => 1).count.should == 0
+      SimpleDocument.where(:idx => 2).count.should == 1
+
+      SimpleDocument.index :idx, ->(doc){ doc['field2'] }
+      NoBrainer.sync_indexes
+    end
+
+    def synchronizer
+      NoBrainer::Document::Index::Synchronizer.instance
+    end
+
+    def migration_plan
+      synchronizer.generate_plan.map { |op| [op.index.name, op.op] }
+    end
+
+    it 'keeps indexes in sync efficiently' do
+      SimpleDocument.index :idx
+      migration_plan.should == [[:idx, :create]]
+      NoBrainer.sync_indexes
+      migration_plan.should == []
+
+      SimpleDocument.index :idx, ->(doc){ doc['idx'] }
+      migration_plan.should == []
+      NoBrainer.sync_indexes
+      migration_plan.should == []
+
+      SimpleDocument.index :idx, ->(doc){ doc['field1'] }
+      migration_plan.should == [[:idx, :update]]
+      NoBrainer.sync_indexes
+      migration_plan.should == []
+
+      SimpleDocument.index :idx, ->(doc){ doc['field1'] }, :multi => true
+      migration_plan.should == [[:idx, :update]]
+      NoBrainer.sync_indexes
+      migration_plan.should == []
+    end
+
+    context 'when switching tables and dbs' do
+      before do
+        SimpleDocument.store_in :database => "some_test_db", :table => 'some_table'
+        NoBrainer.with_database('some_test_db') { NoBrainer.drop! }
+      end
+
+      it 'keeps indexes in sync' do
+        SimpleDocument.index :idx
+        migration_plan.should == [[:idx, :create]]
+        NoBrainer.sync_indexes
+        migration_plan.should == []
+
+        NoBrainer.with_database('some_test_db') do
+          NoBrainer::Document::Index::MetaStore.first.table_name.should == 'some_table'
+        end
+      end
+    end
+
+    context 'when disabling auto create' do
+      before do
+        SimpleDocument.store_in :database => "some_test_db", :table => 'some_table'
+        NoBrainer.with_database('some_test_db') { NoBrainer.drop! }
+        SimpleDocument.first # create table
+        NoBrainer.configure do |config|
+          config.auto_create_tables = false
+        end
+      end
+
+      it 'keeps indexes in sync' do
+        SimpleDocument.index :idx
+        migration_plan.should == [[:idx, :create]]
+        NoBrainer.sync_indexes
+        migration_plan.should == []
+
+        NoBrainer.with_database('some_test_db') do
+          NoBrainer::Document::Index::MetaStore.first.table_name.should == 'some_table'
+        end
+      end
+    end
+
+    context 'with external indexes' do
+      before do
+        SimpleDocument.first
+      end
+
+      it 'keeps indexes in sync' do
+        SimpleDocument.index :idx, :external => true
+        migration_plan.should == []
+
+        SimpleDocument.index :idx, :external => false
+        migration_plan.should == [[:idx, :create]]
+        NoBrainer.sync_indexes
+
+        SimpleDocument.index :idx, ->(doc){ doc['field1'] }, :external => true
+        migration_plan.should == []
+        NoBrainer.sync_indexes
+      end
     end
   end
 
@@ -35,7 +145,7 @@ describe 'NoBrainer index' do
   context 'when indexing a field on a field declaration' do
     before do
       SimpleDocument.field :field4, :index => true
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field4 => 'hello') }
@@ -51,7 +161,7 @@ describe 'NoBrainer index' do
     before do
       load_blog_models
       Comment.belongs_to :post, :index => true
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:post)    { Post.create }
@@ -78,7 +188,7 @@ describe 'NoBrainer index' do
   context 'when indexing a field normally' do
     before do
       SimpleDocument.index :field1
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'yay') }
@@ -121,7 +231,7 @@ describe 'NoBrainer index' do
     before do
       SimpleDocument.index :field1
       SimpleDocument.index :field2
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'yay') }
@@ -157,7 +267,7 @@ describe 'NoBrainer index' do
   context 'when using a multi single field index' do
     before do
       SimpleDocument.field :field1, :index => {:multi => true}
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => ['hello', 'ohai']) }
@@ -174,7 +284,7 @@ describe 'NoBrainer index' do
   context 'when using a multi single field index (no hash)' do
     before do
       SimpleDocument.field :field1, :index => :multi
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => ['hello', 'ohai']) }
@@ -191,7 +301,7 @@ describe 'NoBrainer index' do
   context 'when indexing a field with a lambda' do
     before do
       SimpleDocument.index :field12, ->(doc){ doc['field1'] + "_" + doc['field2'] }
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
@@ -216,7 +326,7 @@ describe 'NoBrainer index' do
   context 'when indexing a lambda with the multi flag' do
     before do
       SimpleDocument.index :field12, ->(doc){ [doc['field1'], doc['field2']] }, :multi => true
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'ohai') }
@@ -234,7 +344,7 @@ describe 'NoBrainer index' do
   context 'when indexing a compound field' do
     before do
       SimpleDocument.index :field12, [:field1, :field2]
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
@@ -278,7 +388,7 @@ describe 'NoBrainer index' do
   context 'when using betweens' do
     before do
       SimpleDocument.index :field1
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     context 'when using regular values' do
@@ -328,7 +438,7 @@ describe 'NoBrainer index' do
     before do
       SimpleDocument.index :field1
       SimpleDocument.index :field2
-      NoBrainer.update_indexes
+      NoBrainer.sync_indexes
     end
 
     let!(:docs) { 10.times.map { |i| SimpleDocument.create(:field1 => i, :field2 => i, :field3 => i) } }
