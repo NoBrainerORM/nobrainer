@@ -101,7 +101,6 @@ module NoBrainer::Document::Persistance
 
   def save(*args)
     save?(*args) or raise NoBrainer::Error::DocumentInvalid, self
-    nil
   end
 
   def save!(*args)
@@ -116,8 +115,8 @@ module NoBrainer::Document::Persistance
 
   def update_attributes(*args)
     update_attributes?(*args) or raise NoBrainer::Error::DocumentInvalid, self
-    nil
   end
+  alias :update :update_attributes
 
   def update_attributes!(*args)
     update_attributes(*args)
