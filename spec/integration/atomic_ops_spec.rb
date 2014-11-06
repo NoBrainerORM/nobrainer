@@ -228,4 +228,39 @@ describe 'atomic ops' do
       doc.field1.should == 10
     end
   end
+
+  context 'when reading outside of an atomic block' do
+    it 'skip validations on atomic ops' do
+      doc.queue_atomic do
+        doc.field1 += 10
+      end
+
+      expect { doc.field1 }.to raise_error(NoBrainer::Error::CannotReadAtomic)
+      doc.save
+      expect { doc.field1 }.to raise_error(NoBrainer::Error::CannotReadAtomic)
+      doc.reload
+      doc.field1.should == 10
+    end
+  end
+
+  context 'when saving' do
+    before { SimpleDocument.field :field1, :default => 0, :type => Integer }
+    before { SimpleDocument.field :field2, :default => [], :type => Array }
+
+    it 'resets the dirty tracking' do
+      doc.queue_atomic { doc.field1 += 10 }
+      doc.save
+      doc.queue_atomic { doc.field1 += 10 }
+      doc.save
+      doc.reload
+      doc.field1.should == 20
+
+      doc.queue_atomic { doc.field2 << 'x' }
+      doc.save
+      doc.queue_atomic { doc.field2 << 'y' }
+      doc.save
+      doc.reload
+      doc.field2.should == ['x', 'y']
+    end
+  end
 end
