@@ -1,5 +1,4 @@
 module NoBrainer::Criteria::Limit
-  # TODO Test these guys
   extend ActiveSupport::Concern
 
   included { attr_accessor :_skip, :_limit }
