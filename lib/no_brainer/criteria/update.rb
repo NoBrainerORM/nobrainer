@@ -14,6 +14,6 @@ module NoBrainer::Criteria::Update
   private
 
   def prepare_args_for_update!(a)
-    a[0] = klass.persistable_attributes(a[0]) if !a.empty? && a.first.is_a?(Hash)
+    a[0] = model.persistable_attributes(a[0]) if !a.empty? && a.first.is_a?(Hash)
   end
 end

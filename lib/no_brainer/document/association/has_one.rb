@@ -1,6 +1,6 @@
 class NoBrainer::Document::Association::HasOne < NoBrainer::Document::Association::HasMany
   class Metadata < NoBrainer::Document::Association::HasMany::Metadata
-    def target_klass
+    def target_model
       (options[:class_name] || target_name.to_s.camelize).constantize
     end
   end

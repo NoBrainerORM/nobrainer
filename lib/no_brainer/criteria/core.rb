@@ -7,8 +7,8 @@ module NoBrainer::Criteria::Core
     self.init_options = options
   end
 
-  def klass
-    init_options[:klass]
+  def model
+    init_options[:model]
   end
 
   def to_rql
@@ -16,7 +16,7 @@ module NoBrainer::Criteria::Core
   end
 
   def inspect
-    # rescue super because sometimes klass is not set.
+    # rescue super because sometimes model is not set.
     to_rql.inspect rescue super
   end
 
@@ -49,8 +49,8 @@ module NoBrainer::Criteria::Core
 
   def compile_rql_pass1
     # This method is overriden by other modules.
-    raise "Criteria not bound to a class" unless klass
-    klass.rql_table
+    raise "Criteria not bound to a model" unless model
+    model.rql_table
   end
 
   def compile_rql_pass2

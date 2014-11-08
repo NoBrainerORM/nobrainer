@@ -134,9 +134,9 @@ module NoBrainer::Criteria::Where
 
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata
-        target_klass = association.target_klass
-        opts = { :attr_name => key, :value => value, :type => target_klass}
-        raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_klass)
+        target_model = association.target_model
+        opts = { :attr_name => key, :value => value, :type => target_model}
+        raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_model)
         value.pk_value
       else
         model.cast_user_to_db_for(key, value)
@@ -200,7 +200,7 @@ module NoBrainer::Criteria::Where
       when :nin then parse_clause(:not => { key.symbol.in => value })
       when :ne  then parse_clause(:not => { key.symbol.eq => value })
       when :eq  then parse_clause_stub_eq(key.symbol, value)
-      else BinaryOperator.new(key.symbol, key.modifier, value, self.klass)
+      else BinaryOperator.new(key.symbol, key.modifier, value, self.model)
       end
     else raise "Invalid key: #{key}"
     end
@@ -208,9 +208,9 @@ module NoBrainer::Criteria::Where
 
   def parse_clause_stub_eq(key, value)
     case value
-    when Range  then BinaryOperator.new(key, :between, value, self.klass)
-    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self.klass)
-    else BinaryOperator.new(key, :eq, value, self.klass)
+    when Range  then BinaryOperator.new(key, :between, value, self.model)
+    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self.model)
+    else BinaryOperator.new(key, :eq, value, self.model)
     end
   end
 
@@ -230,7 +230,7 @@ module NoBrainer::Criteria::Where
     def get_usable_indexes(*types)
       @usable_indexes = {}
       @usable_indexes[types] ||= begin
-        indexes = criteria.klass.indexes.values
+        indexes = criteria.model.indexes.values
         indexes = indexes.select { |i| types.include?(i.kind) } if types.present?
         if criteria.with_index_name && criteria.with_index_name != true
           indexes = indexes.select { |i| i.name == criteria.with_index_name.to_sym }

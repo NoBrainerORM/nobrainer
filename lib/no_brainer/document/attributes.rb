@@ -100,7 +100,7 @@ module NoBrainer::Document::Attributes
   module ClassMethods
     def new_from_db(attrs, options={})
       options = options.reverse_merge(:pristine => true, :from_db => true)
-      klass_from_attrs(attrs).new(attrs, options) if attrs
+      model_from_attrs(attrs).new(attrs, options) if attrs
     end
 
     def inherited(subclass)
@@ -125,9 +125,9 @@ module NoBrainer::Document::Attributes
         raise "Cannot use a reserved field attr: #{attr}"
       end
 
-      ([self] + descendants).each do |klass|
-        klass.fields[attr] ||= {}
-        klass.fields[attr].deep_merge!(options)
+      ([self] + descendants).each do |model|
+        model.fields[attr] ||= {}
+        model.fields[attr].deep_merge!(options)
       end
 
       _field(attr, self.fields[attr])
@@ -145,8 +145,8 @@ module NoBrainer::Document::Attributes
 
       _remove_field(attr, options)
 
-      ([self] + descendants).each do |klass|
-        klass.fields.delete(attr)
+      ([self] + descendants).each do |model|
+        model.fields.delete(attr)
       end
     end
 

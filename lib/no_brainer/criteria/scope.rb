@@ -18,12 +18,12 @@ module NoBrainer::Criteria::Scope
   end
 
   def respond_to?(name, include_private = false)
-    super || self.klass.respond_to?(name)
+    super || self.model.respond_to?(name)
   end
 
   def method_missing(name, *args, &block)
-    return super unless self.klass.respond_to?(name)
-    criteria = self.klass.method(name).call(*args, &block)
+    return super unless self.model.respond_to?(name)
+    criteria = self.model.method(name).call(*args, &block)
     raise "#{name} did not return a criteria" unless criteria.is_a?(NoBrainer::Criteria)
     merge(criteria)
   end
@@ -31,13 +31,13 @@ module NoBrainer::Criteria::Scope
   private
 
   def should_apply_default_scope?
-    klass.default_scope_proc && use_default_scope != false
+    model.default_scope_proc && use_default_scope != false
   end
 
   def _apply_default_scope
     return unless should_apply_default_scope?
-    criteria = klass.default_scope_proc.call
-    raise "Mixing model issue. Contact developer." if [criteria.klass, self.klass].compact.uniq.size == 2
+    criteria = model.default_scope_proc.call
+    raise "Mixing model issue. Contact developer." if [criteria.model, self.model].compact.uniq.size == 2
     criteria.merge(self)
   end
 

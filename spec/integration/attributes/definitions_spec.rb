@@ -71,8 +71,8 @@ describe NoBrainer do
   context 'when removing fields' do
     before { load_simple_document }
 
-    def methods(klass)
-      klass.methods.grep(/methods/).map { |m| klass.send(m) }.reduce(:+)
+    def methods(model)
+      model.methods.grep(/methods/).map { |m| model.send(m) }.reduce(:+)
     end
 
     it 'cleans up' do

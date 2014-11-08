@@ -7,7 +7,7 @@ class NoBrainer::Document::Association::EagerLoader
         owner_key  = instance_exec(&options[:owner_key])
         target_key = instance_exec(&options[:target_key])
 
-        criteria = target_klass.all
+        criteria = target_model.all
         criteria = criteria.merge(additional_criteria) if additional_criteria
         criteria = criteria.unscoped if options[:unscoped]
 

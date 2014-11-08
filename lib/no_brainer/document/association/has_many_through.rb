@@ -10,7 +10,7 @@ class NoBrainer::Document::Association::HasManyThrough
     end
 
     def through_association
-      owner_klass.association_metadata[through_association_name] or
+      owner_model.association_metadata[through_association_name] or
         raise "#{through_association_name} association not found"
     end
 

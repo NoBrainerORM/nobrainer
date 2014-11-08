@@ -8,15 +8,15 @@ class NoBrainer::Document::Association::HasMany
 
     def foreign_key
       # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{owner_klass.name.underscore}_#{owner_klass.pk_name}"
+      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{owner_model.pk_name}"
     end
 
     def primary_key
       # TODO test :primary_key
-      options[:primary_key].try(:to_sym) || target_klass.pk_name
+      options[:primary_key].try(:to_sym) || target_model.pk_name
     end
 
-    def target_klass
+    def target_model
       # TODO test :class_name
       (options[:class_name] || target_name.to_s.singularize.camelize).constantize
     end
@@ -27,11 +27,11 @@ class NoBrainer::Document::Association::HasMany
       # selector.
       # XXX Without caching, this is going to get CPU intensive quickly, but
       # caching is hard (rails console reload, etc.).
-      target_klass.association_metadata.values.select do |assoc|
+      target_model.association_metadata.values.select do |assoc|
         assoc.is_a?(NoBrainer::Document::Association::BelongsTo::Metadata) and
         assoc.foreign_key == self.foreign_key                              and
         assoc.primary_key == self.primary_key                              and
-        assoc.target_klass.root_class == owner_klass.root_class
+        assoc.target_model.root_class == owner_model.root_class
       end
     end
 
@@ -44,7 +44,7 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def target_criteria
-    @target_criteria ||= target_klass.where(foreign_key => owner.pk_value)
+    @target_criteria ||= target_model.where(foreign_key => owner.pk_value)
                                      .after_find(set_inverse_proc)
   end
 
@@ -54,7 +54,7 @@ class NoBrainer::Document::Association::HasMany
 
   def write(new_children)
     raise "You can't assign #{target_name}. " +
-          "Instead, you must modify delete and create #{target_klass} manually."
+          "Instead, you must modify delete and create #{target_model} manually."
   end
 
   def loaded?

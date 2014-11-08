@@ -13,10 +13,10 @@ class NoBrainer::Document::Association::BelongsTo
 
     def primary_key
       # TODO test :primary_key
-      options[:primary_key].try(:to_sym) || target_klass.pk_name
+      options[:primary_key].try(:to_sym) || target_model.pk_name
     end
 
-    def target_klass
+    def target_model
       # TODO test :class_name
       (options[:class_name] || target_name.to_s.camelize).constantize
     end
@@ -29,9 +29,9 @@ class NoBrainer::Document::Association::BelongsTo
       # This would have the effect of loading all the models because they
       # are likely to be related to each other. So we don't know the type
       # of the primary key of the target.
-      owner_klass.field(foreign_key, :as => options[:foreign_key_as], :index => options[:index])
-      owner_klass.validates(target_name, { :presence => true }) if options[:required]
-      owner_klass.validates(target_name, options[:validates]) if options[:validates]
+      owner_model.field(foreign_key, :as => options[:foreign_key_as], :index => options[:index])
+      owner_model.validates(target_name, { :presence => true }) if options[:required]
+      owner_model.validates(target_name, options[:validates]) if options[:validates]
 
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       add_callback_for(:after_validation)
@@ -54,7 +54,7 @@ class NoBrainer::Document::Association::BelongsTo
     return target if loaded?
 
     if fk = owner.read_attribute(foreign_key)
-      preload(target_klass.unscoped.where(primary_key => fk).first)
+      preload(target_model.unscoped.where(primary_key => fk).first)
     end
   end
 

@@ -36,7 +36,7 @@ module NoBrainer::Document::Polymorphic
       for_each_subclass.map(&:type_value)
     end
 
-    def klass_from_attrs(attrs)
+    def model_from_attrs(attrs)
       attrs['_type'].try(:constantize) || root_class
     end
 

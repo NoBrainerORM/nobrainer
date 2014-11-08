@@ -28,11 +28,11 @@ module NoBrainer::Document::Association
           raise "Cannot change the :through option" unless r.options[:through] == options[:through]
           r.options.merge!(options)
         else
-          klass_name = (options[:through] ? "#{association}_through" : association.to_s).camelize
-          metadata_klass = NoBrainer::Document::Association.const_get(klass_name).const_get(:Metadata)
-          r = metadata_klass.new(self, target, options)
-          ([self] + descendants).each do |klass|
-            klass.association_metadata[target] = r
+          model_name = (options[:through] ? "#{association}_through" : association.to_s).camelize
+          metadata_model = NoBrainer::Document::Association.const_get(model_name).const_get(:Metadata)
+          r = metadata_model.new(self, target, options)
+          ([self] + descendants).each do |model|
+            model.association_metadata[target] = r
           end
         end
         r.hook

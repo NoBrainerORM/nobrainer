@@ -1,6 +1,6 @@
 module CallbacksHelper
-  def record_callbacks(klass)
-    klass.class_eval do
+  def record_callbacks(model)
+    model.class_eval do
       class_attribute :callbacks, :callbacks_of
       self.callbacks = []
       self.callbacks_of = {}

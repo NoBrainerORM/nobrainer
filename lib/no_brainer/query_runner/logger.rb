@@ -14,7 +14,7 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
 
     not_indexed = env[:criteria] && env[:criteria].where_present? &&
                     !env[:criteria].where_indexed? &&
-                    !env[:criteria].klass.try(:perf_warnings_disabled)
+                    !env[:criteria].model.try(:perf_warnings_disabled)
 
     level = exception ? Logger::ERROR :
              not_indexed ? Logger::INFO : Logger::DEBUG

@@ -62,7 +62,7 @@ module NoBrainer::Criteria::OrderBy
   private
 
   def effective_order
-    self.order.presence || (klass ? {klass.pk_name => :asc} : {})
+    self.order.presence || (model ? {model.pk_name => :asc} : {})
   end
 
   def reverse_order?
@@ -83,7 +83,7 @@ module NoBrainer::Criteria::OrderBy
     end
 
     def first_key_indexable?
-      (first_key.is_a?(Symbol) || first_key.is_a?(String)) && criteria.klass.has_index?(first_key)
+      (first_key.is_a?(Symbol) || first_key.is_a?(String)) && criteria.model.has_index?(first_key)
     end
 
     def find_index
@@ -116,9 +116,9 @@ module NoBrainer::Criteria::OrderBy
 
     rql_rules = _effective_order.map do |k,v|
       if order_by_index_finder.index_name == k
-        k = klass.lookup_index_alias(k)
+        k = model.lookup_index_alias(k)
       else
-        k = klass.lookup_field_alias(k)
+        k = model.lookup_field_alias(k)
       end
 
       case v

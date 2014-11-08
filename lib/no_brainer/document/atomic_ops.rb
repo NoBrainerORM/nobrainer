@@ -3,12 +3,12 @@ module NoBrainer::Document::AtomicOps
 
   class PendingAtomic
     def self._new(instance, field, value, is_user_value, options={})
-      klass = case value
+      model = case value
               when Array then PendingAtomicArray
               when Set   then PendingAtomicSet
               else self
               end
-      klass.new(instance, field, value, is_user_value, options)
+      model.new(instance, field, value, is_user_value, options)
     end
 
     def initialize(instance, field, value, is_user_value, options={})

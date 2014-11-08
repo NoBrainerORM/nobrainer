@@ -30,7 +30,7 @@ module NoBrainer::Document::Criteria
              :to => :all
 
     def all
-      NoBrainer::Criteria.new(:klass => self)
+      NoBrainer::Criteria.new(:model => self)
     end
 
     def scope(name, criteria=nil, &block)

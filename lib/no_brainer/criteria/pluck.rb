@@ -74,7 +74,7 @@ module NoBrainer::Criteria::Pluck
     rql = super
     if effective_missing_attributes
       type, attrs = effective_missing_attributes.first
-      rql = rql.__send__(type, klass.with_fields_aliased(attrs))
+      rql = rql.__send__(type, model.with_fields_aliased(attrs))
     end
     rql
   end

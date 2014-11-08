@@ -66,10 +66,10 @@ module NoBrainer::Document::Uniqueness
 
     def initialize(options={})
       super
-      klass = options[:class]
+      model = options[:class]
       self.scope = [*options[:scope]]
-      ([klass] + klass.descendants).each do |_klass|
-        _klass.unique_validators << self
+      ([model] + model.descendants).each do |_model|
+        _model.unique_validators << self
       end
     end
 

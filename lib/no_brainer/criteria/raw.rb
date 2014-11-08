@@ -28,6 +28,6 @@ module NoBrainer::Criteria::Raw
   end
 
   def _instantiate_model(attrs, options={})
-    klass.new_from_db(attrs, options)
+    model.new_from_db(attrs, options)
   end
 end

@@ -28,7 +28,7 @@ module NoBrainer::Criteria::Index
 
   def compile_rql_pass2
     super.tap do
-      if with_index_name && (!used_index || order_by_index_name.to_s == klass.pk_name.to_s)
+      if with_index_name && (!used_index || order_by_index_name.to_s == model.pk_name.to_s)
         # The implicit ordering on the indexed pk does not count.
         raise NoBrainer::Error::CannotUseIndex.new(with_index_name)
       end

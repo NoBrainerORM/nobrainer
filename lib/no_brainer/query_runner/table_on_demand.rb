@@ -17,10 +17,10 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   private
 
   def auto_create_table(env, database_name, table_name)
-    klass = NoBrainer::Document::Index::MetaStore if table_name == 'nobrainer_index_meta'
-    klass ||= NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
+    model = NoBrainer::Document::Index::MetaStore if table_name == 'nobrainer_index_meta'
+    model ||= NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
 
-    if klass.nil?
+    if model.nil?
       raise "Auto table creation is not working for `#{database_name}.#{table_name}` -- Can't find the corresponding model."
     end
 
@@ -30,7 +30,7 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
     env[:last_auto_create_table] = [database_name, table_name]
 
     NoBrainer.with_database(database_name) do
-      NoBrainer.table_create(table_name, :primary_key => klass.pk_name)
+      NoBrainer.table_create(table_name, :primary_key => model.pk_name)
     end
   rescue RuntimeError => e
     # We might have raced with another table create

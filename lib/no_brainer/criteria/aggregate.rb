@@ -21,7 +21,7 @@ module NoBrainer::Criteria::Aggregate
 
   def aggregate_rql(type, *a, &b)
     rql = without_ordering.without_plucking.to_rql
-    rql = rql.__send__(type, *klass.with_fields_aliased(a), &b)
+    rql = rql.__send__(type, *model.with_fields_aliased(a), &b)
     rql = rql.default(nil) unless type == :sum
     rql
   end

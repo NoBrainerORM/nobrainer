@@ -107,13 +107,13 @@ module NoBrainer::Document::Types
   class << self
     mattr_accessor :loaded_extensions
     self.loaded_extensions = Set.new
-    def load_type_extensions(klass)
-      unless loaded_extensions.include?(klass)
+    def load_type_extensions(model)
+      unless loaded_extensions.include?(model)
         begin
-          require File.join(File.dirname(__FILE__), 'types', klass.name.underscore)
+          require File.join(File.dirname(__FILE__), 'types', model.name.underscore)
         rescue LoadError
         end
-        loaded_extensions << klass
+        loaded_extensions << model
       end
     end
   end
