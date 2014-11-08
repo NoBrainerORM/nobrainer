@@ -2,14 +2,15 @@ require 'logger'
 
 module NoBrainer::Config
   class << self
-    mattr_accessor :environment, :rethinkdb_url, :logger,
-                   :warn_on_active_record,
+    mattr_accessor :app_name, :environment, :rethinkdb_url,
+                   :logger, :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
                    :max_retries_on_connection_failure, :durability,
                    :user_timezone, :db_timezone, :colorize_logger,
                    :distributed_lock_class, :per_thread_connection
 
     def apply_defaults
+      self.app_name                          = default_app_name
       self.environment                       = default_environment
       self.rethinkdb_url                     = default_rethinkdb_url
       self.logger                            = default_logger
@@ -61,13 +62,18 @@ module NoBrainer::Config
       end
     end
 
+    def default_app_name
+      defined?(Rails) ? Rails.application.class.parent_name.underscore : nil
+    end
+
     def default_environment
-      defined?(Rails.env) ? Rails.env.to_sym : :production
+      return Rails.env if defined?(Rails.env)
+      ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || :production
     end
 
     def default_rethinkdb_url
       db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
-      db ||= "#{Rails.application.class.parent_name.underscore}_#{self.environment}" rescue nil
+      db ||= "#{self.app_name}_#{self.environment}" if self.app_name && self.environment
       host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
       port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
       auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
@@ -89,7 +95,7 @@ module NoBrainer::Config
     end
 
     def dev_mode?
-      self.environment.in?([:development, :test])
+      self.environment.to_sym.in?([:development, :test])
     end
   end
 end
