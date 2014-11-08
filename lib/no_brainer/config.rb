@@ -1,30 +1,25 @@
 require 'logger'
 
 module NoBrainer::Config
-  class << self
-    mattr_accessor :app_name, :environment, :rethinkdb_url,
-                   :logger, :warn_on_active_record,
-                   :auto_create_databases, :auto_create_tables,
-                   :max_retries_on_connection_failure, :durability,
-                   :user_timezone, :db_timezone, :colorize_logger,
-                   :distributed_lock_class, :per_thread_connection
+  SETTINGS = {
+    :app_name               => { :default => ->{ default_app_name } },
+    :environment            => { :default => ->{ default_environment } },
+    :rethinkdb_url          => { :default => ->{ default_rethinkdb_url } },
+    :logger                 => { :default => ->{ default_logger } },
+    :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
+    :auto_create_databases  => { :default => ->{ true }, :valid_values => [true, false] },
+    :auto_create_tables     => { :default => ->{ true }, :valid_values => [true, false] },
+    :max_retries_on_connection_failure => { :default => ->{ default_max_retries_on_connection_failure } },
+    :durability             => { :default => ->{ default_durability }, :valid_values => [:hard, :soft] },
+    :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
+    :db_timezone            => { :default => ->{ :utc }, :valid_values => [:unchanged, :utc, :local] },
+    :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
+    :distributed_lock_class => { :default => ->{ nil } },
+    :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
+  }
 
-    def apply_defaults
-      self.app_name                          = default_app_name
-      self.environment                       = default_environment
-      self.rethinkdb_url                     = default_rethinkdb_url
-      self.logger                            = default_logger
-      self.warn_on_active_record             = true
-      self.auto_create_databases             = true
-      self.auto_create_tables                = true
-      self.max_retries_on_connection_failure = default_max_retries_on_connection_failure
-      self.durability                        = default_durability
-      self.user_timezone                     = :local
-      self.db_timezone                       = :utc
-      self.colorize_logger                   = true
-      self.distributed_lock_class            = nil
-      self.per_thread_connection             = false
-    end
+  class << self
+    attr_accessor(*SETTINGS.keys)
 
     def max_reconnection_tries=(value)
       STDERR.puts "[NoBrainer] config.max_reconnection_tries is deprecated and will be removed"
@@ -32,14 +27,23 @@ module NoBrainer::Config
       self.max_retries_on_connection_failure = value
     end
 
+    def apply_defaults
+      @applied_defaults_for = SETTINGS.keys.reject { |k| instance_variable_defined?("@#{k}") }
+      @applied_defaults_for.each { |k| __send__("#{k}=", SETTINGS[k][:default].call) }
+    end
+
+    def assert_valid_options!
+      SETTINGS.each { |k,v| assert_array_in(k, v[:valid_values]) if v[:valid_values] }
+    end
+
     def reset!
-      @configured = false
-      apply_defaults
+      instance_variables.each { |ivar| remove_instance_variable(ivar) }
     end
 
     def configure(&block)
-      apply_defaults unless configured?
+      @applied_defaults_for.to_a.each { |k| remove_instance_variable("@#{k}") }
       block.call(self) if block
+      apply_defaults
       assert_valid_options!
       @configured = true
 
@@ -50,16 +54,14 @@ module NoBrainer::Config
       !!@configured
     end
 
-    def assert_valid_options!
-      assert_array_in :durability,    [:hard, :soft]
-      assert_array_in :user_timezone, [:unchanged, :utc, :local]
-      assert_array_in :db_timezone,   [:unchanged, :utc, :local]
-    end
-
     def assert_array_in(name, values)
       unless __send__(name).in?(values)
         raise ArgumentError.new("Unknown configuration for #{name}: #{__send__(name)}. Valid values are: #{values.inspect}")
       end
+    end
+
+    def dev_mode?
+      self.environment.to_s.in? %w(development test)
     end
 
     def default_app_name
@@ -92,10 +94,6 @@ module NoBrainer::Config
 
     def default_max_retries_on_connection_failure
       dev_mode? ? 1 : 15
-    end
-
-    def dev_mode?
-      self.environment.to_sym.in?([:development, :test])
     end
   end
 end
