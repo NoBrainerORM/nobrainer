@@ -2,23 +2,23 @@ require 'spec_helper'
 
 describe 'has_many_through' do
   before do
-    define_constant :Model1 do
+    define_class :Model1 do
       include NoBrainer::Document
       has_many :model2
       has_many :model3, :through => :model2
       has_many :model4, :through => :model3
     end
-    define_constant :Model2 do
+    define_class :Model2 do
       include NoBrainer::Document
       has_many :model3
       belongs_to :model1
     end
-    define_constant :Model3 do
+    define_class :Model3 do
       include NoBrainer::Document
       has_many :model4
       belongs_to :model2
     end
-    define_constant :Model4 do
+    define_class :Model4 do
       include NoBrainer::Document
       belongs_to :model3
     end

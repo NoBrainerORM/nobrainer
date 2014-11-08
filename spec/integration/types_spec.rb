@@ -459,7 +459,7 @@ describe 'types' do
 
   context 'when using a non implemented type' do
     let(:type) { nil }
-    before { define_constant(:CustomType) { } }
+    before { define_class(:CustomType) { } }
     before { SimpleDocument.field :field1, :type => CustomType }
 
     it 'type checks' do
@@ -474,7 +474,7 @@ describe 'types' do
   context 'when using a custom type' do
     let(:type) { nil }
     before do
-      define_constant :Point, Struct.new(:x, :y) do
+      define_class :Point, Struct.new(:x, :y) do
         def self.nobrainer_cast_user_to_model(value)
           case value
           when Point then value

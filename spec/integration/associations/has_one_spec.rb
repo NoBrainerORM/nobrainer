@@ -2,12 +2,12 @@ require 'spec_helper'
 
 describe 'has_one' do
   before do
-    define_constant :User do
+    define_class :User do
       include NoBrainer::Document
       has_one :address
     end
 
-    define_constant :Address do
+    define_class :Address do
       include NoBrainer::Document
       belongs_to :user
     end

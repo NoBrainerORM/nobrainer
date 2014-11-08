@@ -1,6 +1,6 @@
 module ModelsHelper
   def load_simple_document
-    define_constant :SimpleDocument do
+    define_class :SimpleDocument do
       include NoBrainer::Document
 
       field :field1
@@ -10,7 +10,7 @@ module ModelsHelper
   end
 
   def load_blog_models
-    define_constant :Author do
+    define_class :Author do
       include NoBrainer::Document
 
       field :author
@@ -18,7 +18,7 @@ module ModelsHelper
       has_many :posts
     end
 
-    define_constant :Post do
+    define_class :Post do
       include NoBrainer::Document
 
       field :title
@@ -28,7 +28,7 @@ module ModelsHelper
       has_many :comments
     end
 
-    define_constant :Comment do
+    define_class :Comment do
       include NoBrainer::Document
 
       field :author
@@ -39,16 +39,16 @@ module ModelsHelper
   end
 
   def load_polymorphic_models
-    define_constant :Parent do
+    define_class :Parent do
       include NoBrainer::Document
       field :parent_field
     end
 
-    define_constant :Child, Parent do
+    define_class :Child, Parent do
       field :child_field
     end
 
-    define_constant :GrandChild, Child do
+    define_class :GrandChild, Child do
       field :grand_child_field
     end
   end

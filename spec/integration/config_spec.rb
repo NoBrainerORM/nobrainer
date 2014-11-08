@@ -9,13 +9,13 @@ describe 'config' do
   end
 
   before do
-    define_constant :SomeApp do
+    define_class :SomeApp do
     end
 
-    define_constant :'SomeApp::Application' do
+    define_class :'SomeApp::Application' do
     end
 
-    define_constant :Rails do
+    define_class :Rails do
       def self.application
         SomeApp::Application.new
       end

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'NoBrainer logging' do
   before { load_simple_document }
   before do
-    define_constant :TestLogger do
+    define_class :TestLogger do
       attr_reader :logs
 
       def initialize

@@ -1,7 +1,13 @@
 require 'set'
 
 module DefineConstantMacros
-  def define_constant(class_name, base = Object, &block)
+  def define_module(mod_name, &block)
+    mod = Module.new
+    mod.class_eval(&block) if block_given?
+    Object.const_set(mod_name, mod)
+  end
+
+  def define_class(class_name, base = Object, &block)
     name = class_name.to_s.split("::")
     if name.length > 1
       module_name = name.first

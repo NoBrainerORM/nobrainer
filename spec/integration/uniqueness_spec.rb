@@ -150,7 +150,7 @@ describe 'NoBrainer callbacks' do
 
   context 'when using a distributed lock' do
     before do
-      define_constant :Lock do
+      define_class :Lock do
         singleton_class.send(:attr_accessor, :locked_keys)
         singleton_class.send(:attr_accessor, :unlocked_keys)
 
