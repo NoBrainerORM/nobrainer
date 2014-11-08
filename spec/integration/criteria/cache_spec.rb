@@ -77,6 +77,7 @@ describe 'cache' do
       criteria = SimpleDocument.all
       criteria.to_a
       SimpleDocument.destroy_all
+      criteria.count.should == 2
       criteria.without_cache.count.should == 0
     end
   end

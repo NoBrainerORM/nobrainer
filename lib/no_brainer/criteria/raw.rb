@@ -1,20 +1,14 @@
 module NoBrainer::Criteria::Raw
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_raw }
+  included { criteria_option :raw, :merge_with => :set_scalar }
 
-  def raw
-    chain { |criteria| criteria._raw = true }
-  end
-
-  def merge!(criteria, options={})
-    super
-    self._raw = criteria._raw unless criteria._raw.nil?
-    self
+  def raw(value = true)
+    chain(:raw => value)
   end
 
   def raw?
-    !!finalized_criteria._raw
+    !!finalized_criteria.options[:raw]
   end
 
   private

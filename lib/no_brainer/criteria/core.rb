@@ -1,14 +1,26 @@
 module NoBrainer::Criteria::Core
   extend ActiveSupport::Concern
 
-  included { attr_accessor :init_options }
+  included do
+    singleton_class.send(:attr_accessor, :options_definitions)
+    self.options_definitions = {}
+    attr_accessor :options
+
+    criteria_option :model, :merge_with => :set_scalar
+    criteria_option :finalized, :merge_with => :set_scalar
+  end
 
   def initialize(options={})
-    self.init_options = options
+    @options = options
+  end
+
+  def dup
+    # We don't keep any of the instance variables except options.
+    self.class.new(@options.dup)
   end
 
   def model
-    init_options[:model]
+    @options[:model]
   end
 
   def to_rql
@@ -26,7 +38,11 @@ module NoBrainer::Criteria::Core
   end
 
   def merge!(criteria, options={})
-    self.init_options = self.init_options.merge(criteria.init_options)
+    criteria.options.each do |k,v|
+      merge_proc = self.class.options_definitions[k]
+      raise "Non declared option: #{k}" unless merge_proc
+      @options[k] = merge_proc.call(@options[k], v)
+    end
     self
   end
 
@@ -41,10 +57,8 @@ module NoBrainer::Criteria::Core
 
   private
 
-  def chain(options={}, &block)
-    tmp = self.class.new(self.init_options) # we might want to optimize that thing
-    block.call(tmp)
-    merge(tmp, options)
+  def chain(options={}, merge_options={}, &block)
+    merge(self.class.new(options), merge_options)
   end
 
   def compile_rql_pass1
@@ -59,7 +73,7 @@ module NoBrainer::Criteria::Core
   end
 
   def finalized?
-    !!init_options[:finalized]
+    !!@options[:finalized]
   end
 
   def finalized_criteria
@@ -67,8 +81,33 @@ module NoBrainer::Criteria::Core
   end
 
   module ClassMethods
+    def criteria_option(*names)
+      options = names.extract_options!
+
+      names.map(&:to_sym).each do |name|
+        merge_proc = options[:merge_with]
+        merge_proc = MergeStrategies.method(merge_proc) if merge_proc.is_a?(Symbol)
+        self.options_definitions[name] = merge_proc
+      end
+    end
+
     def _finalize_criteria(base)
-      base.merge(base.class.new(:finalized => true))
+      base.__send__(:chain, :finalized => true)
+    end
+  end
+
+  module MergeStrategies
+    extend self
+    def set_scalar(a, b)
+      b
+    end
+
+    def merge_hash(a, b)
+      a ? a.merge(b) : b
+    end
+
+    def append_array(a, b)
+      a ? a+b : b
     end
   end
 end

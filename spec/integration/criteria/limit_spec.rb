@@ -26,4 +26,11 @@ describe 'limit' do
       SimpleDocument.offset(3).limit(3).to_a.should == docs[3...6]
     end
   end
+
+  context 'when using nil values' do
+    it 'reset the skip/limit' do
+      SimpleDocument.skip(3).skip(nil).count.should == 10
+      SimpleDocument.limit(3).limit(nil).count.should == 10
+    end
+  end
 end

@@ -1,12 +1,8 @@
 module NoBrainer::Criteria::OrderBy
   extend ActiveSupport::Concern
 
-  included { attr_accessor :order, :ordering_mode }
-
-  def initialize(options={})
-    super
-    self.order = {}
-  end
+  # The latest order_by() wins
+  included { criteria_option :order_by, :ordering_mode, :merge_with => :set_scalar }
 
   def order_by(*rules, &block)
     # Note: We are relying on the fact that Hashes are ordered (since 1.9)
@@ -21,34 +17,20 @@ module NoBrainer::Criteria::OrderBy
       end
     end.reduce({}, :merge)
 
-    chain do |criteria|
-      criteria.order = rules
-      criteria.ordering_mode = :normal
-    end
+    chain(:order_by => rules, :ordering_mode => :normal)
   end
 
   def without_ordering
-    chain { |criteria| criteria.ordering_mode = :disabled }
-  end
-
-  def merge!(criteria, options={})
-    super
-    # The latest order_by() wins
-    self.order = criteria.order if criteria.order.present?
-    self.ordering_mode = criteria.ordering_mode unless criteria.ordering_mode.nil?
-    self
+    chain(:ordering_mode => :disabled)
   end
 
   def reverse_order
-    chain do |criteria|
-      criteria.ordering_mode =
-        case self.ordering_mode
-        when nil       then :reversed
-        when :normal   then :reversed
-        when :reversed then :normal
-        when :disabled then :disabled
-        end
-    end
+    chain(:ordering_mode => case @options[:ordering_mode]
+                            when nil       then :reversed
+                            when :normal   then :reversed
+                            when :reversed then :normal
+                            when :disabled then :disabled
+                            end)
   end
 
   def order_by_indexed?
@@ -62,15 +44,15 @@ module NoBrainer::Criteria::OrderBy
   private
 
   def effective_order
-    self.order.presence || (model ? {model.pk_name => :asc} : {})
+    @options[:order_by].presence || (model ? {model.pk_name => :asc} : {})
   end
 
   def reverse_order?
-    self.ordering_mode == :reversed
+    @options[:ordering_mode] == :reversed
   end
 
   def should_order?
-    self.ordering_mode != :disabled
+    @options[:ordering_mode] != :disabled
   end
 
   class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc)
@@ -90,8 +72,8 @@ module NoBrainer::Criteria::OrderBy
       return if criteria.without_index?
       return unless first_key_indexable?
 
-      if criteria.with_index_name && criteria.with_index_name != true
-        return unless first_key.to_s == criteria.with_index_name.to_s
+      if criteria.options[:use_index] && criteria.options[:use_index] != true
+        return unless first_key.to_s == criteria.options[:use_index].to_s
       end
 
       # We need make sure that the where index finder has been invoked, it has priority.

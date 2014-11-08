@@ -1,23 +1,15 @@
 module NoBrainer::Criteria::AfterFind
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_after_find }
+  included { criteria_option :after_find, :merge_with => :append_array }
 
   def after_find(b=nil, &block)
-    chain { |criteria| criteria._after_find = [b || block] }
-  end
-
-  def merge!(criteria, options={})
-    super
-    if criteria._after_find.present?
-      self._after_find = (self._after_find || []) + criteria._after_find
-    end
-    self
+    chain(:after_find => [b, block].compact)
   end
 
   def _instantiate_doc(attrs)
     super.tap do |doc|
-      self._after_find.to_a.each { |block| block.call(doc) }
+      @options[:after_find].to_a.each { |block| block.call(doc) }
       doc.run_callbacks(:find) if doc.is_a?(NoBrainer::Document)
     end
   end

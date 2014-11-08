@@ -1,24 +1,18 @@
 module NoBrainer::Criteria::Preload
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_preloads }
-
-  def initialize(options={})
-    super
-    self._preloads = []
-  end
+  included { criteria_option :preload, :merge_with => :append_array }
 
   def preload(*values)
-    chain(:keep_cache => true) { |criteria| criteria._preloads = values }
+    chain({:preload => values}, :copy_cache_from => self)
   end
 
   def merge!(criteria, options={})
-    super
-    self._preloads = self._preloads + criteria._preloads
-
-    # XXX Not pretty hack
-    if criteria._preloads.present? && cached?
-      perform_preloads(@cache)
+    super.tap do
+      # XXX Not pretty hack
+      if criteria.options[:preload].present? && criteria.cached?
+        perform_preloads(@cache)
+      end
     end
   end
 
@@ -35,7 +29,7 @@ module NoBrainer::Criteria::Preload
   private
 
   def should_preloads?
-    self._preloads.present? && !raw?
+    @options[:preload].present? && !raw?
   end
 
   def get_one(criteria)
@@ -44,7 +38,7 @@ module NoBrainer::Criteria::Preload
 
   def perform_preloads(docs)
     if should_preloads? && docs.present?
-      NoBrainer::Document::Association::EagerLoader.new.eager_load(docs, self._preloads)
+      NoBrainer::Document::Association::EagerLoader.new.eager_load(docs, @options[:preload])
     end
   end
 end

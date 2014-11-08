@@ -1,20 +1,14 @@
 module NoBrainer::Criteria::Scope
   extend ActiveSupport::Concern
 
-  included { attr_accessor :use_default_scope }
+  included { criteria_option :use_default_scope, :merge_with => :set_scalar }
 
   def scoped
-    chain { |criteria| criteria.use_default_scope = true }
+    chain(:use_default_scope => true)
   end
 
   def unscoped
-    chain { |criteria| criteria.use_default_scope = false }
-  end
-
-  def merge!(criteria, options={})
-    super
-    self.use_default_scope = criteria.use_default_scope unless criteria.use_default_scope.nil?
-    self
+    chain(:use_default_scope => false)
   end
 
   def respond_to?(name, include_private = false)
@@ -31,7 +25,7 @@ module NoBrainer::Criteria::Scope
   private
 
   def should_apply_default_scope?
-    model.default_scope_proc && use_default_scope != false
+    model.default_scope_proc && @options[:use_default_scope] != false
   end
 
   def _apply_default_scope

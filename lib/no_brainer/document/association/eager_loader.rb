@@ -45,14 +45,15 @@ class NoBrainer::Document::Association::EagerLoader
     when Hash  then preloads.each do |k,v|
       if v.is_a?(NoBrainer::Criteria)
         v = v.dup
-        nested_preloads, v._preloads = v._preloads, []
+        nested_preloads, v.options[:preload] = v.options[:preload], []
         eager_load(eager_load_association(docs, k, v), nested_preloads)
       else
         eager_load(eager_load_association(docs, k), v)
       end
     end
     when Array then preloads.each { |v| eager_load(docs, v) }
-    else eager_load_association(docs, preloads)
+    when nil then;
+    else eager_load_association(docs, preloads) # String and Symbol
     end
     true
   end

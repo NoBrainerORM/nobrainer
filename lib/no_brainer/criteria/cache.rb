@@ -1,14 +1,14 @@
 module NoBrainer::Criteria::Cache
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_with_cache }
+  included { criteria_option :with_cache, :merge_with => :set_scalar }
 
   def with_cache
-    chain { |criteria| criteria._with_cache = true }
+    chain(:with_cache => true)
   end
 
   def without_cache
-    chain { |criteria| criteria._with_cache = false }
+    chain(:with_cache => false)
   end
 
   def inspect
@@ -18,14 +18,14 @@ module NoBrainer::Criteria::Cache
   end
 
   def merge!(criteria, options={})
+    if options[:copy_cache_from] && options[:copy_cache_from].cached?
+      @cache = options[:copy_cache_from].instance_variable_get(:@cache)
+    end
     super
-    self._with_cache = criteria._with_cache unless criteria._with_cache.nil?
-    self.reload unless options[:keep_cache]
-    self
   end
 
   def with_cache?
-    @_with_cache != false
+    finalized_criteria.options[:with_cache] != false
   end
 
   def reload

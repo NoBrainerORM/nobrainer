@@ -1,30 +1,23 @@
 module NoBrainer::Criteria::Limit
   extend ActiveSupport::Concern
 
-  included { attr_accessor :_skip, :_limit }
+  included { criteria_option :skip, :limit, :merge_with => :set_scalar }
 
   def limit(value)
-    chain { |criteria| criteria._limit = value }
+    chain(:limit => value)
   end
 
   def skip(value)
-    chain { |criteria| criteria._skip = value }
+    chain(:skip => value)
   end
   alias_method :offset, :skip
-
-  def merge!(criteria, options={})
-    super
-    self._skip = criteria._skip if criteria._skip
-    self._limit = criteria._limit if criteria._limit
-    self
-  end
 
   private
 
   def compile_rql_pass2
     rql = super
-    rql = rql.skip(_skip) if _skip
-    rql = rql.limit(_limit) if _limit
+    rql = rql.skip(@options[:skip]) if @options[:skip]
+    rql = rql.limit(@options[:limit]) if @options[:limit]
     rql
   end
 end

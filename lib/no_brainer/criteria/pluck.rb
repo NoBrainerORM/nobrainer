@@ -1,7 +1,8 @@
 module NoBrainer::Criteria::Pluck
   extend ActiveSupport::Concern
 
-  included { attr_accessor :missing_attributes }
+  included { criteria_option :missing_attributes, :merge_with =>
+               NoBrainer::Criteria::Pluck.method(:merge_missing_attributes) }
 
   def pluck(*attrs)
     _missing_attributes_criteria(:pluck, attrs)
@@ -16,24 +17,19 @@ module NoBrainer::Criteria::Pluck
   end
 
   def without_plucking
-    chain { |criteria| criteria.missing_attributes = :remove }
+    chain(:missing_attributes => :remove)
   end
 
-  def merge!(criteria, options={})
-    return super unless criteria.missing_attributes
+  def self.merge_missing_attributes(a, b)
+    return nil if b.nil? || b == :remove
 
-    if criteria.missing_attributes == :remove
-      self.missing_attributes = nil
-    else
-      self.missing_attributes ||= {}
-      criteria.missing_attributes.each do |type, attrs|
-        old_attrs = self.missing_attributes[type] || {}.with_indifferent_access
-        new_attrs = old_attrs.deep_merge(attrs)
-        self.missing_attributes[type] = new_attrs
-      end
+    a = a ? a.dup : {}
+    b.each do |type, attrs|
+      old_attrs = a[type] || {}.with_indifferent_access
+      new_attrs = old_attrs.deep_merge(attrs)
+      a[type] = new_attrs
     end
-
-    self
+    a
   end
 
   private
@@ -41,16 +37,14 @@ module NoBrainer::Criteria::Pluck
   def _missing_attributes_criteria(type, args)
     raise ArgumentError if args.size.zero?
     args = [Hash[args.flatten.map { |k| [k, true] }]] unless args.size == 1 && args.first.is_a?(Hash)
-    chain { |criteria| criteria.missing_attributes = {type => args.first} }
-
+    chain(:missing_attributes => {type => args.first})
   end
 
   def effective_missing_attributes
-    return nil if self.missing_attributes.nil?
+    return nil if @options[:missing_attributes].nil?
     @effective_missing_attributes ||= begin
       # pluck gets priority
-
-      missing_attributes = Hash[self.missing_attributes.map do |type, attrs|
+      missing_attributes = Hash[@options[:missing_attributes].map do |type, attrs|
         attrs = attrs.select { |k,v| v } # TODO recursive
         attrs.empty? ? nil : [type, attrs]
       end.compact]
@@ -65,9 +59,9 @@ module NoBrainer::Criteria::Pluck
   end
 
   def _instantiate_model(attrs, options={})
-    return super if missing_attributes.nil?
+    return super if @options[:missing_attributes].nil?
     super(attrs, options.merge(:missing_attributes => effective_missing_attributes,
-                               :lazy_fetch => missing_attributes[:lazy_fetch]))
+                               :lazy_fetch => @options[:missing_attributes][:lazy_fetch]))
   end
 
   def compile_rql_pass2

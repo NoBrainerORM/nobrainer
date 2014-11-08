@@ -1,35 +1,20 @@
 module NoBrainer::Criteria::Where
   extend ActiveSupport::Concern
 
-  included { attr_accessor :where_ast, :with_index_name }
-
-  def initialize(options={})
-    super
+  included do
+    criteria_option :where_ast, :merge_with => NoBrainer::Criteria::Where.method(:merge_where_ast)
   end
 
   def where(*args, &block)
-    chain { |criteria| criteria.where_ast = parse_clause([*args, block].compact) }
+    chain(:where_ast => parse_clause([*args, block].compact))
   end
 
-  def merge!(criteria, options={})
-    super
-
-    if criteria.where_ast
-      if self.where_ast
-        self.where_ast = MultiOperator.new(:and, [self.where_ast, criteria.where_ast])
-      else
-        self.where_ast = criteria.where_ast
-      end
-      self.where_ast = self.where_ast.simplify
-      raise unless criteria.where_ast.is_a?(MultiOperator)
-    end
-
-    self.with_index_name = criteria.with_index_name unless criteria.with_index_name.nil?
-    self
+  def self.merge_where_ast(a, b)
+    (a ? MultiOperator.new(:and, [a, b]) : b).simplify
   end
 
   def where_present?
-    finalized_criteria.where_ast.try(:clauses).present?
+    finalized_criteria.options[:where_ast].try(:clauses).present?
   end
 
   def where_indexed?
@@ -232,8 +217,8 @@ module NoBrainer::Criteria::Where
       @usable_indexes[types] ||= begin
         indexes = criteria.model.indexes.values
         indexes = indexes.select { |i| types.include?(i.kind) } if types.present?
-        if criteria.with_index_name && criteria.with_index_name != true
-          indexes = indexes.select { |i| i.name == criteria.with_index_name.to_sym }
+        if criteria.options[:use_index] && criteria.options[:use_index] != true
+          indexes = indexes.select { |i| i.name == criteria.options[:use_index].to_sym }
         end
         indexes
       end
@@ -327,7 +312,7 @@ module NoBrainer::Criteria::Where
 
   def where_index_finder
     return finalized_criteria.__send__(:where_index_finder) unless finalized?
-    @where_index_finder ||= IndexFinder.new(self, where_ast).tap { |index_finder| index_finder.find_index }
+    @where_index_finder ||= IndexFinder.new(self, @options[:where_ast]).tap { |index_finder| index_finder.find_index }
   end
 
   def compile_rql_pass1
@@ -338,7 +323,7 @@ module NoBrainer::Criteria::Where
 
   def compile_rql_pass2
     rql = super
-    ast = where_index_finder.could_find_index? ? where_index_finder.ast : self.where_ast
+    ast = where_index_finder.could_find_index? ? where_index_finder.ast : @options[:where_ast]
     rql = rql.filter { |doc| ast.to_rql(doc) } if ast.try(:clauses).present?
     rql
   end
