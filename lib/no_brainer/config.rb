@@ -63,7 +63,7 @@ module NoBrainer::Config
     end
 
     def default_app_name
-      defined?(Rails) ? Rails.application.class.parent_name.underscore : nil
+      defined?(Rails) ? Rails.application.class.parent_name.underscore.presence : nil rescue nil
     end
 
     def default_environment
