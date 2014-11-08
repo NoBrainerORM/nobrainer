@@ -4,7 +4,7 @@ namespace :nobrainer do
     NoBrainer.drop!
   end
 
-  desc 'Synchronize indexes on the database'
+  desc 'Synchronize index definitions'
   task :sync_indexes => :environment do
     NoBrainer.sync_indexes(:verbose => true)
   end

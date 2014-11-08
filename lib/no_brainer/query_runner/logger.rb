@@ -23,7 +23,7 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
     duration = Time.now - start_time
 
     msg_duration = (duration * 1000.0).round(1).to_s
-    msg_duration = " " * [0, 5 - msg_duration.size].max + msg_duration
+    msg_duration = " " * [0, 6 - msg_duration.size].max + msg_duration
     msg_duration = "[#{msg_duration}ms] "
 
     msg_db = "[#{env[:db_name]}] " if env[:db_name] && env[:db_name].to_s != NoBrainer.connection.parsed_uri[:db]
