@@ -43,7 +43,7 @@ module NoBrainer::ConnectionManager
   end
 
   def _disconnect
-    self.current_connection.try(:disconnect, :noreply_wait => true) rescue nil
+    self.current_connection.try(:close, :noreply_wait => false) rescue nil
     self.current_connection = nil
   end
 

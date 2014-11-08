@@ -2,11 +2,15 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
   rescue StandardError => e
-    context ||= { :retries => NoBrainer::Config.max_reconnection_tries }
+    context ||= { :retries => NoBrainer::Config.max_retries_on_connection_failure }
     if is_connection_error_exception?(e)
-      # XXX Possibly dangerous, as we could reexecute a non idempotent operation
-      # Check the semantics of the db
-      retry if reconnect(e, context)
+      if NoBrainer::Config.max_retries_on_connection_failure == 0
+        NoBrainer.disconnect
+      else
+        # XXX Possibly dangerous, as we could reexecute a non idempotent operation
+        # Check the semantics of the db
+        retry if reconnect(e, context)
+      end
     end
     raise
   end

@@ -2,25 +2,33 @@ require 'logger'
 
 module NoBrainer::Config
   class << self
-    mattr_accessor :rethinkdb_url, :logger, :warn_on_active_record,
+    mattr_accessor :environment, :rethinkdb_url, :logger,
+                   :warn_on_active_record,
                    :auto_create_databases, :auto_create_tables,
-                   :max_reconnection_tries, :durability,
+                   :max_retries_on_connection_failure, :durability,
                    :user_timezone, :db_timezone, :colorize_logger,
                    :distributed_lock_class, :per_thread_connection
 
     def apply_defaults
-      self.rethinkdb_url           = default_rethinkdb_url
-      self.logger                  = default_logger
-      self.warn_on_active_record   = true
-      self.auto_create_databases   = true
-      self.auto_create_tables      = true
-      self.max_reconnection_tries  = default_max_reconnection_tries
-      self.durability              = default_durability
-      self.user_timezone           = :local
-      self.db_timezone             = :utc
-      self.colorize_logger         = true
-      self.distributed_lock_class  = nil
-      self.per_thread_connection   = false
+      self.environment                       = default_environment
+      self.rethinkdb_url                     = default_rethinkdb_url
+      self.logger                            = default_logger
+      self.warn_on_active_record             = true
+      self.auto_create_databases             = true
+      self.auto_create_tables                = true
+      self.max_retries_on_connection_failure = default_max_retries_on_connection_failure
+      self.durability                        = default_durability
+      self.user_timezone                     = :local
+      self.db_timezone                       = :utc
+      self.colorize_logger                   = true
+      self.distributed_lock_class            = nil
+      self.per_thread_connection             = false
+    end
+
+    def max_reconnection_tries=(value)
+      STDERR.puts "[NoBrainer] config.max_reconnection_tries is deprecated and will be removed"
+      STDERR.puts "[NoBrainer] use config.max_retries_on_connection_failure instead."
+      self.max_retries_on_connection_failure = value
     end
 
     def reset!
@@ -53,9 +61,13 @@ module NoBrainer::Config
       end
     end
 
+    def default_environment
+      defined?(Rails.env) ? Rails.env.to_sym : :production
+    end
+
     def default_rethinkdb_url
       db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
-      db ||= "#{Rails.application.class.parent_name.underscore}_#{Rails.env}" rescue nil
+      db ||= "#{Rails.application.class.parent_name.underscore}_#{self.environment}" rescue nil
       host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
       port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
       auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
@@ -72,12 +84,12 @@ module NoBrainer::Config
       dev_mode? ? :soft : :hard
     end
 
-    def default_max_reconnection_tries
+    def default_max_retries_on_connection_failure
       dev_mode? ? 1 : 15
     end
 
     def dev_mode?
-      (defined?(Rails.env) && (Rails.env.test? || Rails.env.development?)) || false
+      self.environment.in?([:development, :test])
     end
   end
 end
