@@ -2,33 +2,25 @@ module NoBrainer::Document::AtomicOps
   extend ActiveSupport::Concern
 
   class PendingAtomic
-    def self._new(instance, field, value, is_user_value, options={})
-      model = case value
-              when Array then PendingAtomicArray
-              when Set   then PendingAtomicSet
-              else self
-              end
-      model.new(instance, field, value, is_user_value, options)
+    def self._new(instance, field, value, is_user_value)
+      case value
+      when Array then PendingAtomicArray
+      when Set   then PendingAtomicSet
+      else self
+      end.new(instance, field, value, is_user_value)
     end
 
-    def initialize(instance, field, value, is_user_value, options={})
+    def initialize(instance, field, value, is_user_value)
       @instance = instance
       @field = field.to_s
       @value = value
       @is_user_value = is_user_value
-      @options = options.dup
       @ops = []
     end
 
-    def write_access?
-      !!@options[:write_access]
-    end
-
-    def ensure_writeable!
-      unless write_access?
-        @options[:write_access] = true
-        @instance.write_attribute(@field, self)
-      end
+    def initialize_copy(other)
+      super
+      @ops = @ops.dup
     end
 
     def to_s
@@ -36,20 +28,27 @@ module NoBrainer::Document::AtomicOps
     end
     alias_method :inspect, :to_s
 
-    def method_missing(method_name, *a, &b)
-      @ops << [method_name, a, b]
+    def method_missing(method, *a, &b)
+      @ops << [method, a, b]
       self
     end
 
     def compile_rql_value(rql_doc)
       field = @instance.class.lookup_field_alias(@field)
       value = @is_user_value ? RethinkDB::RQL.new.expr(@value) : rql_doc[field]
-      @ops.each { |method_name, a, b| value = value.__send__(method_name, *a, &b) }
-      value
+      @ops.reduce(value) { |v, (method, a, b)| v.__send__(method, *a, &b) }
     end
   end
 
-  class PendingAtomicArray < PendingAtomic
+  class PendingAtomicContainer < PendingAtomic
+    def modify_source!
+      unless @instance._is_attribute_touched?(@field)
+        @instance.write_attribute(@field, self)
+      end
+    end
+  end
+
+  class PendingAtomicArray < PendingAtomicContainer
     def -(value)
       @ops << [:difference, [value.to_a]]
       self
@@ -80,12 +79,12 @@ module NoBrainer::Document::AtomicOps
 
     def <<(value)
       @ops << [:append, [value]]
-      ensure_writeable!
+      modify_source!
       self
     end
   end
 
-  class PendingAtomicSet < PendingAtomicArray
+  class PendingAtomicSet < PendingAtomicContainer
     def -(value)
       @ops << [:set_difference, [value.to_a]]
       self
@@ -98,7 +97,7 @@ module NoBrainer::Document::AtomicOps
 
     def <<(value)
       @ops << [:set_union, [[value]]]
-      ensure_writeable!
+      modify_source!
       self
     end
   end
@@ -145,9 +144,9 @@ module NoBrainer::Document::AtomicOps
     value = super
 
     case [in_atomic?, value.is_a?(PendingAtomic)]
-    when [true, true]   then value
     when [true, false]  then PendingAtomic._new(self, name, value, _is_attribute_touched?(name))
     when [false, true]  then raise NoBrainer::Error::CannotReadAtomic.new(self, name, value)
+    when [true, true]   then value.is_a?(PendingAtomicContainer) ? value : value.dup
     when [false, false] then value
     end
   end
@@ -156,9 +155,9 @@ module NoBrainer::Document::AtomicOps
     ensure_exclusive_atomic!
 
     case [in_atomic?, value.is_a?(PendingAtomic)]
-    when [true, true]   then super
     when [true, false]  then raise NoBrainer::Error::AtomicBlock.new('Avoid the use of atomic blocks for non atomic operations')
     when [false, true]  then raise NoBrainer::Error::AtomicBlock.new('Use atomic blocks for atomic operations')
+    when [true, true]   then super.tap { _touch_attribute(name) }
     when [false, false] then super.tap { _touch_attribute(name) }
     end
   end

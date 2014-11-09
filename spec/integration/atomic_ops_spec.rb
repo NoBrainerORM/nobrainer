@@ -263,4 +263,58 @@ describe 'atomic ops' do
       doc.field2.should == ['x', 'y']
     end
   end
+
+  context 'when assigning multiple variables' do
+    it 'works as expected with scalars' do
+      doc
+
+      doc.queue_atomic do
+        doc.field1 = doc.field1 + 1
+        doc.field2 = doc.field1 * 2
+      end
+
+      doc.save
+      doc.reload
+
+      doc.field1.should == 1
+      doc.field2.should == 2
+    end
+
+    it 'works as expected with arrays' do
+      doc.update(:field1 => [])
+
+      doc.queue_atomic do
+        doc.field1 = doc.field1 + [1]
+        doc.field2 = doc.field1
+        doc.field3 = doc.field1.dup
+        doc.field1 << 2
+      end
+
+      doc.save
+      doc.reload
+
+      doc.field1.should == [1,2]
+      doc.field2.should == [1,2]
+      doc.field3.should == [1]
+    end
+
+    it 'works as expected when exchanging variables' do
+      doc.update(:field1 => [], :field2 => [])
+
+      doc.queue_atomic do
+        doc.field2, doc.field1 = doc.field1, doc.field2
+        doc.field1 << 1
+        doc.field2 << 2
+        doc.field2, doc.field1 = doc.field1, doc.field2
+        doc.field1 << 1
+        doc.field2 << 2
+      end
+
+      doc.save
+      doc.reload
+
+      doc.field1.should == [2,1]
+      doc.field2.should == [1,2]
+    end
+  end
 end

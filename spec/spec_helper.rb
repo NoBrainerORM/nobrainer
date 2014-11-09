@@ -60,8 +60,8 @@ RSpec.configure do |config|
       c.reset!
       c.rethinkdb_url = "rethinkdb://#{database_host}/#{database_name}"
       c.durability = :soft
-      c.logger.level = Logger::DEBUG if ENV['DEBUG']
     end
+    NoBrainer::Config.logger.level = Logger::DEBUG if ENV['DEBUG']
 
     NoBrainer.purge!
     NoBrainer::Loader.cleanup
