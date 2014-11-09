@@ -12,7 +12,7 @@ module NoBrainer::Generators
     end
 
     def self.namespace
-      super.gsub(/no_brainer/,'nobrainer')
+      super.gsub(/no_brainer/, 'nobrainer')
     end
   end
 end

@@ -17,7 +17,7 @@ if ENV['TEST_ENV_NUMBER']
     class << self
       alias_method :with_database_orig, :with_database
       def with_database(db_name, &block)
-        db_name = db_name + DB_SUFFIX unless db_name =~ /#{DB_SUFFIX}$/
+        db_name += DB_SUFFIX unless db_name =~ /#{DB_SUFFIX}$/
         with_database_orig(db_name, &block)
       end
     end
@@ -27,7 +27,7 @@ if ENV['TEST_ENV_NUMBER']
     alias_method :database_name_orig, :database_name
     def database_name
       db_name = database_name_orig
-      db_name = db_name + DB_SUFFIX if db_name && db_name !~ /#{DB_SUFFIX}$/
+      db_name += DB_SUFFIX if db_name && db_name !~ /#{DB_SUFFIX}$/
       db_name
     end
   end

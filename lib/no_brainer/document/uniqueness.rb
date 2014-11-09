@@ -58,7 +58,6 @@ module NoBrainer::Document::Uniqueness
       subclass.unique_validators = self.unique_validators.dup
       super
     end
-
   end
 
   class UniquenessValidator < ActiveModel::EachValidator

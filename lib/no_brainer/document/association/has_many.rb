@@ -53,7 +53,7 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def write(new_children)
-    raise "You can't assign #{target_name}. " +
+    raise "You can't assign #{target_name}. " \
           "Instead, you must modify delete and create #{target_model} manually."
   end
 
@@ -80,7 +80,7 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def set_inverse_proc
-    lambda { |target| set_inverses_of([target]) if target.is_a?(NoBrainer::Document) }
+    ->(target){ set_inverses_of([target]) if target.is_a?(NoBrainer::Document) }
   end
 
   def before_destroy_callback

@@ -256,7 +256,7 @@ module NoBrainer::Criteria::Where
         self.index_name = index.name
         self.ast = remove_from_ast(indexed_clauses)
         self.index_type = :get_all
-        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map { |c| c.value }, :index => index.aliased_name) }
+        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map(&:value), :index => index.aliased_name) }
       end
     end
 
@@ -312,7 +312,7 @@ module NoBrainer::Criteria::Where
 
   def where_index_finder
     return finalized_criteria.__send__(:where_index_finder) unless finalized?
-    @where_index_finder ||= IndexFinder.new(self, @options[:where_ast]).tap { |index_finder| index_finder.find_index }
+    @where_index_finder ||= IndexFinder.new(self, @options[:where_ast]).tap(&:find_index)
   end
 
   def compile_rql_pass1

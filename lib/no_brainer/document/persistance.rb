@@ -45,16 +45,16 @@ module NoBrainer::Document::Persistance
 
   def reload(options={})
     [:without, :pluck].each do |type|
-      if v = options.delete(type)
-        v = Hash[v.flatten.map { |k| [k, true] }] if v.is_a?(Array)
-        v = {v => true} if !v.is_a?(Hash)
-        v = v.select { |k,_v| _v }
-        v = v.with_indifferent_access
-        next unless v.present?
+      next unless v = options.delete(type)
 
-        options[:missing_attributes] ||= {}
-        options[:missing_attributes][type] = v
-      end
+      v = Hash[v.flatten.map { |k| [k, true] }] if v.is_a?(Array)
+      v = {v => true} unless v.is_a?(Hash)
+      v = v.select { |k,_v| _v }
+      v = v.with_indifferent_access
+      next unless v.present?
+
+      options[:missing_attributes] ||= {}
+      options[:missing_attributes][type] = v
     end
     _reload(options)
   end

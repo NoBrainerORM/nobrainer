@@ -20,4 +20,3 @@ class NoBrainer::Binary
   end
   extend NoBrainerExtentions
 end
-

@@ -31,10 +31,6 @@ module NoBrainer
     def jruby?
       RUBY_PLATFORM == 'java'
     end
-
-    def user_caller
-      caller.reject { |s| s =~ /\/no_brainer\// }.first
-    end
   end
 
   DecoratedSymbol.hook

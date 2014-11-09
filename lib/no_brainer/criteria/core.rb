@@ -57,7 +57,7 @@ module NoBrainer::Criteria::Core
 
   private
 
-  def chain(options={}, merge_options={}, &block)
+  def chain(options={}, merge_options={})
     merge(self.class.new(options), merge_options)
   end
 

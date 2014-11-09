@@ -6,6 +6,6 @@ module NoBrainer::Criteria::Delete
   end
 
   def destroy_all
-    to_a.each { |doc| doc.destroy }
+    to_a.each(&:destroy)
   end
 end

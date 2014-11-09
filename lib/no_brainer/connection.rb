@@ -50,7 +50,7 @@ class NoBrainer::Connection
 
   # Note that truncating each table (purge) is much faster than dropping the
   # database (drop)
-  def purge!(options={})
+  def purge!
     table_list.each do |table_name|
       next if table_name =~ /^nobrainer_/
       NoBrainer.run { |r| r.table(table_name).delete }

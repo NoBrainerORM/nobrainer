@@ -19,7 +19,7 @@ module NoBrainer::RQL
     case rql_query.body.first
     when UPDATE, DELETE, REPLACE, INSERT
       :write
-    when DB_CREATE,DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST, SYNC,
+    when DB_CREATE, DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST, SYNC,
          INDEX_CREATE, INDEX_DROP, INDEX_LIST, INDEX_STATUS, INDEX_WAIT
       :management
     else

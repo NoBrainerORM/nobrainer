@@ -19,10 +19,10 @@ namespace :nobrainer do
   end
 
   desc 'Equivalent to :sync_indexes_quiet + :seed'
-  task :setup => [ :sync_indexes_quiet, :seed ]
+  task :setup => [:sync_indexes_quiet, :seed]
 
   desc 'Equivalent to :drop + :setup'
-  task :reset => [ :drop, :setup ]
+  task :reset => [:drop, :setup]
 
   task :create => :environment do
     # noop

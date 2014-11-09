@@ -46,20 +46,19 @@ module NoBrainer::Document::Attributes
 
   def assign_defaults(options)
     self.class.fields.each do |name, field_options|
-      if field_options.has_key?(:default) &&
-         !@_attributes.has_key?(name)
+      next unless field_options.has_key?(:default) &&
+                  !@_attributes.has_key?(name)
 
-         if opt = options[:missing_attributes]
-           if (opt[:pluck] && !opt[:pluck][name]) ||
-              (opt[:without] && opt[:without][name])
-             next
-           end
-         end
-
-        default_value = field_options[:default]
-        default_value = default_value.call if default_value.is_a?(Proc)
-        self.write_attribute(name, default_value)
+      if opt = options[:missing_attributes]
+        if (opt[:pluck] && !opt[:pluck][name]) ||
+           (opt[:without] && opt[:without][name])
+          next
+        end
       end
+
+      default_value = field_options[:default]
+      default_value = default_value.call if default_value.is_a?(Proc)
+      self.write_attribute(name, default_value)
     end
   end
 

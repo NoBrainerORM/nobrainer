@@ -51,7 +51,7 @@ module NoBrainer::Document::Id
     # 3 bytes inc
     oid += [get_inc].pack("N")[1, 3]
 
-    oid.unpack("C12").map {|e| v=e.to_s(16); v.size == 1 ? "0#{v}" : v }.join
+    oid.unpack("C12").map { |e| v = e.to_s(16); v.size == 1 ? "0#{v}" : v }.join
   end
 
   module ClassMethods

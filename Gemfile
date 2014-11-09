@@ -6,4 +6,4 @@ gem 'rspec', '~> 3.0'
 gem 'timecop'
 gem 'pry'
 gem 'simplecov', :require => false
-gem 'parallel_tests', :require => false , :github => 'nviennot/parallel_tests'
+gem 'parallel_tests', :require => false, :github => 'nviennot/parallel_tests'

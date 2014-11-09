@@ -32,9 +32,9 @@ module NoBrainer::Document::AtomicOps
     end
 
     def to_s
-      "<#{@field} with pending atomic operations>"
+      "<`#{@field}' with #{@ops.size} pending atomic operations>"
     end
-    alias inspect to_s
+    alias_method :inspect, :to_s
 
     def method_missing(method_name, *a, &b)
       @ops << [method_name, a, b]

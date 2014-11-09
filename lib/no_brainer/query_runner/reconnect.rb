@@ -18,18 +18,16 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   private
 
   def reconnect(e, context)
-    begin
-      return false if context[:retries].zero?
-      context[:retries] -= 1
+    return false if context[:retries].zero?
+    context[:retries] -= 1
 
-      warn_reconnect(e)
-      sleep 1
-      NoBrainer.connection.reconnect(:noreply_wait => false)
-      return true
-    rescue StandardError => e
-      retry if is_connection_error_exception?(e)
-      raise
-    end
+    warn_reconnect(e)
+    sleep 1
+    NoBrainer.connection.reconnect(:noreply_wait => false)
+    true
+  rescue StandardError => e
+    retry if is_connection_error_exception?(e)
+    raise
   end
 
   def is_connection_error_exception?(e)

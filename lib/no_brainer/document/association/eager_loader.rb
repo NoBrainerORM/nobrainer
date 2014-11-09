@@ -17,7 +17,7 @@ class NoBrainer::Document::Association::EagerLoader
         if owner_keys.present?
           targets = criteria.where(target_key.in => owner_keys)
                             .map { |target| [target.read_attribute(target_key), target] }
-                            .reduce(Hash.new { |k,v| k[v] = [] }) { |h,(k,v)| h[k] << v; h }
+                            .each_with_object(Hash.new { |k,v| k[v] = [] }) { |(k,v),h| h[k] << v }
 
           unloaded_docs.each do |doc|
             doc_targets = targets[doc.read_attribute(owner_key)]

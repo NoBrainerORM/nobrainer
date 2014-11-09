@@ -9,7 +9,7 @@ module NoBrainer::Document::Callbacks
   end
 
   def initialize(*args, &block)
-    run_callbacks(:initialize) { _initialize(*args); true }
+    run_callbacks(:initialize) { _initialize(*args, &block); true }
   end
 
   def _create(*args, &block)

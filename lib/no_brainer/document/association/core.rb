@@ -37,7 +37,7 @@ module NoBrainer::Document::Association::Core
     end
 
     def add_callback_for(what)
-      instance_eval <<-RUBY, __FILE__, __LINE__+1
+      instance_eval <<-RUBY, __FILE__, __LINE__ + 1
         if !@added_#{what}
           metadata = self
           owner_model.#{what} { associations[metadata].#{what}_callback }

@@ -87,7 +87,7 @@ module NoBrainer::Criteria::OrderBy
 
   def order_by_index_finder
     return finalized_criteria.__send__(:order_by_index_finder) unless finalized?
-    @order_by_index_finder ||= IndexFinder.new(self).tap { |index_finder| index_finder.find_index }
+    @order_by_index_finder ||= IndexFinder.new(self).tap(&:find_index)
   end
 
   def compile_rql_pass1

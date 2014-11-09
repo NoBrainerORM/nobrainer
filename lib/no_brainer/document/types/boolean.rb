@@ -23,4 +23,3 @@ class NoBrainer::Boolean
   end
   extend NoBrainerExtentions
 end
-
