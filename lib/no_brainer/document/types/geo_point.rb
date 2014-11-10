@@ -27,5 +27,4 @@ class NoBrainer::GeoPoint < Struct.new(:x, :y)
       NoBrainer::GeoPoint.new(value['coordinates'][0], value['coordinates'][1])
     end
   end
-
 end

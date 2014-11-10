@@ -15,5 +15,4 @@ module NoBrainer::Criteria::Nearest
     end
     rql
   end
-
 end
