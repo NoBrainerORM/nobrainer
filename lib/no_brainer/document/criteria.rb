@@ -27,7 +27,7 @@ module NoBrainer::Document::Criteria
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
-             :nearest,                       # Geospatial
+             :geo,                           # Geo
              :to => :all
 
     def all

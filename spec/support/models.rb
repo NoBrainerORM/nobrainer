@@ -13,7 +13,7 @@ module ModelsHelper
     define_class :City do
       include NoBrainer::Document
       field :name
-      field :location, :type => NoBrainer::Point
+      field :location, :type => NoBrainer::GeoPoint
       index :location, :geo => true
     end
 
