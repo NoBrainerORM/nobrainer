@@ -474,17 +474,17 @@ describe 'types' do
   context 'when using a custom type' do
     let(:type) { nil }
     before do
-      define_class :Point, Struct.new(:x, :y) do
+      define_class :GeoPoint, Struct.new(:x, :y) do
         def self.nobrainer_cast_user_to_model(value)
           case value
-          when Point then value
+          when GeoPoint then value
           when Hash  then new(value[:x] || value['x'], value[:y] || value['y'])
           else raise NoBrainer::Error::InvalidType
           end
         end
 
         def self.nobrainer_cast_db_to_model(value)
-          Point.new(value['x'], value['y'])
+          GeoPoint.new(value['x'], value['y'])
         end
 
         def self.nobrainer_cast_model_to_db(value)
@@ -492,23 +492,23 @@ describe 'types' do
         end
       end
     end
-    before { SimpleDocument.field :field1, :type => Point }
+    before { SimpleDocument.field :field1, :type => GeoPoint }
 
     it 'type checks' do
-      doc.field1 = Point.new
+      doc.field1 = GeoPoint.new
       doc.valid?.should == true
 
       doc.field1 = 123
       doc.field1.should == 123
       doc.valid?.should == false
-      doc.errors.full_messages.first.should == "Field1 should be a point"
+      doc.errors.full_messages.first.should == "Field1 should be a geo point"
 
       doc.field1 = {:x => 123, :y => 456}
-      doc.field1.should == Point.new(123, 456)
+      doc.field1.should == GeoPoint.new(123, 456)
       doc.valid?.should == true
 
       doc.save
-      SimpleDocument.first.field1.should == Point.new(123, 456)
+      SimpleDocument.first.field1.should == GeoPoint.new(123, 456)
     end
   end
 
