@@ -48,8 +48,8 @@ module NoBrainer::Criteria::Where
 
     def to_rql(doc)
       case op
-      when :and then clauses.map { |c| c.to_rql(doc) }.reduce { |a,b| a & b }
-      when :or  then clauses.map { |c| c.to_rql(doc) }.reduce { |a,b| a | b }
+      when :and then clauses.map { |c| c.to_rql(doc) }.reduce(:&)
+      when :or  then clauses.map { |c| c.to_rql(doc) }.reduce(:|)
       end
     end
   end
@@ -297,7 +297,7 @@ module NoBrainer::Criteria::Where
         self.ast = nil
         self.index_name = indexes.map(&:index_name)
         self.index_type = indexes.map(&:index_type)
-        self.rql_proc = ->(rql){ indexes.map { |index| index.rql_proc.call(rql) }.reduce { |a,b| a.union(b) } }
+        self.rql_proc = ->(rql){ indexes.map { |index| index.rql_proc.call(rql) }.reduce(:union).distinct }
       end
     end
 

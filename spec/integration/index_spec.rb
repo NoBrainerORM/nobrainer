@@ -450,5 +450,9 @@ describe 'NoBrainer index' do
       criteria.where_indexed?.should == true
       criteria.where_index_name.should =~ [:field1, :field2]
     end
+
+    it 'returns distinct elements' do
+      SimpleDocument.where(:or => [{:field1 => 1}, {:field2 => 1}]).count.should == 1
+    end
   end
 end
