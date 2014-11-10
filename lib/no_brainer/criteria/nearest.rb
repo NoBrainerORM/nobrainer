@@ -9,7 +9,10 @@ module NoBrainer::Criteria::Nearest
 
   def compile_rql_pass1
     rql = super
-    rql = rql.get_nearest(@options[:nearest_point].to_rql, @options[:nearest_options]).map {|res| res['doc']} if @options[:nearest_point] && @options[:nearest_options]
+    if @options[:nearest_point] && @options[:nearest_options]
+      rql = rql.get_nearest(@options[:nearest_point].to_rql, @options[:nearest_options])
+      rql = rql.map {|res| res['doc']}
+    end
     rql
   end
 

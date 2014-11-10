@@ -8,7 +8,11 @@ class NoBrainer::GeoPoint < Struct.new(:x, :y)
     def nobrainer_cast_user_to_model(value)
       case value
       when NoBrainer::GeoPoint then value
-      when Hash then new(value[:x] || value['x'], value[:y] || value['y'])
+      when Hash then
+        x = value[:x] ? value[:x] : value['x']
+        y = value[:y] ? value[:y] : value['y']
+        raise "You must supply :x and :y!" unless x && y
+        new(x, y)
       else raise NoBrainer::Error::InvalidType
       end
     end
