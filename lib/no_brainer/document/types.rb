@@ -104,7 +104,7 @@ module NoBrainer::Document::Types
   require File.join(File.dirname(__FILE__), 'types', 'geo_point')
   Binary = NoBrainer::Binary
   Boolean = NoBrainer::Boolean
-  GeoPoint = NoBrainer::GeoPoint
+  Point = NoBrainer::Geo::Point
 
   class << self
     mattr_accessor :loaded_extensions
