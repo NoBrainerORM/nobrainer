@@ -1,3 +1,0 @@
--I vendor/plugins/parallel_tests/lib
---format progress
---format ParallelTests::RSpec::RuntimeLogger --out tmp/parallel_runtime_rspec.log
