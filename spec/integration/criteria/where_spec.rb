@@ -43,20 +43,33 @@ describe 'where' do
   end
 
   context 'when passing a field that does not exist' do
-    it 'filters documents without yelling' do
-      SimpleDocument.where(:field_new => 'hi').count.should == 0
-      SimpleDocument.field :field_new
-      SimpleDocument.first.update(:field_new => 'hi')
-      SimpleDocument.where(:field_new => 'hi').count.should == 1
+    context 'when not using dynamic attributes' do
+      it 'raises' do
+        expect { SimpleDocument.where(:field_new => 'hi').count } \
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a declared attribute of SimpleDocument")
+
+        SimpleDocument.field :field_new
+        SimpleDocument.first.update(:field_new => 'hi')
+        SimpleDocument.where(:field_new => 'hi').count.should == 1
+      end
     end
 
-    it 'does not return documents that have the field set to nil' do
-      SimpleDocument.where(:field_new => nil).count.should == 0
-      SimpleDocument.field :field_new
-      SimpleDocument.first.update(:field_new => 'hi')
-      SimpleDocument.where(:field_new => 'hi').count.should == 1
-      SimpleDocument.first.update(:field_new => nil)
-      SimpleDocument.where(:field_new => nil).count.should == 1
+    context 'when using an index' do
+      before { SimpleDocument.index :field_new }
+      before { NoBrainer.sync_indexes }
+      after  { NoBrainer.drop! }
+
+      it 'does not raises' do
+        SimpleDocument.where(:field_new => 'hi').count.should == 0
+      end
+    end
+
+    context 'when using dynamic attributes' do
+      before { SimpleDocument.send(:include, NoBrainer::Document::DynamicAttributes) }
+
+      it 'does not raises' do
+        SimpleDocument.where(:field_new => 'hi').count.should == 0
+      end
     end
   end
 

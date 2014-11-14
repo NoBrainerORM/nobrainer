@@ -138,7 +138,11 @@ module NoBrainer::Criteria::Where
 
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata then association.foreign_key
-      else key
+      else
+        unless model.has_field?(key) || model.has_index?(key) || model < NoBrainer::Document::DynamicAttributes
+          raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a declared attribute of #{model}"
+        end
+        key
       end
     end
   end
