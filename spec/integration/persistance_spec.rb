@@ -11,6 +11,11 @@ describe 'NoBrainer persistance' do
     doc.field2.should == 'world'
   end
 
+  it 'persist fields with create!' do
+    SimpleDocument.create!(:field1 => 'create!')
+    SimpleDocument.where(:field1 => 'create!').count.should == 1
+  end
+
   it 'updates with save' do
     doc.field1 = 'ohai'
     doc.field2 = ':)'

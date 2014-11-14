@@ -144,6 +144,7 @@ module NoBrainer::Document::Persistance
     def create(attrs={}, options={})
       new(attrs, options).tap { |doc| doc.save(options) }
     end
+    alias_method :create!, :create
 
     def insert_all(*args)
       docs = args.shift
