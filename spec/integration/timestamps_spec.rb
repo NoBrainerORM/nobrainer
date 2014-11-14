@@ -24,6 +24,30 @@ describe "NoBrainer timestamps" do
       SimpleDocument.first.created_at.to_i.should == old_time.to_i
       SimpleDocument.first.updated_at.to_i.should == new_time.to_i
     end
+
+    it 'allows overriding created_at' do
+      now = Time.now
+      some_time = now - 60
+
+      Timecop.freeze(now) { SimpleDocument.create(:created_at => some_time) }
+      SimpleDocument.first.created_at.to_i.should == some_time.to_i
+      SimpleDocument.first.updated_at.to_i.should == now.to_i
+
+      SimpleDocument.first.update(:created_at => some_time)
+      SimpleDocument.first.created_at.to_i.should == some_time.to_i
+    end
+
+    it 'allows overriding updated_at' do
+      now = Time.now
+      some_time = now - 60
+
+      Timecop.freeze(now) { SimpleDocument.create(:updated_at => some_time) }
+      SimpleDocument.first.created_at.to_i.should == now.to_i
+      SimpleDocument.first.updated_at.to_i.should == some_time.to_i
+
+      SimpleDocument.first.update(:updated_at => some_time)
+      SimpleDocument.first.updated_at.to_i.should == some_time.to_i
+    end
   end
 
   context 'when not using timestamps' do
