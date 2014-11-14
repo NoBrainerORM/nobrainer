@@ -3,7 +3,7 @@ module NoBrainer::Document::Attributes
                          :validates, :required, :unique, :uniq, :format, :in,
                          :readonly, :primary_key, :as, :lazy_fetch]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
-                          + NoBrainer::DecoratedSymbol::MODIFIERS.keys
+                          + NoBrainer::Criteria::Where::OPERATORS
   extend ActiveSupport::Concern
 
   included do

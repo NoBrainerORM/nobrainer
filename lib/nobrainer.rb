@@ -12,7 +12,7 @@ module NoBrainer
 
   # We eager load things that could be loaded when handling the first web request.
   # Code that is loaded through the DSL of NoBrainer should not be eager loaded.
-  autoload :Document, :IndexManager, :Loader, :Fork, :DecoratedSymbol
+  autoload :Document, :IndexManager, :Loader, :Fork
   eager_autoload :Config, :Connection, :ConnectionManager,  :Error,
                  :QueryRunner, :Criteria, :RQL
 
@@ -33,7 +33,6 @@ module NoBrainer
     end
   end
 
-  DecoratedSymbol.hook
   Fork.hook unless jruby?
 end
 

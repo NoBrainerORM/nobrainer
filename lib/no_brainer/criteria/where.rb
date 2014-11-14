@@ -1,4 +1,9 @@
 module NoBrainer::Criteria::Where
+  OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined).map(&:to_sym)
+
+  require 'symbol_decoration'
+  Symbol::Decoration.register(*OPERATORS)
+
   extend ActiveSupport::Concern
 
   included do
@@ -165,7 +170,7 @@ module NoBrainer::Criteria::Where
     when Array then MultiOperator.new(:and, clause.map { |c| parse_clause(c) })
     when Hash  then MultiOperator.new(:and, clause.map { |k,v| parse_clause_stub(k,v) })
     when Proc  then Lambda.new(clause)
-    when NoBrainer::DecoratedSymbol
+    when Symbol::Decoration
       case clause.args.size
       when 1 then parse_clause_stub(clause, clause.args.first)
       else raise "Invalid argument: #{clause}"
@@ -180,12 +185,14 @@ module NoBrainer::Criteria::Where
     when :or  then MultiOperator.new(:or,  value.map { |v| parse_clause(v) })
     when :not then UnaryOperator.new(:not, parse_clause(value))
     when String, Symbol then parse_clause_stub_eq(key, value)
-    when NoBrainer::DecoratedSymbol then
-      case key.modifier
+    when Symbol::Decoration then
+      case key.decorator
       when :nin then parse_clause(:not => { key.symbol.in => value })
-      when :ne  then parse_clause(:not => { key.symbol.eq => value })
+      when :not, :ne then parse_clause(:not => { key.symbol.eq => value })
+      when :gte then parse_clause(key.symbol.ge => value)
+      when :lte then parse_clause(key.symbol.le => value)
       when :eq  then parse_clause_stub_eq(key.symbol, value)
-      else BinaryOperator.new(key.symbol, key.modifier, value, self.model)
+      else BinaryOperator.new(key.symbol, key.decorator, value, self.model)
       end
     else raise "Invalid key: #{key}"
     end
