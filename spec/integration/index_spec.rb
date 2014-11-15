@@ -451,6 +451,13 @@ describe 'NoBrainer index' do
       criteria.where_index_name.should =~ [:field1, :field2]
     end
 
+    it 'uses indexes even when clauses are partially indexable' do
+      criteria = SimpleDocument.where(:or => [{:field1 => 1, :field2 => 3}, {:field1 => 1}, {:field2 => 4}]).order_by(:field1 => :desc)
+      criteria.to_a.should == [docs[4], docs[1]]
+      criteria.where_indexed?.should == true
+      criteria.where_index_name.should =~ [:field1, :field1, :field2]
+    end
+
     it 'returns distinct elements' do
       SimpleDocument.where(:or => [{:field1 => 1}, {:field2 => 1}]).count.should == 1
     end

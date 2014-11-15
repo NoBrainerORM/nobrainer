@@ -23,15 +23,16 @@ module NoBrainer::Criteria::Where
   end
 
   def where_indexed?
-    !!where_index_name
+    where_index_name.present?
   end
 
   def where_index_name
-    where_index_finder.index_name
+    index = where_index_finder.strategy.try(:index)
+    index.is_a?(Array) ? index.map(&:name) : index.try(:name)
   end
 
   def where_index_type
-    where_index_finder.index_type
+    where_index_finder.strategy.try(:rql_op)
   end
 
   private
@@ -39,7 +40,7 @@ module NoBrainer::Criteria::Where
   class MultiOperator < Struct.new(:op, :clauses)
     def simplify
       clauses = self.clauses.map(&:simplify)
-      if self.clauses.size == 1 && self.clauses.first.is_a?(self.class)
+      if clauses.size == 1 && clauses.first.is_a?(self.class)
         return clauses.first
       end
 
@@ -47,7 +48,7 @@ module NoBrainer::Criteria::Where
         v.is_a?(self.class) && (v.clauses.size == 1 || v.op == self.op)
       end
       simplified_clauses = other_clauses + same_op_clauses.map(&:clauses).flatten(1)
-      simplified_clauses =  BinaryOperator.simplify_clauses(op, simplified_clauses.uniq)
+      simplified_clauses = BinaryOperator.simplify_clauses(op, simplified_clauses.uniq)
       self.class.new(op, simplified_clauses)
     end
 
@@ -210,131 +211,130 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class IndexFinder < Struct.new(:criteria, :ast, :index_name, :index_type, :rql_proc)
-    def initialize(*args)
-      super
-    end
+  class IndexFinder < Struct.new(:criteria, :ast, :strategy)
+    class Strategy < Struct.new(:rql_op, :index, :ast, :rql_proc); end
+    class IndexStrategy < Struct.new(:criteria_ast, :optimized_clauses, :index, :rql_op, :rql_args, :rql_options)
+      def ast
+        MultiOperator.new(criteria_ast.op, criteria_ast.clauses - optimized_clauses)
+      end
 
-    def could_find_index?
-      !!self.index_name
+      def rql_proc
+        ->(rql){ rql.__send__(rql_op, *rql_args, (rql_options || {}).merge(:index => index.aliased_name)) }
+      end
     end
 
     def get_candidate_clauses(*types)
       BinaryOperator.get_candidate_clauses(ast.clauses, *types)
     end
 
-    def get_usable_indexes(*types)
-      @usable_indexes = {}
-      @usable_indexes[types] ||= begin
-        indexes = criteria.model.indexes.values
-        indexes = indexes.select { |i| types.include?(i.kind) } if types.present?
-        if criteria.options[:use_index] && criteria.options[:use_index] != true
-          indexes = indexes.select { |i| i.name == criteria.options[:use_index].to_sym }
-        end
-        indexes
+    def get_usable_indexes(options={})
+      indexes = criteria.model.indexes.values
+      options.each { |k,v| indexes = indexes.select { |i| v == i.__send__(k) } }
+      if criteria.options[:use_index] && criteria.options[:use_index] != true
+        indexes = indexes.select { |i| i.name == criteria.options[:use_index].to_sym }
       end
+      indexes
     end
 
-    def remove_from_ast(clauses)
-      new_ast = MultiOperator.new(ast.op, ast.clauses - clauses)
-      return new_ast if new_ast.clauses.present?
-    end
-
-    def find_index_canonical
+    def find_strategy_canonical
       clauses = Hash[get_candidate_clauses(:eq, :in, :between).map { |c| [c.key, c] }]
-      return unless clauses.present?
+      return nil unless clauses.present?
 
-      if index = get_usable_indexes.select { |i| clauses[i.name] }.first
+      get_usable_indexes.each do |index|
         clause = clauses[index.name]
-        self.index_name = index.name
-        self.ast = remove_from_ast([clause])
-        self.index_type = clause.op == :between ? :between : :get_all
-        self.rql_proc = case clause.op
-          when :eq      then ->(rql){ rql.get_all(clause.value, :index => index.aliased_name) }
-          when :in      then ->(rql){ rql.get_all(*clause.value, :index => index.aliased_name) }
-          when :between then ->(rql){ rql.between(clause.value.min, clause.value.max, :index => index.aliased_name,
-                                                  :left_bound => :closed, :right_bound => :closed) }
+        next unless clause
+
+        args = case clause.op
+          when :eq      then [:get_all, [clause.value]]
+          when :in      then [:get_all, clause.value]
+          when :between then [:between, [clause.value.min, clause.value.max],
+                              :left_bound => :closed, :right_bound => :closed]
         end
+        return IndexStrategy.new(ast, [clause], index, *args)
       end
+      return nil
     end
 
-    def find_index_compound
+    def find_strategy_compound
       clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
-      return unless clauses.present?
+      return nil unless clauses.present?
 
-      if index = get_usable_indexes(:compound).select { |i| i.what & clauses.keys == i.what }.first
+      get_usable_indexes(:kind => :compound).each do |index|
         indexed_clauses = index.what.map { |field| clauses[field] }
-        self.index_name = index.name
-        self.ast = remove_from_ast(indexed_clauses)
-        self.index_type = :get_all
-        self.rql_proc = ->(rql){ rql.get_all(indexed_clauses.map(&:value), :index => index.aliased_name) }
+        next if indexed_clauses.any?(&:nil?)
+
+        return IndexStrategy.new(ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
       end
+      return nil
     end
 
-    def find_index_hidden_between
+    def find_strategy_hidden_between
       clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key)
-      return unless clauses.present?
+      return nil unless clauses.present?
 
-      if index = get_usable_indexes.select { |i| clauses[i.name] }.first
+      get_usable_indexes.each do |index|
+        next unless clauses[index.name]
         op_clauses = Hash[clauses[index.name].map { |c| [c.op, c] }]
-        left_bound = op_clauses[:gt] || op_clauses[:ge]
+        left_bound  = op_clauses[:gt] || op_clauses[:ge]
         right_bound = op_clauses[:lt] || op_clauses[:le]
 
-        self.index_name = index.name
-        self.ast = remove_from_ast([left_bound, right_bound].compact)
-
         options = {}
-        options[:index] = index.aliased_name
-        options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op] if left_bound
+        options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op]  if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
-        self.index_type = :between
-        self.rql_proc = ->(rql){ rql.between(left_bound.try(:value), right_bound.try(:value), options) }
+
+        return IndexStrategy.new(ast, [left_bound, right_bound].compact, index, :between,
+                                 [left_bound.try(:value), right_bound.try(:value)], options)
       end
+      return nil
     end
 
-    def find_union_index
-      indexes = []
-      index_finder = self
-
-      loop do
-        index_finder = index_finder.dup
-        break unless index_finder.find_index_canonical
-        # TODO To use a compound index, we'd have to add all permutations in the query
-        indexes << index_finder
-        break unless index_finder.ast
+    def find_strategy_union
+      strategies = ast.clauses.map do |inner_ast|
+        inner_ast = MultiOperator.new(:and, [inner_ast]) unless inner_ast.is_a?(MultiOperator)
+        raise 'fatal' unless inner_ast.op == :and
+        self.class.new(criteria, inner_ast).find_strategy
       end
 
-      if indexes.present? && !index_finder.ast
-        self.ast = nil
-        self.index_name = indexes.map(&:index_name)
-        self.index_type = indexes.map(&:index_type)
-        self.rql_proc = ->(rql){ indexes.map { |index| index.rql_proc.call(rql) }.reduce(:union).distinct }
+      return nil if strategies.any?(&:nil?)
+
+      rql_proc = lambda do |base_rql|
+        strategies.map do |strategy|
+          rql = strategy.rql_proc.call(base_rql)
+          rql = rql.filter { |doc| strategy.ast.to_rql(doc) } if strategy.ast.try(:clauses).present?
+          rql
+        end.reduce(:union).distinct
       end
+
+      Strategy.new(:union, strategies.map(&:index), nil, rql_proc)
     end
 
-    def find_index
-      return if ast.nil? || criteria.without_index?
+    def find_strategy
+      return nil unless ast.try(:clauses).present? && !criteria.without_index?
       case ast.op
-      when :and then find_index_compound || find_index_canonical || find_index_hidden_between
-      when :or  then find_union_index
+      when :and then find_strategy_compound || find_strategy_canonical || find_strategy_hidden_between
+      when :or  then find_strategy_union
       end
+    end
+
+    def find_strategy!
+      self.strategy = find_strategy
     end
   end
 
   def where_index_finder
     return finalized_criteria.__send__(:where_index_finder) unless finalized?
-    @where_index_finder ||= IndexFinder.new(self, @options[:where_ast]).tap(&:find_index)
+    @where_index_finder ||= IndexFinder.new(self, @options[:where_ast]).tap(&:find_strategy!)
   end
 
   def compile_rql_pass1
     rql = super
-    rql = where_index_finder.rql_proc.call(rql) if where_index_finder.could_find_index?
+    rql = where_index_finder.strategy.rql_proc.call(rql) if where_indexed?
     rql
   end
 
   def compile_rql_pass2
     rql = super
-    ast = where_index_finder.could_find_index? ? where_index_finder.ast : @options[:where_ast]
+    ast = where_indexed? ? where_index_finder.strategy.ast : @options[:where_ast]
     rql = rql.filter { |doc| ast.to_rql(doc) } if ast.try(:clauses).present?
     rql
   end
