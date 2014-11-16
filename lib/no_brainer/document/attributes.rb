@@ -1,14 +1,11 @@
 module NoBrainer::Document::Attributes
-  VALID_FIELD_OPTIONS = [:index, :default, :type, :real_type,
-                         :validates, :required, :unique, :uniq, :format, :in,
-                         :readonly, :primary_key, :as, :lazy_fetch]
+  VALID_FIELD_OPTIONS = [:index, :default, :type, :readonly, :primary_key, :as, :lazy_fetch,
+                         :validates, :required, :unique, :uniq, :format, :in]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
                           + NoBrainer::Criteria::Where::OPERATORS
   extend ActiveSupport::Concern
 
   included do
-    # Not using class_attribute because we want to
-    # use our custom logic
     singleton_class.send(:attr_accessor, :fields)
     self.fields = {}
   end

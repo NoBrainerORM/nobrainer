@@ -88,15 +88,6 @@ module NoBrainer::Document::Types
         remove_method("#{attr}?") if method_defined?("#{attr}?")
       end
     end
-
-    def field(attr, options={})
-      options[:real_type] = options[:type]
-      if options[:type] == Array || options[:type] == Hash
-        # XXX For the moment, NoBrainer does not support these complex types
-        options.delete(:type)
-      end
-      super
-    end
   end
 
   require File.join(File.dirname(__FILE__), 'types', 'binary')

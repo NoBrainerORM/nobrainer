@@ -65,7 +65,9 @@ module NoBrainer::Criteria::OrderBy
     end
 
     def first_key_indexable?
-      (first_key.is_a?(Symbol) || first_key.is_a?(String)) && criteria.model.has_index?(first_key)
+      return false unless first_key.is_a?(Symbol) || first_key.is_a?(String)
+      return false unless index = criteria.model.indexes[first_key.to_sym]
+      return !index.multi && !index.geo
     end
 
     def find_index

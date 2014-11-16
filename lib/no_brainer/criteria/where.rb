@@ -1,8 +1,11 @@
 module NoBrainer::Criteria::Where
-  OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined).map(&:to_sym)
+  NON_CHAINABLE_OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined).map(&:to_sym)
+  CHAINABLE_OPERATORS = %w(any all).map(&:to_sym)
+  OPERATORS = CHAINABLE_OPERATORS + NON_CHAINABLE_OPERATORS
 
   require 'symbol_decoration'
-  Symbol::Decoration.register(*OPERATORS)
+  Symbol::Decoration.register(*NON_CHAINABLE_OPERATORS)
+  Symbol::Decoration.register(*CHAINABLE_OPERATORS, :chainable => true)
 
   extend ActiveSupport::Concern
 
@@ -60,7 +63,7 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class BinaryOperator < Struct.new(:key, :op, :value, :model, :casted_values)
+  class BinaryOperator < Struct.new(:key, :key_modifier, :op, :value, :model, :casted_values)
     def self.get_candidate_clauses(clauses, *types)
       clauses.select { |c| c.is_a?(self) && types.include?(c.op) }
     end
@@ -69,14 +72,14 @@ module NoBrainer::Criteria::Where
       # This code assumes that simplfy() has already been called on all clauses.
       if op == :or
         eq_clauses = get_candidate_clauses(ast_clauses, :in, :eq)
-        new_clauses = eq_clauses.group_by(&:key).map do |key, clauses|
-          case clauses.size
-          when 1 then clauses.first
-          else
+        new_clauses = eq_clauses.group_by { |c| [c.key, c.key_modifier] }.map do |(key, key_modifier), clauses|
+          if key_modifier.in?([:scalar, :any]) && clauses.size > 1
             values = clauses.map { |c| c.op == :in ? c.value : [c.value] }.flatten(1).uniq
-            BinaryOperator.new(key, :in, values, clauses.first.model, true)
+            [BinaryOperator.new(key, key_modifier, :in, values, clauses.first.model, true)]
+          else
+            clauses
           end
-        end
+        end.flatten(1)
 
         if new_clauses.size != eq_clauses.size
           ast_clauses = ast_clauses - eq_clauses + new_clauses
@@ -87,27 +90,47 @@ module NoBrainer::Criteria::Where
     end
 
     def simplify
-      key = cast_key(self.key)
-      case op
-      when :in then
-        case value
-        when Range then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), model, true)
-        when Array then BinaryOperator.new(key, :in, value.map(&method(:cast_value)).uniq, model, true)
-        else raise ArgumentError.new ":in takes an array/range, not #{value}"
-        end
-      when :between then BinaryOperator.new(key, :between, (cast_value(value.min)..cast_value(value.max)), model, true)
-      else BinaryOperator.new(key, op, cast_value(value), model, true)
+      new_key = cast_key(key)
+      new_op, new_value = case op
+        when :in then
+          case value
+          when Range then [:between, (cast_value(value.min)..cast_value(value.max))]
+          when Array then [:in, value.map(&method(:cast_value)).uniq]
+          else raise ArgumentError.new ":in takes an array/range, not #{value}"
+          end
+        when :between then [op, (cast_value(value.min)..cast_value(value.max))]
+        when :defined
+          raise "Incorrect use of `#{op}' and `#{key_modifier}'" if key_modifier != :scalar
+          [op, cast_value(value)]
+        else [op, cast_value(value)]
       end
+      BinaryOperator.new(new_key, key_modifier, new_op, new_value, model, true)
     end
 
     def to_rql(doc)
       key = model.lookup_field_alias(self.key)
-      case op
-      when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
-      when :between then (doc[key] >= value.min) & (doc[key] <= value.max)
-      when :in      then RethinkDB::RQL.new.expr(value).contains(doc[key])
-      else doc[key].__send__(op, value)
+
+      case key_modifier
+      when :scalar then
+        case op
+        when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
+        else to_rql_scalar(doc[key])
+        end
+      when :any then doc[key].map { |lvalue| to_rql_scalar(lvalue) }.contains(true)
+      when :all then doc[key].map { |lvalue| to_rql_scalar(lvalue) }.contains(false).not
       end
+    end
+
+    def to_rql_scalar(lvalue)
+      case op
+      when :between then (lvalue >= value.min) & (lvalue <= value.max)
+      when :in      then RethinkDB::RQL.new.expr(value).contains(lvalue)
+      else lvalue.__send__(op, value)
+      end
+    end
+
+    def compatible_with_index?(index)
+      [key_modifier, index.multi].in?([[:any, true], [:scalar, false]])
     end
 
     private
@@ -126,11 +149,14 @@ module NoBrainer::Criteria::Where
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata
         target_model = association.target_model
-        opts = { :attr_name => key, :value => value, :type => target_model}
+        opts = { :attr_name => key, :value => value, :type => target_model }
         raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_model)
         value.pk_value
       else
-        model.cast_user_to_db_for(key, value)
+        case key_modifier
+        when :scalar    then model.cast_user_to_db_for(key, value)
+        when :any, :all then model.cast_user_to_db_for(key, [value]).first
+        end
       end
     end
 
@@ -139,12 +165,13 @@ module NoBrainer::Criteria::Where
 
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata then association.foreign_key
-      else
-        unless model.has_field?(key) || model.has_index?(key) || model < NoBrainer::Document::DynamicAttributes
-          raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a declared attribute of #{model}"
-        end
-        key
+      else ensure_valid_key!(key); key
       end
+    end
+
+    def ensure_valid_key!(key)
+      return if model.has_field?(key) || model.has_index?(key) || model < NoBrainer::Document::DynamicAttributes
+      raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a declared attribute of #{model}"
     end
   end
 
@@ -192,12 +219,13 @@ module NoBrainer::Criteria::Where
     when String, Symbol then parse_clause_stub_eq(key, value)
     when Symbol::Decoration then
       case key.decorator
+      when :any, :all then parse_clause_stub_eq(key, value)
+      when :not, :ne  then parse_clause(:not => { key.symbol.eq => value })
       when :nin then parse_clause(:not => { key.symbol.in => value })
-      when :not, :ne then parse_clause(:not => { key.symbol.eq => value })
       when :gte then parse_clause(key.symbol.ge => value)
       when :lte then parse_clause(key.symbol.le => value)
       when :eq  then parse_clause_stub_eq(key.symbol, value)
-      else BinaryOperator.new(key.symbol, key.decorator, value, self.model)
+      else instantiate_binary_op(key.symbol, key.decorator, value)
       end
     else raise "Invalid key: #{key}"
     end
@@ -205,9 +233,16 @@ module NoBrainer::Criteria::Where
 
   def parse_clause_stub_eq(key, value)
     case value
-    when Range  then BinaryOperator.new(key, :between, value, self.model)
-    when Regexp then BinaryOperator.new(key, :match, value.inspect[1..-2], self.model)
-    else BinaryOperator.new(key, :eq, value, self.model)
+    when Range  then instantiate_binary_op(key, :between, value)
+    when Regexp then instantiate_binary_op(key, :match, value.inspect[1..-2])
+    else instantiate_binary_op(key, :eq, value)
+    end
+  end
+
+  def instantiate_binary_op(key, op, value)
+    case key
+    when Symbol::Decoration then BinaryOperator.new(key.symbol, key.decorator, op, value, self.model)
+    else BinaryOperator.new(key, :scalar, op, value, self.model)
     end
   end
 
@@ -219,7 +254,13 @@ module NoBrainer::Criteria::Where
       end
 
       def rql_proc
-        ->(rql){ rql.__send__(rql_op, *rql_args, (rql_options || {}).merge(:index => index.aliased_name)) }
+        lambda do |rql|
+          opt = (rql_options || {}).merge(:index => index.aliased_name)
+          r = rql.__send__(rql_op, *rql_args, opt)
+          # TODO distinct: waiting for issue #3345
+          # TODO coerce_to: waiting for issue #3346
+          index.multi ? r.coerce_to('array').distinct : r
+        end
       end
     end
 
@@ -242,7 +283,7 @@ module NoBrainer::Criteria::Where
 
       get_usable_indexes.each do |index|
         clause = clauses[index.name]
-        next unless clause
+        next unless clause.try(:compatible_with_index?, index)
 
         args = case clause.op
           when :eq      then [:get_all, [clause.value]]
@@ -259,9 +300,9 @@ module NoBrainer::Criteria::Where
       clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
       return nil unless clauses.present?
 
-      get_usable_indexes(:kind => :compound).each do |index|
+      get_usable_indexes(:kind => :compound, :multi => false).each do |index|
         indexed_clauses = index.what.map { |field| clauses[field] }
-        next if indexed_clauses.any?(&:nil?)
+        next unless indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
 
         return IndexStrategy.new(ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
       end
@@ -273,10 +314,15 @@ module NoBrainer::Criteria::Where
       return nil unless clauses.present?
 
       get_usable_indexes.each do |index|
-        next unless clauses[index.name]
-        op_clauses = Hash[clauses[index.name].map { |c| [c.op, c] }]
+        matched_clauses = clauses[index.name].try(:select) { |c| c.compatible_with_index?(index) }
+        next unless matched_clauses.present?
+
+        op_clauses = Hash[matched_clauses.map { |c| [c.op, c] }]
         left_bound  = op_clauses[:gt] || op_clauses[:ge]
         right_bound = op_clauses[:lt] || op_clauses[:le]
+
+        # XXX we must keep only one bound when using `any', otherwise we get different semantics.
+        right_bound = nil if index.multi && left_bound && right_bound
 
         options = {}
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op]  if left_bound

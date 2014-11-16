@@ -33,6 +33,10 @@ module NoBrainer::Document::Index
         raise "Cannot reuse field name #{name}"
       end
 
+      if kind == :compound && what.size < 2
+        raise "Compound indexes only make sense with 2 or more fields"
+      end
+
       as = options.delete(:as)
       as ||= fields[name][:as] if has_field?(name)
       as ||= name
