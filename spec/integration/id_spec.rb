@@ -24,4 +24,17 @@ describe 'NoBrainer id' do
     doc1.some_other_id.should_not == 'some_value'
     doc1.should_not == doc2
   end
+
+  context 'when aliasing the primary key' do
+    before { NoBrainer.drop! }
+    after  { NoBrainer.drop! }
+
+    it 'allow aliasing the primary key' do
+      SimpleDocument.field :some_id, :primary_key => true, :as => :aliased_id
+      doc = SimpleDocument.create
+      doc.some_id.should =~ /^[0-9a-z]{24}$/
+      SimpleDocument.where(:some_id => doc.some_id).count.should == 1
+      SimpleDocument.raw.first['aliased_id'].should == doc.some_id
+    end
+  end
 end

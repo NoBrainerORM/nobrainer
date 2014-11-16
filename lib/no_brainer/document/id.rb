@@ -57,8 +57,7 @@ module NoBrainer::Document::Id
   module ClassMethods
     def define_default_pk
       class_variable_set(:@@pk_name, nil)
-      field NoBrainer::Document::Id::DEFAULT_PK_NAME, :primary_key => :default,
-        :type => String, :default => ->{ NoBrainer::Document::Id.generate }
+      field NoBrainer::Document::Id::DEFAULT_PK_NAME, :primary_key => :default
     end
 
     def define_pk(attr)
@@ -81,6 +80,11 @@ module NoBrainer::Document::Id
       if options[:primary_key]
         options = options.merge(:readonly => true) if options[:readonly].nil?
         options = options.merge(:index => true)
+
+        if options[:type].in?([String, nil]) && options[:default].nil?
+          options[:type] = String
+          options[:default] = ->{ NoBrainer::Document::Id.generate }
+        end
       end
       super
     end

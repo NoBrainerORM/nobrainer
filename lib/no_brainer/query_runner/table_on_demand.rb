@@ -30,7 +30,7 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
     env[:last_auto_create_table] = [database_name, table_name]
 
     NoBrainer.with_database(database_name) do
-      NoBrainer.table_create(table_name, :primary_key => model.pk_name)
+      NoBrainer.table_create(table_name, :primary_key => model.lookup_field_alias(model.pk_name))
     end
   rescue RuntimeError => e
     # We might have raced with another table create
