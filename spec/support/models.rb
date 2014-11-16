@@ -9,6 +9,18 @@ module ModelsHelper
     end
   end
 
+  def load_geospatial_example
+    define_class :City do
+      include NoBrainer::Document
+      field :name
+      field :location, :type => NoBrainer::GeoPoint
+      index :location, :geo => true
+    end
+
+    NoBrainer.sync_indexes
+
+  end
+
   def load_blog_models
     define_class :Author do
       include NoBrainer::Document

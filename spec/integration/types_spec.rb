@@ -512,7 +512,7 @@ describe 'types' do
     end
   end
 
-  context 'when coming from the database with a cast that cannot be perfomred' do
+  context 'when coming from the database with a cast that cannot be performed' do
     let(:type) { nil }
     it 'does not type check/cast' do
       doc.field1 = '1'
