@@ -4,8 +4,8 @@ describe 'NoBrainer aliases' do
   before { load_simple_document }
 
   before do
-    SimpleDocument.field :field1, :as => :f1
-    SimpleDocument.field :field2, :as => :f2
+    SimpleDocument.field :field1, :store_as => :f1
+    SimpleDocument.field :field2, :store_as => :f2
   end
 
   context 'when using no indexes' do
@@ -82,8 +82,8 @@ describe 'NoBrainer aliases' do
 
     context 'when using a simple index' do
       before do
-        SimpleDocument.index :field1, :as => 'index_f1'
-        SimpleDocument.index :field3, :as => 'index_f3'
+        SimpleDocument.index :field1, :store_as => 'index_f1'
+        SimpleDocument.index :field3, :store_as => 'index_f3'
       end
 
       let!(:doc) { SimpleDocument.create(:field1 => 1) }
@@ -175,8 +175,8 @@ describe 'NoBrainer aliases' do
   context 'when using associations' do
     before do
       load_blog_models
-      Post.belongs_to :author, :foreign_key_as => :a_id
-      Comment.belongs_to :post, :foreign_key_as => :p_id
+      Post.belongs_to :author, :foreign_key_store_as => :a_id
+      Comment.belongs_to :post, :foreign_key_store_as => :p_id
 
       Comment.has_one :author, :through => :post
     end

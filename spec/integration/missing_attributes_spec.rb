@@ -77,7 +77,7 @@ describe 'missing attributes' do
   end
 
   context 'with aliases' do
-    before { SimpleDocument.field :field1, :as => :f1 }
+    before { SimpleDocument.field :field1, :store_as => :f1 }
     let!(:doc) { SimpleDocument.create(:field1 => 1, :field2 => 2, :field3 => 3) }
 
     context 'with pluck()' do

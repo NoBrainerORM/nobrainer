@@ -38,7 +38,7 @@ describe 'atomic ops' do
   end
 
   context 'when using aliases' do
-    before { SimpleDocument.field :field1, :as => :f1 }
+    before { SimpleDocument.field :field1, :store_as => :f1 }
 
     it 'aliases' do
       doc.queue_atomic do

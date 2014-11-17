@@ -1,5 +1,5 @@
 module NoBrainer::Document::Index
-  VALID_INDEX_OPTIONS = [:external, :geo, :multi, :as]
+  VALID_INDEX_OPTIONS = [:external, :geo, :multi, :store_as]
   extend ActiveSupport::Concern
   extend NoBrainer::Autoload
 
@@ -14,6 +14,12 @@ module NoBrainer::Document::Index
     def index(name, *args)
       name = name.to_sym
       options = args.extract_options!
+
+      if options[:as]
+        STDERR.puts "[NoBrainer] `:as' is deprecated and will be removed. Please use `:store_as' instead (from the #{self} model)"
+        options[:store_as] = options.delete(:as)
+      end
+
       options.assert_valid_keys(*VALID_INDEX_OPTIONS)
 
       raise "Too many arguments: #{args}" if args.size > 1
@@ -37,12 +43,12 @@ module NoBrainer::Document::Index
         raise "Compound indexes only make sense with 2 or more fields"
       end
 
-      as = options.delete(:as)
-      as ||= fields[name][:as] if has_field?(name)
-      as ||= name
-      as = as.to_sym
+      store_as = options.delete(:store_as)
+      store_as ||= fields[name][:store_as] if has_field?(name)
+      store_as ||= name
+      store_as = store_as.to_sym
 
-      indexes[name] = NoBrainer::Document::Index::Index.new(self.root_class, name, as,
+      indexes[name] = NoBrainer::Document::Index::Index.new(self.root_class, name, store_as,
         kind, what, options[:external], options[:geo], options[:multi], nil)
     end
 
@@ -61,12 +67,12 @@ module NoBrainer::Document::Index
 
       super
 
-      as = {:as => options[:as]}
+      store_as = {:store_as => options[:store_as]}
       case options[:index]
       when nil    then
-      when Hash   then index(attr, as.merge(options[:index]))
-      when Symbol then index(attr, as.merge(options[:index] => true))
-      when true   then index(attr, as)
+      when Hash   then index(attr, store_as.merge(options[:index]))
+      when Symbol then index(attr, store_as.merge(options[:index] => true))
+      when true   then index(attr, store_as)
       when false  then remove_index(attr)
       end
     end

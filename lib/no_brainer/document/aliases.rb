@@ -12,9 +12,17 @@ module NoBrainer::Document::Aliases
 
   module ClassMethods
     def _field(attr, options={})
+      if options[:store_as]
+        self.alias_map[attr.to_s] = options[:store_as].to_s
+        self.alias_reverse_map[options[:store_as].to_s] = attr.to_s
+      end
+      super
+    end
+
+    def field(attr, options={})
       if options[:as]
-        self.alias_map[attr.to_s] = options[:as].to_s
-        self.alias_reverse_map[options[:as].to_s] = attr.to_s
+        STDERR.puts "[NoBrainer] `:as' is deprecated and will be removed. Please use `:store_as' instead (from the #{self} model)"
+        options[:store_as] = options.delete(:as)
       end
       super
     end
