@@ -1,8 +1,7 @@
-require 'thread'
-require 'socket'
-require 'digest/md5'
+module NoBrainer::Document::PrimaryKey
+  extend NoBrainer::Autoload
+  autoload :Generator
 
-module NoBrainer::Document::Id
   extend ActiveSupport::Concern
 
   DEFAULT_PK_NAME = :id
@@ -24,40 +23,10 @@ module NoBrainer::Document::Id
 
   delegate :hash, :to => :pk_value
 
-  # The following code is inspired by the mongo-ruby-driver
-
-  @machine_id = Digest::MD5.digest(Socket.gethostname)[0, 3]
-  @lock = Mutex.new
-  @index = 0
-
-  def self.get_inc
-    @lock.synchronize do
-      @index = (@index + 1) % 0xFFFFFF
-    end
-  end
-
-  # TODO Unit test that thing
-  def self.generate
-    oid = ''
-    # 4 bytes current time
-    oid += [Time.now.to_i].pack("N")
-
-    # 3 bytes machine
-    oid += @machine_id
-
-    # 2 bytes pid
-    oid += [Process.pid % 0xFFFF].pack("n")
-
-    # 3 bytes inc
-    oid += [get_inc].pack("N")[1, 3]
-
-    oid.unpack("C12").map { |e| v = e.to_s(16); v.size == 1 ? "0#{v}" : v }.join
-  end
-
   module ClassMethods
     def define_default_pk
       class_variable_set(:@@pk_name, nil)
-      field NoBrainer::Document::Id::DEFAULT_PK_NAME, :primary_key => :default
+      field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :primary_key => :default
     end
 
     def define_pk(attr)
@@ -83,7 +52,7 @@ module NoBrainer::Document::Id
 
         if options[:type].in?([String, nil]) && options[:default].nil?
           options[:type] = String
-          options[:default] = ->{ NoBrainer::Document::Id.generate }
+          options[:default] = ->{ NoBrainer::Document::PrimaryKey::Generator.generate }
         end
       end
       super

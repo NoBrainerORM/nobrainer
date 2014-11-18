@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support'
+require 'thread'
 %w(module/delegation module/attribute_accessors module/introspection
    class/attribute object/blank object/inclusion object/deep_dup
    object/try hash/keys hash/indifferent_access hash/reverse_merge

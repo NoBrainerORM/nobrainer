@@ -16,6 +16,7 @@ module NoBrainer::Config
     :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :distributed_lock_class => { :default => ->{ nil } },
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
+    :machine_id             => { :default => ->{ default_machine_id } },
   }
 
   class << self
@@ -94,6 +95,31 @@ module NoBrainer::Config
 
     def default_max_retries_on_connection_failure
       dev_mode? ? 1 : 15
+    end
+
+    def default_machine_id
+      require 'socket'
+      require 'digest/md5'
+
+      return ENV['MACHINE_ID'] if ENV['MACHINE_ID']
+
+      host = Socket.gethostname
+      if host.in? %w(127.0.0.1 localhost)
+        raise "Please configure NoBrainer::Config.machine_id due to lack of appropriate hostname (Socket.gethostname = #{host})"
+      end
+
+      Digest::MD5.digest(host).unpack("N")[0] & NoBrainer::Document::PrimaryKey::Generator::MACHINE_ID_MASK
+    end
+
+    def machine_id=(machine_id)
+      machine_id = case machine_id
+        when Integer    then machine_id
+        when /^[0-9]+$/ then machine_id.to_i
+        else raise "Invalid machine_id"
+      end
+      max_id = NoBrainer::Document::PrimaryKey::Generator::MACHINE_ID_MASK
+      raise "Invalid machine_id (must be between 0 and #{max_id})" unless machine_id.in?(0..max_id)
+      @machine_id = machine_id
     end
   end
 end
