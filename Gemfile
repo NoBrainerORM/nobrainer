@@ -3,5 +3,8 @@ gemspec
 
 gem 'rspec', '~> 3.0'
 gem 'timecop'
-gem 'pry'
-gem 'simplecov', :require => false
+
+group :development do
+  gem 'pry'
+  gem 'simplecov', :require => false
+end
