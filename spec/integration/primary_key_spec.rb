@@ -32,7 +32,7 @@ describe 'NoBrainer id' do
     it 'allow aliasing the primary key' do
       SimpleDocument.field :some_id, :primary_key => true, :store_as => :aliased_id
       doc = SimpleDocument.create
-      doc.some_id.should =~ /^[0-9a-zA-Z_\-]{14}$/
+      doc.some_id.should =~ /^[0-9a-zA-Z]{14}$/
       SimpleDocument.where(:some_id => doc.some_id).count.should == 1
       SimpleDocument.raw.first['aliased_id'].should == doc.some_id
     end
