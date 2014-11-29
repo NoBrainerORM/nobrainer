@@ -555,4 +555,70 @@ describe 'types' do
       doc.field1.should == Set.new(['foo'])
     end
   end
+
+  context 'when using Geo::Point type' do
+    let(:type) { SimpleDocument::Geo::Point }
+
+    it 'type checks and casts' do
+      doc.field1 = 'invalid'
+      doc.valid?.should == false
+
+      doc.field1 = []
+      doc.valid?.should == false
+
+      doc.field1 = [1,2]
+      doc.valid?.should == true
+      doc.field1.should == type.new(1,2)
+
+      doc.field1 = [1,2,3]
+      doc.valid?.should == false
+
+      doc.field1 = ['1.2', '-2']
+      doc.valid?.should == true
+      doc.field1.should == type.new(1.2,-2)
+
+      doc.field1 = ['1.2x', '-2']
+      doc.valid?.should == false
+
+      doc.field1 = [-180, -90]
+      doc.valid?.should == true
+
+      doc.field1 = [180, 90]
+      doc.valid?.should == true
+
+      doc.field1 = [181, 0]
+      doc.valid?.should == false
+
+      doc.field1 = [0, 91]
+      doc.valid?.should == false
+
+      doc.field1 = [-181, 0]
+      doc.valid?.should == false
+
+      doc.field1 = [0, -91]
+      doc.valid?.should == false
+
+      doc.field1 = {:longitude => 1, :latitude => 2}
+      doc.valid?.should == true
+      doc.field1.should == type.new(1, 2)
+
+      doc.field1 = {:long => 1, :lat => 2}
+      doc.valid?.should == true
+      doc.field1.should == type.new(1, 2)
+
+      doc.field1 = {:longi => 1, :lat => 2}
+      doc.valid?.should == false
+
+      doc.field1 = type.new(1,2)
+      doc.valid?.should == true
+      doc.field1.should == type.new(1,2)
+    end
+
+    it 'reads back a set from the db' do
+      doc.field1 = [1,2]
+      doc.save
+      doc.reload
+      doc.field1.should == type.new(1,2)
+    end
+  end
 end

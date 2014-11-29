@@ -9,7 +9,8 @@ class NoBrainer::Document::Index::Index < Struct.new(
     self.name = self.name.to_sym
     self.aliased_name = self.aliased_name.to_sym
     self.external = !!self.external
-    self.geo = !!self.geo
+    # geo defaults for true with geo types.
+    self.geo = !!model.fields[name].try(:[], :type).try(:<, NoBrainer::Geo::Base) if self.geo.nil?
     self.multi = !!self.multi
   end
 

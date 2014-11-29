@@ -49,7 +49,11 @@ module NoBrainer::Error
     end
 
     def message
-      "#{attr_name} should be used with a #{human_type_name}. Got `#{value}` (#{value.class})"
+      if attr_name && type && value
+        "#{attr_name} should be used with a #{human_type_name}. Got `#{value}` (#{value.class})"
+      else
+        super
+      end
     end
   end
 

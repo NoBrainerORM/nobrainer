@@ -64,6 +64,12 @@ module NoBrainer::Document::Types
 
       NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
 
+      case options[:type].to_s
+      when "NoBrainer::Geo::Circle" then raise "Cannot store circles :("
+      when "NoBrainer::Geo::Polygon", "NoBrainer::Geo::LineString"
+        then raise "Make a request on github if you'd like to store polygons"
+      end
+
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
           begin
@@ -94,6 +100,7 @@ module NoBrainer::Document::Types
   require File.join(File.dirname(__FILE__), 'types', 'boolean')
   Binary = NoBrainer::Binary
   Boolean = NoBrainer::Boolean
+  Geo = NoBrainer::Geo
 
   class << self
     mattr_accessor :loaded_extensions

@@ -13,7 +13,7 @@ module NoBrainer
 
   # We eager load things that could be loaded when handling the first web request.
   # Code that is loaded through the DSL of NoBrainer should not be eager loaded.
-  autoload :Document, :IndexManager, :Loader, :Fork
+  autoload :Document, :IndexManager, :Loader, :Fork, :Geo
   eager_autoload :Config, :Connection, :ConnectionManager,  :Error,
                  :QueryRunner, :Criteria, :RQL
 

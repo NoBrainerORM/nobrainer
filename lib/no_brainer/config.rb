@@ -17,6 +17,7 @@ module NoBrainer::Config
     :distributed_lock_class => { :default => ->{ nil } },
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
     :machine_id             => { :default => ->{ default_machine_id } },
+    :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
   }
 
   class << self
@@ -33,7 +34,11 @@ module NoBrainer::Config
       @applied_defaults_for.each { |k| __send__("#{k}=", SETTINGS[k][:default].call) }
     end
 
-    def assert_valid_options!
+    def geo_options=(value)
+      @geo_options = value.try(:symbolize_keys)
+    end
+
+    def assert_valid_options
       SETTINGS.each { |k,v| assert_array_in(k, v[:valid_values]) if v[:valid_values] }
     end
 
@@ -45,7 +50,7 @@ module NoBrainer::Config
       @applied_defaults_for.to_a.each { |k| remove_instance_variable("@#{k}") }
       block.call(self) if block
       apply_defaults
-      assert_valid_options!
+      assert_valid_options
       @configured = true
 
       NoBrainer::ConnectionManager.disconnect_if_url_changed

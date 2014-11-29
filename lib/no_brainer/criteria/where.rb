@@ -1,5 +1,5 @@
 module NoBrainer::Criteria::Where
-  NON_CHAINABLE_OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined).map(&:to_sym)
+  NON_CHAINABLE_OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined near intersects).map(&:to_sym)
   CHAINABLE_OPERATORS = %w(any all).map(&:to_sym)
   OPERATORS = CHAINABLE_OPERATORS + NON_CHAINABLE_OPERATORS
 
@@ -96,7 +96,7 @@ module NoBrainer::Criteria::Where
           case value
           when Range then [:between, (cast_value(value.min)..cast_value(value.max))]
           when Array then [:in, value.map(&method(:cast_value)).uniq]
-          else raise ArgumentError.new ":in takes an array/range, not #{value}"
+          else raise ArgumentError.new "`in' takes an array/range, not #{value}"
           end
         when :between then [op, (cast_value(value.min)..cast_value(value.max))]
         when :defined
@@ -123,8 +123,16 @@ module NoBrainer::Criteria::Where
 
     def to_rql_scalar(lvalue)
       case op
-      when :between then (lvalue >= value.min) & (lvalue <= value.max)
-      when :in      then RethinkDB::RQL.new.expr(value).contains(lvalue)
+      when :between    then (lvalue >= value.min) & (lvalue <= value.max)
+      when :in         then RethinkDB::RQL.new.expr(value).contains(lvalue)
+      when :intersects then lvalue.intersects(value.to_rql)
+      when :near
+        options = value.dup
+        point = options.delete(:point)
+        max_dist = options.delete(:max_dist)
+        # XXX max_results is not used, seems to be a workaround of rethinkdb index implemetnation.
+        _ = options.delete(:max_results)
+        RethinkDB::RQL.new.distance(lvalue, point.to_rql, options) <= max_dist
       else lvalue.__send__(op, value)
       end
     end
@@ -153,9 +161,28 @@ module NoBrainer::Criteria::Where
         raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_model)
         value.pk_value
       else
-        case key_modifier
-        when :scalar    then model.cast_user_to_db_for(key, value)
-        when :any, :all then model.cast_user_to_db_for(key, [value]).first
+        case op
+        when :intersects
+          raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
+          value
+        when :near
+          raise "Incorrect use of `near': rvalue must be a hash" unless value.is_a?(Hash)
+          options = NoBrainer::Geo::Base.normalize_geo_options(value)
+
+          unless options[:point] && options[:max_dist]
+            raise "`near' takes something like {:point => P, :max_distance => d}"
+          end
+
+          unless options[:point].is_a?(NoBrainer::Geo::Point)
+            options[:point] = NoBrainer::Geo::Point.nobrainer_cast_user_to_model(options[:point])
+          end
+
+          options
+        else
+          case key_modifier
+          when :scalar    then model.cast_user_to_db_for(key, value)
+          when :any, :all then model.cast_user_to_db_for(key, [value]).first
+          end
         end
       end
     end
@@ -257,9 +284,11 @@ module NoBrainer::Criteria::Where
         lambda do |rql|
           opt = (rql_options || {}).merge(:index => index.aliased_name)
           r = rql.__send__(rql_op, *rql_args, opt)
+          r = r.map { |i| i['doc'] } if rql_op == :get_nearest
           # TODO distinct: waiting for issue #3345
           # TODO coerce_to: waiting for issue #3346
-          index.multi ? r.coerce_to('array').distinct : r
+          r = r.coerce_to('array').distinct if index.multi
+          r
         end
       end
     end
@@ -278,14 +307,21 @@ module NoBrainer::Criteria::Where
     end
 
     def find_strategy_canonical
-      clauses = Hash[get_candidate_clauses(:eq, :in, :between).map { |c| [c.key, c] }]
+      clauses = get_candidate_clauses(:eq, :in, :between, :near, :intersects)
       return nil unless clauses.present?
 
-      get_usable_indexes.each do |index|
-        clause = clauses[index.name]
-        next unless clause.try(:compatible_with_index?, index)
+      usable_indexes = Hash[get_usable_indexes.map { |i| [i.name, i] }]
+      clauses.each do |clause|
+        index = usable_indexes[clause.key]
+        next unless index && clause.compatible_with_index?(index)
+        next unless index.geo == [:near, :intersects].include?(clause.op)
 
         args = case clause.op
+          when :intersects then [:get_intersecting, clause.value.to_rql]
+          when :near
+            options = clause.value.dup
+            point = options.delete(:point)
+            [:get_nearest, point.to_rql, options]
           when :eq      then [:get_all, [clause.value]]
           when :in      then [:get_all, clause.value]
           when :between then [:between, [clause.value.min, clause.value.max],
@@ -300,7 +336,7 @@ module NoBrainer::Criteria::Where
       clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
       return nil unless clauses.present?
 
-      get_usable_indexes(:kind => :compound, :multi => false).each do |index|
+      get_usable_indexes(:kind => :compound, :geo => false, :multi => false).each do |index|
         indexed_clauses = index.what.map { |field| clauses[field] }
         next unless indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
 
@@ -313,7 +349,7 @@ module NoBrainer::Criteria::Where
       clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key)
       return nil unless clauses.present?
 
-      get_usable_indexes.each do |index|
+      get_usable_indexes(:geo => false).each do |index|
         matched_clauses = clauses[index.name].try(:select) { |c| c.compatible_with_index?(index) }
         next unless matched_clauses.present?
 

@@ -389,4 +389,50 @@ describe 'complex where queries' do
       SimpleDocument.where(:field1.all => 2).count.should == 1
     end
   end
+
+  context 'when using geo' do
+    before do
+      define_class :City do
+        include NoBrainer::Document
+        field :location, :type => NoBrainer::Geo::Point
+      end
+    end
+    let!(:nyc)    { City.create(:location => [40.79, -73.97]) }
+    let!(:paris)  { City.create(:location => [48.87, 2.28]) }
+    let!(:boston) { City.create(:location => [42.30,-71.03]) }
+
+    shared_examples_for 'near queries' do
+      it 'finds nearest points' do
+        City.where(:location.near => {:point => nyc.location, :max_distance => 300_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
+        City.where(:location.near => {:point => nyc.location, :max_distance => 350_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:point => nyc.location, :max_distance => 350, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
+        City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'mi'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:point => [48.87, 2.28], :max_distance => 1000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [paris]
+      end
+    end
+
+    shared_examples_for 'intersect queries' do
+      it 'finds intersecting queries' do
+        City.where(:location.intersects => NoBrainer::Geo::Circle.new(nyc.location, :radius => 300_000)).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
+        City.where(:location.intersects => NoBrainer::Geo::Circle.new(nyc.location, :radius => 350_000)).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+      end
+    end
+
+    context 'when not using an index' do
+      let(:should_use_index) { false }
+      it_should_behave_like 'near queries'
+      it_should_behave_like 'intersect queries'
+    end
+
+    context 'when using an index' do
+      let(:should_use_index) { true }
+      before { City.index :location }
+      before { NoBrainer.sync_indexes }
+      after  { NoBrainer.drop! }
+
+      it_should_behave_like 'near queries'
+      it_should_behave_like 'intersect queries'
+    end
+  end
 end
