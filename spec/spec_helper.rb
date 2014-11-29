@@ -1,7 +1,7 @@
 load './spec/support/_coverage.rb' if ENV['COVERAGE']
 require 'rubygems'
 require 'bundler'
-Bundler.require
+Bundler.require(:default, ENV['CI'] ? :ci : :development)
 
 SPEC_ROOT = File.expand_path File.dirname(__FILE__)
 Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f unless File.basename(f) =~ /^_/ }
