@@ -12,10 +12,12 @@ module NoBrainer::Criteria::First
   def first
     first?.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
   end
+  alias_method :first!, :first
 
   def last
     last?.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
   end
+  alias_method :last!, :last
 
   def sample(n=nil)
     result = run { self.without_ordering.to_rql.sample(n.nil? ? 1 : n) }

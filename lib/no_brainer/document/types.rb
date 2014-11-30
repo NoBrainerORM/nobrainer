@@ -67,7 +67,7 @@ module NoBrainer::Document::Types
       case options[:type].to_s
       when "NoBrainer::Geo::Circle" then raise "Cannot store circles :("
       when "NoBrainer::Geo::Polygon", "NoBrainer::Geo::LineString"
-        then raise "Make a request on github if you'd like to store polygons"
+        raise "Make a request on github if you'd like to store polygons/linestrings"
       end
 
       inject_in_layer :types do
