@@ -83,15 +83,15 @@ describe 'first' do
   end
 
   context 'when there are no docs' do
-    describe 'first' do
+    describe 'first?' do
       it 'returns nil' do
-        SimpleDocument.first.should == nil
+        SimpleDocument.first?.should == nil
       end
     end
 
-    describe 'last' do
+    describe 'last?' do
       it 'returns nil' do
-        SimpleDocument.last.should == nil
+        SimpleDocument.last?.should == nil
       end
     end
   end
@@ -109,11 +109,11 @@ describe 'first' do
     let!(:docs) { 2.times.map { |i| SimpleDocument.create(:field1 => i) } }
 
     it 'raises when the document is not present' do
-      SimpleDocument.first!.should == docs.first
-      SimpleDocument.last!.should == docs.last
+      SimpleDocument.first.should == docs.first
+      SimpleDocument.last.should == docs.last
       SimpleDocument.delete_all
-      expect { SimpleDocument.first! }.to raise_error NoBrainer::Error::DocumentNotFound
-      expect { SimpleDocument.last! }.to raise_error NoBrainer::Error::DocumentNotFound
+      expect { SimpleDocument.first }.to raise_error NoBrainer::Error::DocumentNotFound
+      expect { SimpleDocument.last }.to raise_error NoBrainer::Error::DocumentNotFound
     end
   end
 end

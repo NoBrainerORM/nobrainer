@@ -95,7 +95,7 @@ describe 'NoBrainer index' do
       before do
         SimpleDocument.store_in :database => "some_test_db", :table => 'some_table'
         NoBrainer.with_database('some_test_db') { NoBrainer.drop! }
-        SimpleDocument.first # create table
+        SimpleDocument.first? # create table
         NoBrainer.configure do |config|
           config.auto_create_tables = false
         end
@@ -115,7 +115,7 @@ describe 'NoBrainer index' do
 
     context 'with external indexes' do
       before do
-        SimpleDocument.first
+        SimpleDocument.first?
       end
 
       it 'keeps indexes in sync' do

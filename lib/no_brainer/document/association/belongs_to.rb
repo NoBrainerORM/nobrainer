@@ -54,7 +54,7 @@ class NoBrainer::Document::Association::BelongsTo
     return target if loaded?
 
     if fk = owner.read_attribute(foreign_key)
-      preload(target_model.unscoped.where(primary_key => fk).first)
+      preload(target_model.unscoped.where(primary_key => fk).first?)
     end
   end
 

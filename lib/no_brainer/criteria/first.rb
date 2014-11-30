@@ -1,20 +1,20 @@
 module NoBrainer::Criteria::First
   extend ActiveSupport::Concern
 
-  def first
+  def first?
     get_one(self)
   end
 
-  def last
+  def last?
     get_one(self.reverse_order)
   end
 
-  def first!
-    first.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+  def first
+    first?.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
   end
 
-  def last!
-    last.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+  def last
+    last?.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
   end
 
   def sample(n=nil)
