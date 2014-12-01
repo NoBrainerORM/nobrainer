@@ -2,11 +2,11 @@ module NoBrainer::Criteria::Aggregate
   extend ActiveSupport::Concern
 
   def min(*a, &b)
-    order_by(a, &b).first
+    instantiate_doc run { aggregate_rql(:min, *a, &b) }
   end
 
   def max(*a, &b)
-    order_by(a, &b).last
+    instantiate_doc run { aggregate_rql(:max, *a, &b) }
   end
 
   def sum(*a, &b)
@@ -14,7 +14,7 @@ module NoBrainer::Criteria::Aggregate
   end
 
   def avg(*a, &b)
-    run { aggregate_rql(:avg, *a, &b) }.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+    run { aggregate_rql(:avg, *a, &b) }
   end
 
   private

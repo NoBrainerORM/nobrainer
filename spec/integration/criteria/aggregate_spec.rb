@@ -65,14 +65,14 @@ describe "aggregate" do
 
   context 'when there are no documents' do
     context 'when using min' do
-      it 'raises' do
-        expect { SimpleDocument.min(:field1) }.to raise_error(NoBrainer::Error::DocumentNotFound)
+      it 'returns nil' do
+        SimpleDocument.min(:field1).should == nil
       end
     end
 
     context 'when using max' do
-      it 'raises' do
-        expect { SimpleDocument.max(:field1) }.to raise_error(NoBrainer::Error::DocumentNotFound)
+      it 'returns nil' do
+        SimpleDocument.max(:field1).should == nil
       end
     end
 
@@ -83,8 +83,8 @@ describe "aggregate" do
     end
 
     context 'when using avg' do
-      it 'raises' do
-        expect { SimpleDocument.avg(:field1) }.to raise_error(NoBrainer::Error::DocumentNotFound)
+      it 'computes the avg' do
+        SimpleDocument.avg(:field1).should == nil
       end
     end
   end
