@@ -13,20 +13,12 @@ describe 'cache' do
       criteria.each.to_a.size.should == 2
       criteria.size.should == 2
       criteria.count.should == 2
-      criteria.first?.should == docs.first
       criteria.first.should == docs.first
-      criteria.last?.should == docs.last
       criteria.last.should == docs.last
       criteria.empty?.should == false
       criteria.any?.should == true
       criteria.any? { |doc| doc.field1 == 1 }.should == true
       criteria.any? { |doc| doc.field1 == 3 }.should == false
-
-      criteria.reload
-      criteria.to_a
-      criteria.each.to_a.size.should == 0
-      expect { criteria.first }.to raise_error NoBrainer::Error::DocumentNotFound
-      criteria.first?.should == nil
     end
   end
 

@@ -70,9 +70,6 @@ module NoBrainer::Criteria::Cache
     end
   end
 
-  def first?; @cache ? @cache.first : super; end
-  def last?;  @cache ? @cache.last : super; end
-  use_cache_for :count, :empty?, :any?
-
+  use_cache_for :first, :last, :count, :empty?, :any?
   reload_on :update_all, :destroy_all, :delete_all
 end

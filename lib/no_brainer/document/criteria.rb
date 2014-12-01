@@ -23,7 +23,7 @@ module NoBrainer::Document::Criteria
              :delete_all, :destroy_all,      # Delete
              :includes, :preload,            # Preload
              :each, :to_a,                   # Enumerable
-             :first, :last, :first?, :last?, :sample, # First
+             :first, :last, :first!, :last!, :sample, # First
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
