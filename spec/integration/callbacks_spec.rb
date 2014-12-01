@@ -128,7 +128,7 @@ describe 'NoBrainer callbacks' do
       SimpleDocument.before_destroy { false }
       doc = SimpleDocument.create(:field1 => 'hello')
       doc.destroy
-      SimpleDocument.find(doc.pk_value).should == nil
+      SimpleDocument.find?(doc.pk_value).should == nil
     end
 
     it 'does not halt validations' do

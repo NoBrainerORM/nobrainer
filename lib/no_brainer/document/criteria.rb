@@ -51,17 +51,15 @@ module NoBrainer::Document::Criteria
       rql_table.get(pk)
     end
 
-    # XXX this doesn't have the same semantics as other ORMs. the equivalent is find!.
-    def find(pk)
+    def find?(pk)
       attrs = NoBrainer.run { selector_for(pk) }
       new_from_db(attrs).tap { |doc| doc.run_callbacks(:find) } if attrs
     end
 
-    def find!(pk)
-      find(pk).tap do |doc|
-        raise NoBrainer::Error::DocumentNotFound, "#{self} #{pk_name}: #{pk} not found" unless doc
-      end
+    def find(pk)
+      find?(pk).tap { |doc| raise NoBrainer::Error::DocumentNotFound, "#{self} #{pk_name}: #{pk} not found" unless doc }
     end
+    alias_method :find!, :find
 
     def disable_perf_warnings
       self.perf_warnings_disabled = true

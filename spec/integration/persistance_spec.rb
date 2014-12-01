@@ -41,7 +41,7 @@ describe 'NoBrainer persistance' do
 
   it 'deletes' do
     doc.delete.should == true
-    SimpleDocument.find(doc.pk_value).should == nil
+    SimpleDocument.find?(doc.pk_value).should == nil
   end
 
   context 'when using default reload' do
@@ -81,7 +81,7 @@ describe 'NoBrainer persistance' do
 
   it 'destroys' do
     doc.destroy.should == true
-    SimpleDocument.find(doc.pk_value).should == nil
+    SimpleDocument.find?(doc.pk_value).should == nil
   end
 
   context "when the document already exists" do
