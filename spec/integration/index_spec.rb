@@ -238,7 +238,7 @@ describe 'NoBrainer index' do
     let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
 
     it 'uses the first declared index' do
-      SimpleDocument.where(:field2 => 'yay', :field1 => 'ohai').used_index.should == :field2
+      SimpleDocument.where(:field2 => 'yay', :field1 => 'ohai').used_index.should == :field1
       SimpleDocument.where(:field2 => 'yay', :field1 => 'ohai').count.should == 1
     end
 

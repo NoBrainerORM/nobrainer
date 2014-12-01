@@ -311,7 +311,7 @@ module NoBrainer::Criteria::Where
       return nil unless clauses.present?
 
       usable_indexes = Hash[get_usable_indexes.map { |i| [i.name, i] }]
-      clauses.each do |clause|
+      clauses.map do |clause|
         index = usable_indexes[clause.key]
         next unless index && clause.compatible_with_index?(index)
         next unless index.geo == [:near, :intersects].include?(clause.op)
@@ -327,9 +327,8 @@ module NoBrainer::Criteria::Where
           when :between then [:between, [clause.value.min, clause.value.max],
                               :left_bound => :closed, :right_bound => :closed]
         end
-        return IndexStrategy.new(ast, [clause], index, *args)
-      end
-      return nil
+        IndexStrategy.new(ast, [clause], index, *args)
+      end.compact.sort_by { |strat| usable_indexes.values.index(strat.index) }.first
     end
 
     def find_strategy_compound
