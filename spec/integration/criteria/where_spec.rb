@@ -192,6 +192,17 @@ describe 'complex where queries' do
         SimpleDocument.where(:field1.defined => true,
                              :field2.defined => true).first.should == doc3
       end
+
+      context 'when using types' do
+        before { SimpleDocument.field :field1, :type => String }
+
+        it 'filters documents' do
+          expect { SimpleDocument.where(:field1.defined => nil).count }.to raise_error(NoBrainer::Error::InvalidType)
+          SimpleDocument.where(:field1.defined => true).count.should == 2
+          SimpleDocument.where(:field1.defined => 't').count.should == 2
+          SimpleDocument.where(:field2.defined => 'FaLse').count.should == 1
+        end
+      end
     end
   end
 

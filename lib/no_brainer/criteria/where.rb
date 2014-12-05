@@ -162,6 +162,7 @@ module NoBrainer::Criteria::Where
         value.pk_value
       else
         case op
+        when :defined then NoBrainer::Boolean.nobrainer_cast_user_to_model(value)
         when :intersects
           raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
           value
