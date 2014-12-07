@@ -60,6 +60,8 @@ module NoBrainer::Document::Attributes
   end
 
   def assign_attributes(attrs, options={})
+    raise ArgumentError, "To assign attributes, please pass a hash instead of `#{attrs.class}'" unless attrs.is_a?(Hash)
+
     if options[:pristine]
       if options[:keep_ivars] && options[:missing_attributes].try(:[], :pluck)
         options[:missing_attributes][:pluck].keys.each { |k| @_attributes.delete(k) }
