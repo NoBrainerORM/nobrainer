@@ -11,6 +11,7 @@ module NoBrainer::Criteria::Where
 
   included do
     criteria_option :where_ast, :merge_with => NoBrainer::Criteria::Where.method(:merge_where_ast)
+    criteria_option :skip_distinct, :merge_with => :set_scalar
   end
 
   def where(*args, &block)
@@ -36,6 +37,11 @@ module NoBrainer::Criteria::Where
 
   def where_index_type
     where_index_finder.strategy.try(:rql_op)
+  end
+
+  def skip_distinct(value = true)
+    # helper for delete_all which can't operate on distinct
+    chain(:skip_distinct => value)
   end
 
   private
@@ -275,8 +281,8 @@ module NoBrainer::Criteria::Where
   end
 
   class IndexFinder < Struct.new(:criteria, :ast, :strategy)
-    class Strategy < Struct.new(:rql_op, :index, :ast, :rql_proc); end
-    class IndexStrategy < Struct.new(:criteria_ast, :optimized_clauses, :index, :rql_op, :rql_args, :rql_options)
+    class Strategy < Struct.new(:index_finder, :rql_op, :index, :ast, :rql_proc); end
+    class IndexStrategy < Struct.new(:index_finder, :criteria_ast, :optimized_clauses, :index, :rql_op, :rql_args, :rql_options)
       def ast
         MultiOperator.new(criteria_ast.op, criteria_ast.clauses - optimized_clauses)
       end
@@ -288,7 +294,7 @@ module NoBrainer::Criteria::Where
           r = r.map { |i| i['doc'] } if rql_op == :get_nearest
           # TODO distinct: waiting for issue #3345
           # TODO coerce_to: waiting for issue #3346
-          r = r.coerce_to('array').distinct if index.multi
+          r = r.coerce_to('array').distinct if index.multi && !index_finder.criteria.options[:skip_distinct]
           r
         end
       end
@@ -328,7 +334,7 @@ module NoBrainer::Criteria::Where
           when :between then [:between, [clause.value.min, clause.value.max],
                               :left_bound => :closed, :right_bound => :closed]
         end
-        IndexStrategy.new(ast, [clause], index, *args)
+        IndexStrategy.new(self, ast, [clause], index, *args)
       end.compact.sort_by { |strat| usable_indexes.values.index(strat.index) }.first
     end
 
@@ -340,7 +346,7 @@ module NoBrainer::Criteria::Where
         indexed_clauses = index.what.map { |field| clauses[field] }
         next unless indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
 
-        return IndexStrategy.new(ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
+        return IndexStrategy.new(self, ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
       end
       return nil
     end
@@ -364,7 +370,7 @@ module NoBrainer::Criteria::Where
         options[:left_bound]  = {:gt => :open, :ge => :closed}[left_bound.op]  if left_bound
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
 
-        return IndexStrategy.new(ast, [left_bound, right_bound].compact, index, :between,
+        return IndexStrategy.new(self, ast, [left_bound, right_bound].compact, index, :between,
                                  [left_bound.try(:value), right_bound.try(:value)], options)
       end
       return nil
@@ -387,7 +393,7 @@ module NoBrainer::Criteria::Where
         end.reduce(:union).distinct
       end
 
-      Strategy.new(:union, strategies.map(&:index), nil, rql_proc)
+      Strategy.new(self, :union, strategies.map(&:index), nil, rql_proc)
     end
 
     def find_strategy
