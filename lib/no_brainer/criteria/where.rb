@@ -11,7 +11,7 @@ module NoBrainer::Criteria::Where
 
   included do
     criteria_option :where_ast, :merge_with => NoBrainer::Criteria::Where.method(:merge_where_ast)
-    criteria_option :skip_distinct, :merge_with => :set_scalar
+    criteria_option :without_distinct, :merge_with => :set_scalar
   end
 
   def where(*args, &block)
@@ -39,9 +39,9 @@ module NoBrainer::Criteria::Where
     where_index_finder.strategy.try(:rql_op)
   end
 
-  def skip_distinct(value = true)
+  def without_distinct(value = true)
     # helper for delete_all which can't operate on distinct
-    chain(:skip_distinct => value)
+    chain(:without_distinct => value)
   end
 
   private
@@ -294,7 +294,7 @@ module NoBrainer::Criteria::Where
           r = r.map { |i| i['doc'] } if rql_op == :get_nearest
           # TODO distinct: waiting for issue #3345
           # TODO coerce_to: waiting for issue #3346
-          r = r.coerce_to('array').distinct if index.multi && !index_finder.criteria.options[:skip_distinct]
+          r = r.coerce_to('array').distinct if index.multi && !index_finder.criteria.options[:without_distinct]
           r
         end
       end
