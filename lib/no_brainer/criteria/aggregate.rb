@@ -2,11 +2,11 @@ module NoBrainer::Criteria::Aggregate
   extend ActiveSupport::Concern
 
   def min(*a, &b)
-    instantiate_doc run { aggregate_rql(:min, *a, &b) }
+    order_by(a, &b).first
   end
 
   def max(*a, &b)
-    instantiate_doc run { aggregate_rql(:max, *a, &b) }
+    order_by(a, &b).last
   end
 
   def sum(*a, &b)
