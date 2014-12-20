@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'NoBrainer callbacks' do
+describe 'uniqueness validator' do
   before { load_simple_document }
 
   context 'with validates_uniqueness_of' do

@@ -1,4 +1,4 @@
-module NoBrainer::Document::Uniqueness
+module NoBrainer::Document::Validation::Uniqueness
   extend ActiveSupport::Concern
 
   def _create(options={})
@@ -51,7 +51,7 @@ module NoBrainer::Document::Uniqueness
 
   module ClassMethods
     def validates_uniqueness_of(*attr_names)
-      validates_with UniquenessValidator, _merge_attributes(attr_names)
+      validates_with(UniquenessValidator, _merge_attributes(attr_names))
     end
 
     def inherited(subclass)

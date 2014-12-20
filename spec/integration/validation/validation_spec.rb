@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'NoBrainer callbacks' do
+describe 'validations' do
   before { load_simple_document }
 
   context 'when using a simple validation' do
@@ -152,15 +152,6 @@ describe 'NoBrainer callbacks' do
     it 'validates' do
       SimpleDocument.new(:field1 => 123).save?.should == true
       SimpleDocument.new(:field1 => 123).save?.should == false
-    end
-  end
-
-  context 'when using required on the field' do
-    before { SimpleDocument.field :field1, :required => true }
-
-    it 'validates' do
-      SimpleDocument.new(:field1 => nil).valid?.should == false
-      SimpleDocument.new(:field1 => 'ohai').valid?.should == true
     end
   end
 
