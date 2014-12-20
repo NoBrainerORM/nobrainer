@@ -25,6 +25,7 @@ module NoBrainer::Document::Validation
       super
       validates(attr, :format => { :with => options[:format] }) if options.has_key?(:format)
       validates(attr, :presence => options[:required]) if options.has_key?(:required)
+      validates(attr, :defined => options[:defined]) if options.has_key?(:defined)
       validates(attr, :uniqueness => options[:unique]) if options.has_key?(:unique)
       validates(attr, :uniqueness => options[:uniq]) if options.has_key?(:uniq)
       validates(attr, :inclusion => {:in => options[:in]}) if options.has_key?(:in)
