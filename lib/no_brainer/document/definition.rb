@@ -1,4 +1,4 @@
-module NoBrainer::Document::Defined
+module NoBrainer::Document::Definition
   extend ActiveSupport::Concern
 
   included do
@@ -7,8 +7,8 @@ module NoBrainer::Document::Defined
   end
 
   module ClassMethods
-    def validates_defined(*attr_names)
-      validates_with DefinedValidator, _merge_attributes(attr_names)
+    def validates_definition_of(*attr_names)
+      validates_with DefinitionValidator, _merge_attributes(attr_names)
     end
 
     def inherited(subclass)
@@ -17,7 +17,7 @@ module NoBrainer::Document::Defined
     end
   end
 
-  class DefinedValidator < ActiveModel::EachValidator
+  class DefinitionValidator < ActiveModel::EachValidator
     attr_accessor :scope
 
     def initialize(options={})
@@ -30,12 +30,7 @@ module NoBrainer::Document::Defined
     end
 
     def validate_each(doc, attr, value)
-      if value.nil?
-        doc.errors.add(attr, 'must be defined')
-        true
-      else
-        false
-      end
+      doc.errors.add(attr, :undefined, options) if value.nil?
     end
   end
 end

@@ -3,3 +3,4 @@ en:
     messages:
       taken: "is already taken"
       invalid_type: "should be a %{type}"
+      undefined: "must be defined"
