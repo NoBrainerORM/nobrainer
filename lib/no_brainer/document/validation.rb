@@ -24,12 +24,21 @@ module NoBrainer::Document::Validation
     def _field(attr, options={})
       super
       validates(attr, :format => { :with => options[:format] }) if options.has_key?(:format)
-      validates(attr, :presence => true) if options.has_key?(:required) && options[:required]==:presence
-      validates(attr, :definition => true) if options.has_key?(:required) && options[:required]==true
       validates(attr, :uniqueness => options[:unique]) if options.has_key?(:unique)
       validates(attr, :uniqueness => options[:uniq]) if options.has_key?(:uniq)
       validates(attr, :inclusion => {:in => options[:in]}) if options.has_key?(:in)
       validates(attr, options[:validates]) if options[:validates]
+
+      # required validations
+      case options[:required]
+        when :presence
+          validates(attr, :presence => true)
+        when :definition, true
+          validates(attr, :definition => true)
+        when nil
+        else
+          raise "Invalid required value: #{options[:required]}, must be :presence, :definition, or true"
+      end
     end
   end
 end

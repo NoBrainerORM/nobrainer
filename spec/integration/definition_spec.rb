@@ -14,23 +14,23 @@ describe 'NoBrainer validation' do
     end
 
     it 'cannot save a nil value' do
-      doc = SimpleDocument.new :field1 => nil
+      doc = SimpleDocument.new(:field1 => nil)
       doc.valid?.should == false
       expect { doc.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'can save an empty string' do
-      doc = SimpleDocument.new :field1 => ''
+      doc = SimpleDocument.new(:field1 => '')
       doc.valid?.should == true
     end
 
     it 'can save a false value' do
-      doc = SimpleDocument.new :field1 => false
+      doc = SimpleDocument.new(:field1 => false)
       doc.valid?.should == true
     end
 
     it 'can save an empty array' do
-      doc = SimpleDocument.new :field1 => []
+      doc = SimpleDocument.new(:field1 => [])
       doc.valid?.should == true
     end
   end
