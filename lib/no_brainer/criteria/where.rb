@@ -247,8 +247,8 @@ module NoBrainer::Criteria::Where
 
   def parse_clause_stub(key, value)
     case key
-    when :and then MultiOperator.new(:and, value.map { |v| parse_clause(v) })
-    when :or  then MultiOperator.new(:or,  value.map { |v| parse_clause(v) })
+    when :and then parse_multi_value(:and, value)
+    when :or  then parse_multi_value(:or,  value)
     when :not then UnaryOperator.new(:not, parse_clause(value))
     when String, Symbol then parse_clause_stub_eq(key, value)
     when Symbol::Decoration then
@@ -263,6 +263,16 @@ module NoBrainer::Criteria::Where
       end
     else raise "Invalid key: #{key}"
     end
+  end
+
+  def parse_multi_value(op, value)
+    raise "The `#{op}' operator takes an array as argument" unless value.is_a?(Array)
+    if value.size == 1 && value.first.is_a?(Hash)
+      raise "The `#{op}' operator was provided an array with a single hash element.\n" +
+            "In Ruby, [:a => :b, :c => :d] means [{:a => :b, :c => :d}] which is not the same as [{:a => :b}, {:c => :d}].\n" +
+            "To prevent mistakes, the former construct is prohibited as you probably mean the latter."
+    end
+    MultiOperator.new(op, value.map { |v| parse_clause(v) })
   end
 
   def parse_clause_stub_eq(key, value)
