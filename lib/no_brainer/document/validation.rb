@@ -29,15 +29,11 @@ module NoBrainer::Document::Validation
       validates(attr, :inclusion => {:in => options[:in]}) if options.has_key?(:in)
       validates(attr, options[:validates]) if options[:validates]
 
-      # required validations
       case options[:required]
-        when :presence
-          validates(attr, :presence => true)
-        when :definition, true
-          validates(attr, :definition => true)
-        when nil
-        else
-          raise "Invalid required value: #{options[:required]}, must be :presence, :definition, or true"
+      when :presence then validates(attr, :presence => true)
+      when :definition, true then validates(attr, :definition => true)
+      when nil then ;
+      else raise "Invalid required value: #{options[:required]}, must be :presence, :definition, or true"
       end
     end
   end

@@ -8,7 +8,6 @@ module NoBrainer::Document::Definition
   end
 
   class DefinitionValidator < ActiveModel::EachValidator
-    attr_accessor :scope
 
     def validate_each(doc, attr, value)
       doc.errors.add(attr, :undefined, options) if value.nil?
