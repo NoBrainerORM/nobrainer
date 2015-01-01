@@ -155,15 +155,6 @@ describe 'NoBrainer callbacks' do
     end
   end
 
-  context 'when using required on the field' do
-    before { SimpleDocument.field :field1, :required => true }
-
-    it 'validates' do
-      SimpleDocument.new(:field1 => nil).valid?.should == false
-      SimpleDocument.new(:field1 => 'ohai').valid?.should == true
-    end
-  end
-
   context 'when using format on the field' do
     before { SimpleDocument.field :field1, :format => /\A[a-z]+\z/ }
 
