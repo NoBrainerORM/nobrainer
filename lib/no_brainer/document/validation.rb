@@ -23,14 +23,14 @@ module NoBrainer::Document::Validation
     self.validation_context = current_context
   end
 
+  SHORTHANDS = { :format => :format, :length => :length, :required => :not_null,
+                 :uniq => :uniqueness, :unique => :uniqueness, :in => :inclusion }
+
   module ClassMethods
     def _field(attr, options={})
       super
-      validates(attr, :format => { :with => options[:format] }) if options.has_key?(:format)
-      validates(attr, :uniqueness => options[:unique]) if options.has_key?(:unique)
-      validates(attr, :uniqueness => options[:uniq]) if options.has_key?(:uniq)
-      validates(attr, :not_null => options[:required]) if options.has_key?(:required)
-      validates(attr, :inclusion => {:in => options[:in]}) if options.has_key?(:in)
+
+      SHORTHANDS.each { |k,v| validates(attr, v => options[k]) if options.has_key?(k) }
       validates(attr, options[:validates]) if options[:validates]
     end
   end

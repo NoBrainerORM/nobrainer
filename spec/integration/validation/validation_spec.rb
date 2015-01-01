@@ -164,6 +164,28 @@ describe 'validations' do
     end
   end
 
+  context 'when using length on the field' do
+    context 'when using ranges' do
+      before { SimpleDocument.field :field1, :length => (4..10) }
+
+      it 'validates' do
+        SimpleDocument.new(:field1 => 'Oha').valid?.should == false
+        SimpleDocument.new(:field1 => 'Ohai').valid?.should == true
+        SimpleDocument.new(:field1 => '1234567890').valid?.should == true
+        SimpleDocument.new(:field1 => '12345678901').valid?.should == false
+      end
+    end
+
+    context 'when using options' do
+      before { SimpleDocument.field :field1, :length => { :minimum => 2 } }
+
+      it 'validates' do
+        SimpleDocument.new(:field1 => 'O').valid?.should == false
+        SimpleDocument.new(:field1 => 'Oh').valid?.should == true
+      end
+    end
+  end
+
   context 'when using in on the field' do
     before { SimpleDocument.field :field1, :in => %w(a b c) }
 
