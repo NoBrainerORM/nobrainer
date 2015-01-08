@@ -43,7 +43,7 @@ module NoBrainer::Document::Criteria
 
     def default_scope(criteria=nil, &block)
       criteria ||= block
-      raise "store_in() must be called on the parent class" unless is_root_class?
+      raise "default_scope() must be called on the parent class" unless is_root_class?
       self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
     end
 
