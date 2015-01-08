@@ -31,14 +31,10 @@ module NoBrainer::Document::Dirty
     changes.keys
   end
 
-  def read_attribute_for_change(attr)
-    read_attribute(attr)
-  end
-
   def changes
     result = {}.with_indifferent_access
     @_old_attributes.each do |attr, old_value|
-      current_value = read_attribute_for_change(attr)
+      current_value = read_attribute(attr)
       if current_value != old_value || !@_old_attributes_keys.include?(attr)
         result[attr] = [old_value, current_value]
       end
@@ -50,7 +46,7 @@ module NoBrainer::Document::Dirty
     attr = args.first
     current_value = begin
       case args.size
-      when 1 then assert_access_field(attr); read_attribute_for_change(attr)
+      when 1 then assert_access_field(attr); read_attribute(attr)
       when 2 then args.last
       else raise
       end
@@ -84,7 +80,7 @@ module NoBrainer::Document::Dirty
       inject_in_layer :dirty_tracking do
         define_method("#{attr}_change") do
           if @_old_attributes.has_key?(attr)
-            result = [@_old_attributes[attr], read_attribute_for_change(attr)]
+            result = [@_old_attributes[attr], read_attribute(attr)]
             result if result.first != result.last || !@_old_attributes_keys.include?(attr)
           end
         end
@@ -94,7 +90,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{attr}_was") do
-          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute_for_change(attr)
+          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute(attr)
         end
       end
     end

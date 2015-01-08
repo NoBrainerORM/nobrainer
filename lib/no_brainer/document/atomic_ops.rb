@@ -108,6 +108,9 @@ module NoBrainer::Document::AtomicOps
   end
 
   def _touch_attribute(name)
+    # The difference with dirty tracking and this is that dirty tracking does
+    # not take into account fields that are set with their old value, whereas the
+    # touched attribute does.
     @_touched_attributes << name.to_s
   end
 
@@ -142,12 +145,12 @@ module NoBrainer::Document::AtomicOps
   def _read_attribute(name)
     ensure_exclusive_atomic!
     value = super
+    return value unless in_atomic?
 
-    case [in_atomic?, value.is_a?(PendingAtomic)]
-    when [true, false]  then PendingAtomic._new(self, name, value, _is_attribute_touched?(name))
-    when [false, true]  then raise NoBrainer::Error::CannotReadAtomic.new(self, name, value)
-    when [true, true]   then value.is_a?(PendingAtomicContainer) ? value : value.dup
-    when [false, false] then value
+    case value
+    when PendingAtomicContainer then value
+    when PendingAtomic then value.dup
+    else PendingAtomic._new(self, name, value, _is_attribute_touched?(name))
     end
   end
 
@@ -178,18 +181,6 @@ module NoBrainer::Document::AtomicOps
         end
       end
     end
-  end
-
-  def read_attribute_for_change(attr)
-    super
-  rescue NoBrainer::Error::CannotReadAtomic => e
-    e.value
-  end
-
-  def read_attribute_for_validation(attr)
-    super
-  rescue NoBrainer::Error::CannotReadAtomic => e
-    e.value
   end
 
   module ClassMethods

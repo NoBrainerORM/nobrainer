@@ -229,20 +229,6 @@ describe 'atomic ops' do
     end
   end
 
-  context 'when reading outside of an atomic block' do
-    it 'skip validations on atomic ops' do
-      doc.queue_atomic do
-        doc.field1 += 10
-      end
-
-      expect { doc.field1 }.to raise_error(NoBrainer::Error::CannotReadAtomic)
-      doc.save
-      expect { doc.field1 }.to raise_error(NoBrainer::Error::CannotReadAtomic)
-      doc.reload
-      doc.field1.should == 10
-    end
-  end
-
   context 'when saving' do
     before { SimpleDocument.field :field1, :default => 0, :type => Integer }
     before { SimpleDocument.field :field2, :default => [], :type => Array }
