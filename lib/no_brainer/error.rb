@@ -5,7 +5,6 @@ module NoBrainer::Error
   class ChildrenExist           < RuntimeError; end
   class CannotUseIndex          < RuntimeError; end
   class MissingIndex            < RuntimeError; end
-  class InvalidType             < RuntimeError; end
   class AssociationNotPersisted < RuntimeError; end
   class ReadonlyField           < RuntimeError; end
   class MissingAttribute        < RuntimeError; end

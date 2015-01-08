@@ -303,4 +303,70 @@ describe 'atomic ops' do
       doc.field2.should == [1,2]
     end
   end
+
+  context 'when the source field is undefined' do
+    context 'with integers' do
+      before { SimpleDocument.field :field2, :type => Integer }
+      it 'defaults to a sane value' do
+        doc.queue_atomic { doc.field2 += 1 }
+        doc.save
+        doc.reload
+        doc.field2.should == 1
+      end
+    end
+
+    context 'with arrays' do
+      before { SimpleDocument.field :field2, :type => Array }
+      it 'defaults to a sane value, when using +=' do
+        doc.queue_atomic { doc.field2 += [1] }
+        doc.save
+        doc.reload
+        doc.field2.should == [1]
+      end
+
+      it 'defaults to a sane value, when using <<' do
+        doc.queue_atomic { doc.field2 << 1 }
+        doc.save
+        doc.reload
+        doc.field2.should == [1]
+      end
+    end
+
+    context 'with sets' do
+      before { SimpleDocument.field :field2, :type => Set }
+      it 'defaults to a sane value, when using +=' do
+        doc.queue_atomic { doc.field2 += [1] }
+        doc.save
+        doc.reload
+        doc.field2.should == Set.new([1])
+      end
+
+      it 'defaults to a sane value, when using <<' do
+        doc.queue_atomic { doc.field2 << 1 }
+        doc.save
+        doc.reload
+        doc.field2.should == Set.new([1])
+      end
+    end
+
+    context 'with strings' do
+      before { SimpleDocument.field :field2, :type => String }
+      it 'defaults to a sane value, when using +=' do
+        doc.queue_atomic { doc.field2 += 'xxx' }
+        doc.save
+        doc.reload
+        doc.field2.should == 'xxx'
+      end
+    end
+
+    context 'with no types' do
+      before { SimpleDocument.field :field2 }
+      it 'does not do something stupid with +=' do
+        expect { doc.queue_atomic { doc.field2 += 1 }; doc.save }.to raise_error(/No attribute.*in object/)
+      end
+      it 'does not do something stupid with <<' do
+        expect { doc.queue_atomic { doc.field2 << 1 }; doc.save }.to raise_error(/No attribute.*in object/)
+      end
+    end
+  end
 end

@@ -2,20 +2,36 @@ module NoBrainer::Document::AtomicOps
   extend ActiveSupport::Concern
 
   class PendingAtomic
+    attr_accessor :type
+
     def self._new(instance, field, value, is_user_value)
-      case value
-      when Array then PendingAtomicArray
-      when Set   then PendingAtomicSet
+      type = instance.class.fields[field.to_sym].try(:[], :type)
+      type ||= value.class unless value.nil?
+
+      case
+      when type == Array then PendingAtomicArray
+      when type == Set   then PendingAtomicSet
       else self
-      end.new(instance, field, value, is_user_value)
+      end.new(instance, field, value, is_user_value, type)
     end
 
-    def initialize(instance, field, value, is_user_value)
+    def initialize(instance, field, value, is_user_value, type)
       @instance = instance
       @field = field.to_s
       @value = value
       @is_user_value = is_user_value
+      @type = type
       @ops = []
+    end
+
+    def default_value
+      case
+      when @type == Array   then []
+      when @type == Set     then []
+      when @type == Integer then 0
+      when @type == Float   then 0.0
+      when @type == String  then ""
+      end
     end
 
     def initialize_copy(other)
@@ -29,6 +45,11 @@ module NoBrainer::Document::AtomicOps
     alias_method :inspect, :to_s
 
     def method_missing(method, *a, &b)
+      if method == :<<
+        method = :append
+        modify_source!
+      end
+
       @ops << [method, a, b]
       self
     end
@@ -36,17 +57,18 @@ module NoBrainer::Document::AtomicOps
     def compile_rql_value(rql_doc)
       field = @instance.class.lookup_field_alias(@field)
       value = @is_user_value ? RethinkDB::RQL.new.expr(@value) : rql_doc[field]
+      value = value.default(default_value) if default_value
       @ops.reduce(value) { |v, (method, a, b)| v.__send__(method, *a, &b) }
     end
-  end
 
-  class PendingAtomicContainer < PendingAtomic
     def modify_source!
       unless @instance._is_attribute_touched?(@field)
         @instance.write_attribute(@field, self)
       end
     end
   end
+
+  class PendingAtomicContainer < PendingAtomic; end
 
   class PendingAtomicArray < PendingAtomicContainer
     def -(value)
@@ -177,7 +199,7 @@ module NoBrainer::Document::AtomicOps
       if saved
         @_attributes.each do |attr, value|
           next unless value.is_a?(PendingAtomic)
-          @_attributes[attr] = value.class.new(self, attr, nil, false)
+          @_attributes[attr] = value.class.new(self, attr, nil, false, value.type)
         end
       end
     end
