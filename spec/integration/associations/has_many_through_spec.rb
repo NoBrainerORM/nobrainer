@@ -36,6 +36,12 @@ describe 'has_many_through' do
     Model4.create(:model3 => m3b)
   end
 
+  it '#target_model' do
+    Model1.association_metadata[:model2].target_model.should == Model2
+    Model1.association_metadata[:model3].target_model.should == Model3
+    Model1.association_metadata[:model4].target_model.should == Model4
+  end
+
   context 'when going through the has_many' do
     it 'follow the association with eager loading' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times

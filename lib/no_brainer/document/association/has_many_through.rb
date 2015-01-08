@@ -18,6 +18,13 @@ class NoBrainer::Document::Association::HasManyThrough
       NoBrainer::Document::Association::EagerLoader.new
         .eager_load_association(through_association.eager_load(docs), target_name, criteria)
     end
+
+    def target_model
+      # Not used in our code, but useful for 3rd party plugins (see #114)
+      meta = through_association.target_model.association_metadata
+      association = meta[target_name.to_sym] || meta[target_name.to_s.singularize.to_sym]
+      association.target_model
+    end
   end
 
   def read
