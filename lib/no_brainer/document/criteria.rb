@@ -6,8 +6,9 @@ module NoBrainer::Document::Criteria
   end
 
   included do
-    cattr_accessor :default_scope_proc,     :instance_accessor => false
     cattr_accessor :perf_warnings_disabled, :instance_accessor => false
+    singleton_class.send(:attr_accessor, :default_scopes)
+    self.default_scopes = []
   end
 
   module ClassMethods
@@ -42,9 +43,17 @@ module NoBrainer::Document::Criteria
     end
 
     def default_scope(criteria=nil, &block)
-      criteria ||= block
-      raise "default_scope() must be called on the parent class" unless is_root_class?
-      self.default_scope_proc = criteria.is_a?(Proc) ? criteria : proc { criteria }
+      criteria_proc = block || (criteria.is_a?(Proc) ? criteria : proc { criteria })
+      raise "default_scope only accepts a criteria or a proc that returns criteria" unless criteria_proc.is_a?(Proc)
+
+      ([self] + self.descendants).each do |model|
+        model.default_scopes << criteria_proc
+      end
+    end
+
+    def inherited(subclass)
+      subclass.default_scopes = self.default_scopes.dup
+      super
     end
 
     def selector_for(pk)

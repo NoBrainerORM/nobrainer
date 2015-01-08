@@ -24,21 +24,14 @@ module NoBrainer::Criteria::Scope
 
   private
 
-  def should_apply_default_scope?
-    model.default_scope_proc && @options[:use_default_scope] != false
-  end
-
   def _apply_default_scope
-    return unless should_apply_default_scope?
-    criteria = model.default_scope_proc.call
-    raise "Mixing model issue. Contact developer." if [criteria.model, self.model].compact.uniq.size == 2
-    criteria.merge(self)
+    return self if @options[:use_default_scope] == false
+    (model.default_scopes.map(&:call).compact + [self]).reduce(:merge)
   end
 
   module ClassMethods
     def _finalize_criteria(base)
-      criteria = super
-      criteria.__send__(:_apply_default_scope) || criteria
+      super.__send__(:_apply_default_scope)
     end
   end
 end

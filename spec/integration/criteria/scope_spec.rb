@@ -108,4 +108,33 @@ describe 'scope' do
       end
     end
   end
+
+  context 'when using multiple default scopes' do
+    before { load_polymorphic_models }
+
+    before do
+      Parent.class_eval do
+        field :field1
+        field :field2
+        field :field3
+        default_scope { where(:field1 => 1) }
+        default_scope { order_by(:field3) }
+      end
+      Child.class_eval do
+        default_scope { where(:field2 => 1) }
+        default_scope { order_by(:field3 => :desc) } # latest order_by wins
+      end
+    end
+
+      let!(:doc1) { Child.create(:field1 => 1, :field2 => 1, :field3 => 3) }
+      let!(:doc2) { Child.create(:field1 => 1, :field2 => 1, :field3 => 1) }
+      let!(:doc3) { Child.create(:field1 => 1, :field2 => 1, :field3 => 2) }
+      let!(:doc4) { Child.create(:field1 => 2, :field2 => 1, :field3 => 5) }
+      let!(:doc5) { Child.create(:field1 => 1, :field2 => 2, :field3 => 4) }
+
+    it 'applies the scopes in the proper order' do
+      Parent.to_a.should == [doc2, doc3, doc1, doc5]
+      Child.to_a.should == [doc1, doc3, doc2]
+    end
+  end
 end
