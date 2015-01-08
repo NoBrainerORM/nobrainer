@@ -237,4 +237,25 @@ describe 'validations' do
       SimpleDocument.new.save?.should == false
     end
   end
+
+  context 'when the field does not change' do
+    before { SimpleDocument.validates :field1, :field2, :inclusion => %w(a b) }
+
+    it 'does not call its validators' do
+      SimpleDocument.new.valid?.should == false
+      SimpleDocument.create({:field2 => 'xx'}, :validate => false)
+      doc = SimpleDocument.first
+      doc.valid?.should == true
+      doc.field1 = 'x'
+      doc.valid?.should == false
+      doc.field1 = 'a'
+      doc.valid?.should == true
+      doc.field2 = 'xx'
+      doc.valid?.should == true
+      doc.field2 = 'yy'
+      doc.valid?.should == false
+      doc.field2 = 'a'
+      doc.valid?.should == true
+    end
+  end
 end

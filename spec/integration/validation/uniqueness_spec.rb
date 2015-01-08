@@ -20,10 +20,14 @@ describe 'uniqueness validator' do
     end
 
     it 'validates only when the field changes' do
-      doc2 = SimpleDocument.new(:field1 => 'ohai')
-      doc2.valid?.should == false
-      doc2.clear_dirtiness
+      SimpleDocument.create({:field1 => 'ohai', :field2 => 'new'}, :validate => false)
+      doc2 = SimpleDocument.where(:field2 => 'new').first
       doc2.valid?.should == true
+      doc2.field1 = 'hello'
+      doc2.valid?.should == true
+      doc2.save
+      doc2.field1 = 'ohai'
+      doc2.valid?.should == false
     end
   end
 

@@ -27,7 +27,7 @@ module NoBrainer::Document::Validation::Uniqueness
     self.class.unique_validators
       .map { |validator| validator.attributes.map { |attr| [attr, validator] } }
       .flatten(1)
-      .select { |f, validator| validator.should_validate_uniquess_of?(self, f) }
+      .select { |f, validator| validator.should_validate_field?(self, f) }
       .map { |f, options| _lock_key_from_field(f) }
       .sort
       .uniq
@@ -72,13 +72,11 @@ module NoBrainer::Document::Validation::Uniqueness
       end
     end
 
-    def should_validate_uniquess_of?(doc, field)
-      (scope + [field]).any? { |f| doc.__send__("#{f}_changed?") }
+    def should_validate_field?(doc, field)
+      doc.new_record? || (scope + [field]).any? { |f| doc.__send__("#{f}_changed?") }
     end
 
     def validate_each(doc, attr, value)
-      return true unless should_validate_uniquess_of?(doc, attr)
-
       criteria = doc.root_class.unscoped.where(attr => value)
       criteria = apply_scopes(criteria, doc)
       criteria = exclude_doc(criteria, doc) if doc.persisted?

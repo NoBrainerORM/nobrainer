@@ -20,12 +20,13 @@ module NoBrainer::Document::Association::Core
       association_model.new(self, owner)
     end
 
-    def delegate(method_name, target, options={})
+    def delegate(method_src, method_dst, options={})
       metadata = self
       owner_model.inject_in_layer :associations do
-        define_method(method_name) do |*args, &block|
+        define_method(method_src) do |*args, &block|
           super(*args, &block) if options[:call_super]
-          associations[metadata].__send__(target, *args, &block)
+          target = options[:to] == :self ? self : associations[metadata]
+          target.__send__(method_dst, *args, &block)
         end
       end
     end

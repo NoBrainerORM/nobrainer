@@ -34,6 +34,7 @@ class NoBrainer::Document::Association::BelongsTo
       owner_model.validates(target_name, options[:validates]) if options[:validates]
 
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
+      delegate("#{target_name}_changed?", "#{foreign_key}_changed?", :to => :self)
       add_callback_for(:after_validation)
     end
 
