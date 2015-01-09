@@ -175,8 +175,7 @@ describe 'NoBrainer index' do
 
   context 'when indexing a field normally, but without creating the index' do
     before { SimpleDocument.index :field1 }
-    before { @old_level, NoBrainer.logger.level = NoBrainer.logger.level, Logger::FATAL }
-    after  { NoBrainer.logger.level = @old_level }
+    before { NoBrainer.logger.level = Logger::FATAL }
 
     it 'raises' do
       SimpleDocument.where(:field1 => 'ohai').where_indexed?.should == true

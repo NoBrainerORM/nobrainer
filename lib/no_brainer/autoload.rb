@@ -17,9 +17,4 @@ module NoBrainer::Autoload
     constants.each { |constant| autoload constant }
     constants.each { |constant| include const_get(constant) }
   end
-
-  def eager_autoload_and_include(*constants)
-    eager_autoload(*constants)
-    constants.each { |constant| include const_get(constant) }
-  end
 end

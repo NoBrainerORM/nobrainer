@@ -15,6 +15,7 @@ module NoBrainer::Document::Core
   include ActiveModel::Conversion
 
   def to_key
+     # ActiveModel::Conversion stuff
     [pk_value]
   end
 

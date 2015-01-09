@@ -31,8 +31,7 @@ describe 'update' do
     before { NoBrainer.sync_indexes }
     after  { NoBrainer.drop! }
 
-    before { @old_level, NoBrainer.logger.level = NoBrainer.logger.level, Logger::FATAL }
-    after  { NoBrainer.logger.level = @old_level }
+    before { NoBrainer.logger.level = Logger::FATAL }
 
     it 'deletes documents' do
       SimpleDocument.where(:field2.any => 10).update_all({:field1 => 1})

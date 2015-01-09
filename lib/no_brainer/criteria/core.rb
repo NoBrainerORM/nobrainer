@@ -102,10 +102,6 @@ module NoBrainer::Criteria::Core
       b
     end
 
-    def merge_hash(a, b)
-      a ? a.merge(b) : b
-    end
-
     def append_array(a, b)
       a ? a+b : b
     end

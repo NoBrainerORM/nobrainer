@@ -27,8 +27,4 @@ module NoBrainer::RQL
       :read
     end
   end
-
-  def is_table?(rql)
-    rql.body.first == TABLE
-  end
 end

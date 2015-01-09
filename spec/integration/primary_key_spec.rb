@@ -17,6 +17,7 @@ describe 'NoBrainer id' do
 
     doc = SimpleDocument.create
     doc.some_id.should == 'some_value'
+    doc.to_key.should == ['some_value']
 
     SimpleDocument.field :some_other_id, :primary_key => true
     doc1 = SimpleDocument.create
