@@ -21,6 +21,10 @@ class NoBrainer::Document::Association::BelongsTo
       (options[:class_name] || target_name.to_s.camelize).constantize
     end
 
+    def base_criteria
+      target_model.unscoped
+    end
+
     def hook
       super
 
@@ -38,8 +42,7 @@ class NoBrainer::Document::Association::BelongsTo
       add_callback_for(:after_validation)
     end
 
-    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ primary_key },
-                    :unscoped => true
+    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ primary_key }
   end
 
   # Note:

@@ -2,7 +2,7 @@ class NoBrainer::Document::Association::HasMany
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent, :scope]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
@@ -21,6 +21,10 @@ class NoBrainer::Document::Association::HasMany
       (options[:class_name] || target_name.to_s.singularize.camelize).constantize
     end
 
+    def base_criteria
+      options[:scope] ? target_model.instance_exec(&options[:scope]) : target_model.all
+    end
+
     def inverses
       # We can always infer the inverse association of a has_many relationship,
       # because a belongs_to association cannot have a scope applied on the
@@ -37,6 +41,12 @@ class NoBrainer::Document::Association::HasMany
 
     def hook
       super
+
+      if options[:scope]
+        raise ":scope must be passed a lambda like this: `:scope => ->{ where(...) }'" unless options[:scope].is_a?(Proc)
+        raise ":dependent and :scope cannot be used together" if options[:dependent]
+      end
+
       add_callback_for(:before_destroy) if options[:dependent]
     end
 
@@ -44,8 +54,8 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def target_criteria
-    @target_criteria ||= target_model.where(foreign_key => owner.pk_value)
-                                     .after_find(set_inverse_proc)
+    @target_criteria ||= base_criteria.where(foreign_key => owner.pk_value)
+                                      .after_find(set_inverse_proc)
   end
 
   def read

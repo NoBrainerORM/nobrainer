@@ -2,7 +2,7 @@ class NoBrainer::Document::Association::HasManyThrough
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:through]
+    VALID_OPTIONS = [:through, :scope]
     include NoBrainer::Document::Association::Core::Metadata
 
     def through_association_name
@@ -14,13 +14,14 @@ class NoBrainer::Document::Association::HasManyThrough
         raise "#{through_association_name} association not found"
     end
 
-    def eager_load(docs, criteria=nil)
+    def eager_load(docs, additional_criteria=nil)
+      criteria = target_model.instance_exec(&options[:scope]) if options[:scope]
+      criteria = criteria ? criteria.merge(additional_criteria) : additional_criteria if additional_criteria
       NoBrainer::Document::Association::EagerLoader.new
         .eager_load_association(through_association.eager_load(docs), target_name, criteria)
     end
 
     def target_model
-      # Not used in our code, but useful for 3rd party plugins (see #114)
       meta = through_association.target_model.association_metadata
       association = meta[target_name.to_sym] || meta[target_name.to_s.singularize.to_sym]
       association.target_model

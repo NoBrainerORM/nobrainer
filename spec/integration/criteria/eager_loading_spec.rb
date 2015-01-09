@@ -90,4 +90,20 @@ describe 'eager_loading' do
       end
     end
   end
+
+  context 'when eager loading scoped associations' do
+    before { Author.has_many :posts, :scope => ->{ where(:title.gte 1) } }
+    before { Post.has_many :comments, :scope => ->{ where(:body.gte 1) } }
+
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
+      a = Author.preload(:posts => [:author, :comments]).first
+      a.should == author
+      a.posts.to_a.should == posts[1..2]
+      a.posts.each do |post|
+        post.author.should == author
+        post.comments.to_a.should == comments.select { |c| c.post == post }[1..2]
+      end
+    end
+  end
 end

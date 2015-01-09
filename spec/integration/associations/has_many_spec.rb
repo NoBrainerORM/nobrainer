@@ -19,7 +19,7 @@ describe 'has_many' do
       post.comments.to_a.should =~ comments
     end
 
-    it 'is scopable' do
+    it 'is chainable' do
       post.comments.where(:body => 1).count.should == 1
     end
 
@@ -40,6 +40,15 @@ describe 'has_many' do
   context 'when using =' do
     it 'raises' do
       expect { post.comments = [] }.to raise_error
+    end
+  end
+
+  context 'when using scopes' do
+    before { Post.has_many :comments, :scope => ->{ where(:body.gte 2).order_by(:body) } }
+    let!(:comments) { 5.times.to_a.shuffle.map { |i| Comment.create(:body => i, :post => post) } }
+
+    it 'is scopable' do
+      post.comments.map(&:body).should == [2,3,4]
     end
   end
 end
