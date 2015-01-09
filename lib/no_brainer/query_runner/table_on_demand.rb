@@ -17,8 +17,8 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   private
 
   def auto_create_table(env, database_name, table_name)
-    model = NoBrainer::Document::Index::MetaStore if table_name == 'nobrainer_index_meta'
-    model ||= NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
+    model ||= NoBrainer::Document::Core._all.select { |m| m.table_name == table_name }.first
+    model ||= NoBrainer::Document::Core._all_nobrainer.select { |m| m.table_name == table_name }.first
 
     if model.nil?
       raise "Auto table creation is not working for `#{database_name}.#{table_name}` -- Can't find the corresponding model."

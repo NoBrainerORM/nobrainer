@@ -52,7 +52,7 @@ class NoBrainer::Connection
   # database (drop)
   def purge!
     table_list.each do |table_name|
-      next if table_name =~ /^nobrainer_/
+      next if table_name == 'nobrainer_index_meta' # keeping because indexes are not going away
       NoBrainer.run { |r| r.table(table_name).delete }
     end
     true
