@@ -10,6 +10,8 @@ module NoBrainer::Error
   class MissingAttribute        < RuntimeError; end
   class UnknownAttribute        < RuntimeError; end
   class AtomicBlock             < RuntimeError; end
+  class LostLock                < RuntimeError; end
+  class LockUnavailable         < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance
