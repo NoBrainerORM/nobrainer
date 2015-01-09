@@ -54,7 +54,7 @@ module NoBrainer::Document::Attributes
       end
 
       default_value = field_options[:default]
-      default_value = default_value.call if default_value.is_a?(Proc)
+      default_value = instance_exec(&default_value) if default_value.is_a?(Proc)
       self.write_attribute(name, default_value)
     end
   end
