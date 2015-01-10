@@ -10,7 +10,7 @@ describe 'eager_loading' do
   context 'when eager loading on a belongs_to association' do
     it 'eagers load' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
-      Comment.preload(:post).each do |comment|
+      Comment.eager_load(:post).each do |comment|
         comment.post.should == comments.select { |c| c == comment }.first.post
       end
     end
@@ -19,7 +19,7 @@ describe 'eager_loading' do
   context 'when eager loading on a has_many association' do
     it 'eagers load' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
-      Post.preload(:comments).each do |post|
+      Post.eager_load(:comments).each do |post|
         post.comments.to_a.should == comments.select { |c| c.post == post }
       end
     end
@@ -28,7 +28,7 @@ describe 'eager_loading' do
   context 'when eager loading nested associations' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => [:author, :comments]).first
+      a = Author.eager_load(:posts => [:author, :comments]).first
       a.should == author
       a.posts.to_a.should == posts
       a.posts.each do |post|
@@ -38,10 +38,10 @@ describe 'eager_loading' do
     end
   end
 
-  context 'when eager loading nested associations with multiple preload' do
+  context 'when eager loading nested associations with multiple eager_load' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => :author).preload(:posts => :comments).first
+      a = Author.eager_load(:posts => :author).eager_load(:posts => :comments).first
       a.should == author
       a.posts.to_a.should == posts
       a.posts.each do |post|
@@ -54,10 +54,10 @@ describe 'eager_loading' do
   context 'when eager loading after the fact' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => :comments).first
+      a = Author.eager_load(:posts => :comments).first
       a.should == author
       a.posts.to_a.should == posts
-      a.posts.preload(:author).each do |post|
+      a.posts.eager_load(:author).each do |post|
         post.author.should == author
         post.comments.to_a.should == comments.select { |c| c.post == post }
       end
@@ -67,10 +67,10 @@ describe 'eager_loading' do
   context 'when eager loading after the fact on top of an existing eager load' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => [:author, :comments]).first
+      a = Author.eager_load(:posts => [:author, :comments]).first
       a.should == author
       a.posts.to_a.should == posts
-      a.posts.preload(:comments).each do |post|
+      a.posts.eager_load(:comments).each do |post|
         post.author.should == author
         post.comments.to_a.should == comments.select { |c| c.post == post }
       end
@@ -83,7 +83,7 @@ describe 'eager_loading' do
       a = Author.first
       a.should == author
       a.posts.to_a.should == posts
-      criteria = a.posts.preload(:comments)
+      criteria = a.posts.eager_load(:comments)
       ([criteria.first] + criteria.to_a).each do |post|
         post.comments.to_a.should == comments.select { |c| c.post == post }
       end
@@ -93,7 +93,7 @@ describe 'eager_loading' do
   context 'when eager loading nested associations with criterias' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => Post.where(:title.gte => 1).preload(
+      a = Author.eager_load(:posts => Post.where(:title.gte => 1).eager_load(
                             :author, :comments => Comment.where(:body.gte => 1))).first
       a.should == author
       a.posts.to_a.should == posts.select { |p| p.title >= 1 }
@@ -110,7 +110,7 @@ describe 'eager_loading' do
 
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
-      a = Author.preload(:posts => [:author, :comments]).first
+      a = Author.eager_load(:posts => [:author, :comments]).first
       a.should == author
       a.posts.to_a.should == posts[1..2]
       a.posts.each do |post|

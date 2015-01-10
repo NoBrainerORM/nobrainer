@@ -38,7 +38,7 @@ describe 'has_many_through' do
     end
 
     it 'can be eager loaded' do
-      m1 = Model1.preload(:model3).first
+      m1 = Model1.eager_load(:model3).first
       m3 = Model3.first
       NoBrainer.purge!
       m1.model3.should == m3

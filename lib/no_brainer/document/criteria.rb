@@ -22,7 +22,7 @@ module NoBrainer::Document::Criteria
              :with_cache, :without_cache,    # Cache
              :count, :empty?, :any?,         # Count
              :delete_all, :destroy_all,      # Delete
-             :includes, :preload,            # Preload
+             :preload, :eager_load,          # EagerLoad
              :each, :to_a,                   # Enumerable
              :first, :last, :first!, :last!, :sample, # First
              :min, :max, :sum, :avg,         # Aggregate

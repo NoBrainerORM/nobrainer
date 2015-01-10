@@ -189,7 +189,7 @@ describe 'NoBrainer aliases' do
       Post.raw.first['a_id'].should == author.pk_value
       Post.first.author.should == author
       Comment.first.author.should == author
-      Author.preload(:posts => Post.preload(:comments)).first.posts.first.comments.first.should == comment
+      Author.eager_load(:posts => Post.eager_load(:comments)).first.posts.first.comments.first.should == comment
     end
   end
 end

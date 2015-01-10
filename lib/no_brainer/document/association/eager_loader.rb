@@ -39,20 +39,20 @@ class NoBrainer::Document::Association::EagerLoader
     association.eager_load(docs, criteria)
   end
 
-  def eager_load(docs, preloads)
-    case preloads
-    when Hash  then preloads.each do |k,v|
+  def eager_load(docs, what)
+    case what
+    when Hash  then what.each do |k,v|
       if v.is_a?(NoBrainer::Criteria)
         v = v.dup
-        nested_preloads, v.options[:preload] = v.options[:preload], []
+        nested_preloads, v.options[:eager_load] = v.options[:eager_load], []
         eager_load(eager_load_association(docs, k, v), nested_preloads)
       else
         eager_load(eager_load_association(docs, k), v)
       end
     end
-    when Array then preloads.each { |v| eager_load(docs, v) }
+    when Array then what.each { |v| eager_load(docs, v) }
     when nil then;
-    else eager_load_association(docs, preloads) # String and Symbol
+    else eager_load_association(docs, what) # String and Symbol
     end
     true
   end
