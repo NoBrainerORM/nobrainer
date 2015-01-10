@@ -47,7 +47,7 @@ module NoBrainer::Criteria::Core
   end
 
   def merge(criteria, options={})
-    dup.tap { |new_criteria| new_criteria.merge!(criteria, options) }
+    dup.merge!(criteria, options)
   end
 
   def ==(other)

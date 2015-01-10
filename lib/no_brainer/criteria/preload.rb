@@ -9,8 +9,9 @@ module NoBrainer::Criteria::Preload
 
   def merge!(criteria, options={})
     super.tap do
-      # XXX Not pretty hack
-      if criteria.options[:preload].present? && criteria.cached?
+      # If we already have some cached documents, and we need to so some eager
+      # loading, then we it now. It's easier than doing it lazily.
+      if self.cached? && criteria.options[:preload].present?
         perform_preloads(@cache)
       end
     end

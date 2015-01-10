@@ -77,6 +77,19 @@ describe 'eager_loading' do
     end
   end
 
+  context 'when eager loading after the fact on top of a cached criteria' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
+      a = Author.first
+      a.should == author
+      a.posts.to_a.should == posts
+      criteria = a.posts.preload(:comments)
+      ([criteria.first] + criteria.to_a).each do |post|
+        post.comments.to_a.should == comments.select { |c| c.post == post }
+      end
+    end
+  end
+
   context 'when eager loading nested associations with criterias' do
     it 'eager loads' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(3).times
