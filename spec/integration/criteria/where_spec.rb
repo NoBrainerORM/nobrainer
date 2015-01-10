@@ -462,4 +462,11 @@ describe 'complex where queries' do
       it_should_behave_like 'intersect queries'
     end
   end
+
+  context 'when using non permitted attributes' do
+    it 'raises' do
+      expect { SimpleDocument.where(permitted_attributes) }.to_not raise_error
+      expect { SimpleDocument.where(non_permitted_attributes) }.to raise_error(ActiveModel::ForbiddenAttributesError)
+    end
+  end
 end

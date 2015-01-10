@@ -4,6 +4,7 @@ module NoBrainer::Document::Attributes
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
                           + NoBrainer::Criteria::Where::OPERATORS
   extend ActiveSupport::Concern
+  include ActiveModel::ForbiddenAttributesProtection
 
   included do
     singleton_class.send(:attr_accessor, :fields)
@@ -76,6 +77,7 @@ module NoBrainer::Document::Attributes
       clear_dirtiness(options)
     else
       clear_dirtiness(options) if options[:pristine]
+      attrs = sanitize_for_mass_assignment(attrs)
       attrs.each { |k,v| self.write_attribute(k,v) }
     end
     assign_defaults(options) if options[:pristine]

@@ -8,6 +8,7 @@ module NoBrainer::Criteria::Where
   Symbol::Decoration.register(*CHAINABLE_OPERATORS, :chainable => true)
 
   extend ActiveSupport::Concern
+  include ActiveModel::ForbiddenAttributesProtection
 
   included do
     criteria_option :where_ast, :merge_with => NoBrainer::Criteria::Where.method(:merge_where_ast)
@@ -232,6 +233,7 @@ module NoBrainer::Criteria::Where
   end
 
   def parse_clause(clause)
+    clause = sanitize_for_mass_assignment(clause)
     case clause
     when Array then MultiOperator.new(:and, clause.map { |c| parse_clause(c) })
     when Hash  then MultiOperator.new(:and, clause.map { |k,v| parse_clause_stub(k,v) })

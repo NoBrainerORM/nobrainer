@@ -100,8 +100,23 @@ describe NoBrainer do
   context 'when calling inspect' do
     before { load_simple_document }
     let(:doc) { SimpleDocument.new(SimpleDocument.pk_name => 'hello', :field2 => 2, :field1 => 1, :field3 => 3) }
+
     it 'shows the attributes' do
       doc.inspect.should == '#<SimpleDocument _id_: "hello", field1: 1, field2: 2, field3: 3>'
+    end
+  end
+
+  context 'when using non permitted attributes' do
+    before { load_simple_document }
+
+    it 'raises' do
+      expect { SimpleDocument.new(permitted_attributes) }.to_not raise_error
+      expect { SimpleDocument.new(non_permitted_attributes) }.to raise_error(ActiveModel::ForbiddenAttributesError)
+
+      expect { SimpleDocument.new.tap { |doc| doc.assign_attributes(permitted_attributes) } }
+        .to_not raise_error
+      expect { SimpleDocument.new.tap { |doc| doc.assign_attributes(non_permitted_attributes) } }
+        .to raise_error(ActiveModel::ForbiddenAttributesError)
     end
   end
 end
