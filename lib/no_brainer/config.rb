@@ -19,6 +19,7 @@ module NoBrainer::Config
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
     :machine_id             => { :default => ->{ default_machine_id } },
     :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
+    :criteria_cache_max_entries => { :default => -> { 10_000 } },
   }
 
   class << self

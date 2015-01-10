@@ -37,15 +37,20 @@ module NoBrainer::Criteria::Cache
   end
 
   def each(options={}, &block)
-    return super unless with_cache? && !options[:no_cache] && block
+    return super unless with_cache? && !options[:no_cache] && block && !@cache_too_small
     return @cache.each(&block) if @cache
 
     cache = []
     super(options.merge(:no_cache => true)) do |instance|
       block.call(instance)
-      cache << instance
+      cache << instance unless @cache_too_small
+
+      if cache.size > NoBrainer::Config.criteria_cache_max_entries
+        cache = []
+        @cache_too_small = true
+      end
     end
-    @cache = cache
+    @cache = cache unless @cache_too_small
     self
   end
 

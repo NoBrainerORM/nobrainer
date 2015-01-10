@@ -99,4 +99,17 @@ describe 'cache' do
       criteria.inspect.should =~ /2 results cached/
     end
   end
+
+  context 'when reaching the max cache size' do
+    before { 8.times { SimpleDocument.create } }
+    before { NoBrainer.configure { |c| c.criteria_cache_max_entries = 5 } }
+
+    it 'drops the cache' do
+      criteria = SimpleDocument.all
+      criteria.count.should == 10
+      criteria.to_a
+      SimpleDocument.destroy_all
+      criteria.count.should == 0
+    end
+  end
 end

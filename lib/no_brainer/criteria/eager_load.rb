@@ -27,6 +27,7 @@ module NoBrainer::Criteria::EagerLoad
 
     docs = []
     super(options.merge(:no_eager_loading => true)) { |doc| docs << doc }
+    # TODO batch the eager loading with NoBrainer::Config.criteria_cache_max_entries
     perform_eager_load(docs)
     docs.each(&block)
     self
