@@ -24,7 +24,7 @@ class NoBrainer::Document::Index::MetaStore
   def self.on(db_name, &block)
     old_db_name = Thread.current[:nobrainer_meta_store_db]
     Thread.current[:nobrainer_meta_store_db] = db_name
-    NoBrainer.with(:auto_create_tables => true) { block.call }
+    block.call
   ensure
     Thread.current[:nobrainer_meta_store_db] = old_db_name
   end

@@ -91,28 +91,6 @@ describe 'NoBrainer index' do
       end
     end
 
-    context 'when disabling auto create' do
-      before do
-        SimpleDocument.store_in :database => "some_test_db", :table => 'some_table'
-        NoBrainer.with_database('some_test_db') { NoBrainer.drop! }
-        SimpleDocument.first # create table
-        NoBrainer.configure do |config|
-          config.auto_create_tables = false
-        end
-      end
-
-      it 'keeps indexes in sync' do
-        SimpleDocument.index :idx
-        migration_plan.should == [[:idx, :create]]
-        NoBrainer.sync_indexes
-        migration_plan.should == []
-
-        NoBrainer.with_database('some_test_db') do
-          NoBrainer::Document::Index::MetaStore.first.table_name.should == 'some_table'
-        end
-      end
-    end
-
     context 'with external indexes' do
       before do
         SimpleDocument.first

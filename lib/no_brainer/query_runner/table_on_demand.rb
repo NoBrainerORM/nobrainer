@@ -10,7 +10,6 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   end
 
   def handle_table_on_demand_exception?(env, e)
-    (NoBrainer::Config.auto_create_tables || env[:auto_create_tables]) &&
     e.message =~ /^Table `(.+)\.(.+)` does not exist\.$/ && [$1, $2]
   end
 

@@ -10,7 +10,6 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
   end
 
   def handle_database_on_demand_exception?(env, e)
-    (NoBrainer::Config.auto_create_databases || env[:auto_create_databases]) &&
     e.message =~ /^Database `(.+)` does not exist\.$/ && $1
   end
 

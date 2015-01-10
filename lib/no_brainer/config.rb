@@ -7,8 +7,6 @@ module NoBrainer::Config
     :rethinkdb_url          => { :default => ->{ default_rethinkdb_url } },
     :logger                 => { :default => ->{ default_logger } },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
-    :auto_create_databases  => { :default => ->{ true }, :valid_values => [true, false] },
-    :auto_create_tables     => { :default => ->{ true }, :valid_values => [true, false] },
     :max_retries_on_connection_failure => { :default => ->{ default_max_retries_on_connection_failure } },
     :durability             => { :default => ->{ default_durability }, :valid_values => [:hard, :soft] },
     :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
@@ -30,6 +28,16 @@ module NoBrainer::Config
       STDERR.puts "[NoBrainer] config.max_reconnection_tries is deprecated and will be removed"
       STDERR.puts "[NoBrainer] use config.max_retries_on_connection_failure instead."
       self.max_retries_on_connection_failure = value
+    end
+
+    def auto_create_databases=(value)
+      STDERR.puts "[NoBrainer] config.auto_create_databases is no longer active."
+      STDERR.puts "[NoBrainer] The current behavior is now to always auto create databases"
+    end
+
+    def auto_create_tables=(value)
+      STDERR.puts "[NoBrainer] config.auto_create_tables is no longer active."
+      STDERR.puts "[NoBrainer] The current behavior is now to always auto create tables"
     end
 
     def apply_defaults
