@@ -99,8 +99,8 @@ describe 'atomic ops' do
 
     it 'appends with +' do
       doc.queue_atomic do
-        doc.field1 += ['foo', 'bar']
-        doc.field1 += ['hello', 'world', 'foo']
+        doc.field1 += %w(foo bar)
+        doc.field1 += %w(hello world foo)
       end
       doc.save
 
@@ -109,24 +109,42 @@ describe 'atomic ops' do
 
     it 'removes with -' do
       doc.queue_atomic do
-        doc.field1 += ['foo', 'bar']
-        doc.field1 += ['hello', 'world', 'foo']
-        doc.field1 -= ['foo', 'hello']
+        doc.field1 += %w(foo bar hello world foo bar)
+        doc.field1 -= %w(bar hello)
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should == %w(bar world)
+      SimpleDocument.raw.first['field1'].should == %w(foo world foo)
     end
 
-    it 'intersects with -' do
+    it 'intersects with &' do
       doc.queue_atomic do
-        doc.field1 += ['foo', 'bar']
-        doc.field1 += ['hello', 'world', 'foo']
-        doc.field1 -= ['foo', 'hello']
+        doc.field1 += %w(foo bar)
+        doc.field1 &= %w(bar world)
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should == %w(bar world)
+      SimpleDocument.raw.first['field1'].should == %w(bar)
+    end
+
+    it 'unions with |' do
+      doc.queue_atomic do
+        doc.field1 += %w(foo bar)
+        doc.field1 |= %w(hello world foo)
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+    end
+
+    it 'deletes with delete' do
+      doc.queue_atomic do
+        doc.field1 += %w(foo bar hello world foo bar)
+        doc.field1.delete('foo')
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar hello world bar)
     end
   end
 
@@ -141,28 +159,57 @@ describe 'atomic ops' do
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should =~ %w(foo bar)
+      SimpleDocument.raw.first['field1'].should == %w(foo bar)
     end
 
     it 'appends with +' do
       doc.queue_atomic do
-        doc.field1 += ['foo', 'bar']
-        doc.field1 += ['hello', 'world', 'foo']
+        doc.field1 += %w(foo bar)
+        doc.field1 += %w(hello world foo)
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should =~ %w(foo bar hello world)
+      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
     end
 
     it 'removes with -' do
       doc.queue_atomic do
-        doc.field1 += ['foo', 'bar']
-        doc.field1 += ['hello', 'world', 'foo']
-        doc.field1 -= ['foo', 'hello']
+        doc.field1 += %w(foo bar hello world foo bar)
+        doc.field1 -= %w(bar hello)
       end
       doc.save
 
-      SimpleDocument.raw.first['field1'].should == %w(bar world)
+      SimpleDocument.raw.first['field1'].should == %w(foo world)
+    end
+
+    it 'intersects with &' do
+      doc.queue_atomic do
+        doc.field1 += %w(foo bar)
+        doc.field1 &= %w(bar world)
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar)
+    end
+
+    it 'unions with |' do
+      doc.queue_atomic do
+        doc.field1 += %w(foo bar)
+        doc.field1 |= %w(hello world foo)
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+    end
+
+    it 'deletes with delete' do
+      doc.queue_atomic do
+        doc.field1 += %w(foo bar hello world foo bar)
+        doc.field1.delete('foo')
+      end
+      doc.save
+
+      SimpleDocument.raw.first['field1'].should == %w(bar hello world)
     end
   end
 
@@ -312,6 +359,16 @@ describe 'atomic ops' do
         doc.save
         doc.reload
         doc.field2.should == 1
+      end
+    end
+
+    context 'with floats' do
+      before { SimpleDocument.field :field2, :type => Float }
+      it 'defaults to a sane value' do
+        doc.queue_atomic { doc.field2 += 1.0 }
+        doc.save
+        doc.reload
+        doc.field2.should == 1.0
       end
     end
 

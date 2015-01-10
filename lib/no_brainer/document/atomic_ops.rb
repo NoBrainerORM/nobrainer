@@ -68,58 +68,59 @@ module NoBrainer::Document::AtomicOps
     end
   end
 
-  class PendingAtomicContainer < PendingAtomic; end
-
-  class PendingAtomicArray < PendingAtomicContainer
-    def -(value)
-      @ops << [:difference, [value.to_a]]
+  class PendingAtomicContainer < PendingAtomic
+    def &(value)
+      @ops << [:set_intersection, [value.to_a]]
       self
     end
-    def difference(v); self - v; end
+
+    def |(value)
+      @ops << [:set_union, [value.to_a]]
+      self
+    end
+
+    def add(v);          self + v; end
+    def difference(v);   self - v; end
+    def intersection(v); self & v; end
+    def union(v);        self | v; end
 
     def delete(value)
       difference([value])
+    end
+  end
+
+  class PendingAtomicSet < PendingAtomicContainer
+    def <<(value)
+      @ops << [:set_union, [[value]]]
+      modify_source!
+      self
+    end
+
+    def +(value)
+      @ops << [:set_union, [value.to_a]]
+      self
+    end
+
+    def -(value)
+      @ops << [:set_difference, [value.to_a]]
+      self
+    end
+  end
+
+  class PendingAtomicArray < PendingAtomicContainer
+    def <<(value)
+      @ops << [:append, [value]]
+      modify_source!
+      self
     end
 
     def +(value)
       @ops << [:+, [value.to_a]]
       self
     end
-    def add(v); self + v; end
 
-    def &(value)
-      @ops << [:set_intersection, [value.to_a]]
-      self
-    end
-    def intersection(v); self & v; end
-
-    def |(value)
-      @ops << [:set_union, [value.to_a]]
-      self
-    end
-    def union(v); self | v; end
-
-    def <<(value)
-      @ops << [:append, [value]]
-      modify_source!
-      self
-    end
-  end
-
-  class PendingAtomicSet < PendingAtomicContainer
     def -(value)
-      @ops << [:set_difference, [value.to_a]]
-      self
-    end
-
-    def +(value)
-      @ops << [:set_union, [value.to_a]]
-      self
-    end
-
-    def <<(value)
-      @ops << [:set_union, [[value]]]
-      modify_source!
+      @ops << [:difference, [value.to_a]]
       self
     end
   end
