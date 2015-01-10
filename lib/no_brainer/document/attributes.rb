@@ -1,6 +1,6 @@
 module NoBrainer::Document::Attributes
   VALID_FIELD_OPTIONS = [:index, :default, :type, :readonly, :primary_key, :lazy_fetch, :store_as,
-                         :validates, :required, :unique, :uniq, :format, :in, :length]
+                         :validates, :required, :unique, :uniq, :format, :in, :length, :min_length, :max_length]
   RESERVED_FIELD_NAMES = [:index, :default, :and, :or, :selector, :associations, :pk_value] \
                           + NoBrainer::Criteria::Where::OPERATORS
   extend ActiveSupport::Concern

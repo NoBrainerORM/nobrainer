@@ -180,6 +180,24 @@ describe 'validations' do
         SimpleDocument.new(:field1 => 'Oh').valid?.should == true
       end
     end
+
+    context 'when using min_length' do
+      before { SimpleDocument.field :field1, :min_length => 2 }
+
+      it 'validates' do
+        SimpleDocument.new(:field1 => 'O').valid?.should == false
+        SimpleDocument.new(:field1 => 'Oh').valid?.should == true
+      end
+    end
+
+    context 'when using max_length' do
+      before { SimpleDocument.field :field1, :max_length => 10 }
+
+      it 'validates' do
+        SimpleDocument.new(:field1 => '1234567890').valid?.should == true
+        SimpleDocument.new(:field1 => '12345678901').valid?.should == false
+      end
+    end
   end
 
   context 'when using in on the field' do

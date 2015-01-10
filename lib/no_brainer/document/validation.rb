@@ -32,6 +32,8 @@ module NoBrainer::Document::Validation
 
       SHORTHANDS.each { |k,v| validates(attr, v => options[k]) if options.has_key?(k) }
       validates(attr, options[:validates]) if options[:validates]
+      validates(attr, :length => { :minimum => options[:min_length] }) if options[:min_length]
+      validates(attr, :length => { :maximum => options[:max_length] }) if options[:max_length]
     end
   end
 end
