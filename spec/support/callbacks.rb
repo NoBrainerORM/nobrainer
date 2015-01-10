@@ -17,4 +17,6 @@ module CallbacksHelper
       end
     end
   end
+
+  RSpec.configure { |config| config.include self }
 end

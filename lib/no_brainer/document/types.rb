@@ -65,13 +65,14 @@ module NoBrainer::Document::Types
 
       return unless options[:type]
 
-      NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
-
+      raise "Please use a class for the type option" unless options[:type].is_a?(Class)
       case options[:type].to_s
       when "NoBrainer::Geo::Circle" then raise "Cannot store circles :("
       when "NoBrainer::Geo::Polygon", "NoBrainer::Geo::LineString"
         raise "Make a request on github if you'd like to store polygons/linestrings"
       end
+
+      NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|

@@ -34,6 +34,7 @@ class NoBrainer::Document::Association::HasManyThrough
   end
 
   def write(new_children)
-    raise "You can't assign #{target_name}"
+    raise "You can't assign `#{target_name}'. " \
+          "Instead, you must modify delete and create `#{target_model}' manually."
   end
 end

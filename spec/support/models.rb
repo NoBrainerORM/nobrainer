@@ -52,4 +52,6 @@ module ModelsHelper
       field :grand_child_field
     end
   end
+
+  RSpec.configure { |config| config.include self }
 end

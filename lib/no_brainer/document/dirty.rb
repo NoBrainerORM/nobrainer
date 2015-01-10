@@ -42,16 +42,15 @@ module NoBrainer::Document::Dirty
     result
   end
 
-  def attribute_may_change(*args)
-    attr = args.first
-    current_value = begin
-      case args.size
-      when 1 then assert_access_field(attr); read_attribute(attr)
-      when 2 then args.last
-      else raise
+  class None; end
+  def attribute_may_change(attr, current_value = None)
+    if current_value == None
+      current_value = begin
+        assert_access_field(attr)
+        read_attribute(attr)
+      rescue NoBrainer::Error::MissingAttribute => e
+        e
       end
-    rescue NoBrainer::Error::MissingAttribute => e
-      e
     end
 
     unless @_old_attributes.has_key?(attr)

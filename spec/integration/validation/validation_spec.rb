@@ -50,10 +50,6 @@ describe 'validations' do
       it 'returns false for update?' do
         doc.update?(:field1 => nil).should == false
       end
-
-      it 'returns false for update_attributes?' do
-        doc.update_attributes?(:field1 => nil).should == false
-      end
     end
 
     context 'when using the normal version' do

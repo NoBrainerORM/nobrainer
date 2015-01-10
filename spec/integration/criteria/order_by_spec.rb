@@ -91,6 +91,12 @@ describe 'order_by' do
     end
   end
 
+  context 'when using bad arguments' do
+    it 'raises' do
+      expect { SimpleDocument.order_by(123) }.to raise_error(/order_by\(\) takes arguments/)
+    end
+  end
+
   context 'when using indexes' do
     before do
       SimpleDocument.field :field1,  :index => true
@@ -236,6 +242,10 @@ describe 'order_by' do
       SimpleDocument.all.order_by(:field1 => :asc, :field2 => :desc).reverse_order
         .map { |doc| [doc.field1, doc.field2] }
         .should == [[1,2],[1,1],[2,2],[2,1]].reverse
+
+      SimpleDocument.reverse_order.to_a == SimpleDocument.all.to_a.reverse.should
+      SimpleDocument.reverse_order.reverse_order.should == SimpleDocument.to_a
+      SimpleDocument.without_ordering.reverse_order.options[:ordering_mode].should == :disabled
     end
 
     it 'gets reset by order_by' do

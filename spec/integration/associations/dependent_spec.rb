@@ -64,4 +64,10 @@ describe 'dependents' do
       end
     end
   end
+
+  context 'when using a bad dependent type' do
+    it 'raises' do
+      expect { Author.has_many :posts, :dependent => :hello }.to raise_error(/Invalid dependent option/)
+    end
+  end
 end

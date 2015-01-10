@@ -43,8 +43,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = [:should, :expect]
   end
-  config.include ModelsHelper
-  config.include CallbacksHelper
 
   if ENV['TRACE']
     config.before do

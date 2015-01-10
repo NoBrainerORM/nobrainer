@@ -17,4 +17,10 @@ describe "all" do
       SimpleDocument.all.where(:field1 => 1).all.should be_a NoBrainer::Criteria
     end
   end
+
+  context 'when calling inspect' do
+    it 'returns the rql query' do
+      SimpleDocument.where(:field1 => 1).inspect =~ /field1.*1/
+    end
+  end
 end

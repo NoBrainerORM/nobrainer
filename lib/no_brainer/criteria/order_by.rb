@@ -134,6 +134,6 @@ module NoBrainer::Criteria::OrderBy
   end
 
   def raise_bad_rule(rule)
-    raise "Please pass something like ':field1 => :desc, :field2 => :asc', not #{rule}"
+    raise "order_by() takes arguments such as `:field1 => :desc, :field2 => :asc', not `#{rule}'"
   end
 end

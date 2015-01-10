@@ -72,6 +72,15 @@ describe 'cache' do
     end
   end
 
+  context 'when enabling the cache' do
+    it 'does not use the cache' do
+      criteria = SimpleDocument.all.without_cache.with_cache
+      criteria.to_a
+      SimpleDocument.destroy_all
+      criteria.count.should == 2
+    end
+  end
+
   context 'when disabling the cache once hot' do
     it 'does not use the cache' do
       criteria = SimpleDocument.all
@@ -79,6 +88,15 @@ describe 'cache' do
       SimpleDocument.destroy_all
       criteria.count.should == 2
       criteria.without_cache.count.should == 0
+    end
+  end
+
+  context 'when using inspect' do
+    it 'shows the cache' do
+      criteria = SimpleDocument.all
+      criteria.inspect.should_not =~ /2 results cached/
+      criteria.to_a
+      criteria.inspect.should =~ /2 results cached/
     end
   end
 end

@@ -113,19 +113,29 @@ module NoBrainer::Document::Persistance
     assign_attributes(attrs, options)
     save?(options)
   end
-  alias_method :update_attributes?, :update?
 
   def update(*args)
     update?(*args) or raise NoBrainer::Error::DocumentInvalid, self
     nil
   end
-  alias_method :update_attributes, :update
 
   def update!(*args)
     update(*args)
     :you_should_be_using_the_non_bang_version_of_update
   end
   alias_method :update_attributes!, :update!
+
+  def update_attributes?(*args)
+    update?(*args).tap { STDERR.puts "[NoBrainer] update_attribute?() is deprecated. Please use update?() instead" }
+  end
+
+  def update_attributes(*args)
+    update(*args).tap { STDERR.puts "[NoBrainer] update_attribute() is deprecated. Please use update() instead" }
+  end
+
+  def update_attributes!(*args)
+    update!(*args).tap { STDERR.puts "[NoBrainer] update_attribute!() is deprecated. Please use update() instead" }
+  end
 
   def delete
     unless @destroyed

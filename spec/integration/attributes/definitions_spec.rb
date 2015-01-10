@@ -96,4 +96,12 @@ describe NoBrainer do
       # SimpleDocument.fields.should == original_fields
     end
   end
+
+  context 'when calling inspect' do
+    before { load_simple_document }
+    let(:doc) { SimpleDocument.new(SimpleDocument.pk_name => 'hello', :field2 => 2, :field1 => 1, :field3 => 3) }
+    it 'shows the attributes' do
+      doc.inspect.should == '#<SimpleDocument _id_: "hello", field1: 1, field2: 2, field3: 3>'
+    end
+  end
 end

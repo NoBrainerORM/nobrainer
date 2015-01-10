@@ -104,13 +104,23 @@ describe 'config' do
   end
 
   context 'when configuring bad values' do
-    it 'yells' do
-      expect do
-        NoBrainer.configure do |c|
-          c.reset!
-          c.durability = :blah
-        end
-      end.to raise_error(ArgumentError, "Unknown configuration for durability: blah. Valid values are: [:hard, :soft]")
+    context 'with durability' do
+      it 'yells' do
+        expect do
+          NoBrainer.configure do |c|
+            c.reset!
+            c.durability = :blah
+          end
+        end.to raise_error(ArgumentError, "Unknown configuration for durability: blah. Valid values are: [:hard, :soft]")
+      end
+    end
+
+    context 'with the url' do
+      it 'yells' do
+        expect { NoBrainer.configure { |c| c.rethinkdb_url = 'xxx' }; NoBrainer.db_list }.to raise_error(/Invalid URI/)
+        expect { NoBrainer.configure { |c| c.rethinkdb_url = 'blah://xxx/' }; NoBrainer.db_list }.to raise_error(/Invalid URI/)
+        expect { NoBrainer.configure { |c| c.rethinkdb_url = 'rethinkdb://x/' }; NoBrainer.db_list }.to raise_error(/No database/)
+      end
     end
   end
 end

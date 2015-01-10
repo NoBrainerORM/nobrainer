@@ -11,7 +11,7 @@ class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
       index = model.indexes.values.select { |i| i.aliased_name == index_name.to_sym }.first if model
       index_name = index.name if index
 
-      if model.try(:pk_name).try(:to_s) == index_name
+      if model.try(:pk_name).try(:to_s) == index_name.to_s
         err_msg  = "Please update the primary key `#{index_name}` in the table `#{database_name}.#{table_name}`."
       else
         err_msg  = "Please run `NoBrainer.sync_indexes' or `rake nobrainer:sync_indexes' to create the index `#{index_name}`"

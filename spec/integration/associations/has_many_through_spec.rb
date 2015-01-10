@@ -42,6 +42,18 @@ describe 'has_many_through' do
     Model1.association_metadata[:model4].target_model.should == Model4
   end
 
+  context 'when appending' do
+    it 'raises' do
+      expect { Model1.first.model3 << Model3.new }.to raise_error(/frozen/)
+    end
+  end
+
+  context 'when using =' do
+    it 'raises' do
+      expect { Model1.first.model3  = [] }.to raise_error(/manually/)
+    end
+  end
+
   context 'when going through the has_many' do
     it 'follow the association with eager loading' do
       expect(NoBrainer).to receive(:run).and_call_original.exactly(4).times

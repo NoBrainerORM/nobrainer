@@ -25,6 +25,14 @@ describe 'where' do
     end
   end
 
+  context 'when using bad arguments' do
+    it 'raises' do
+      expect { SimpleDocument.where("xxx") }.to raise_error(/Invalid/)
+      expect { SimpleDocument.where(:xxx.eq(1,2)) }.to raise_error(/Invalid/)
+      expect { SimpleDocument.where(123 => 456) }.to raise_error(/Invalid/)
+    end
+  end
+
   context 'when passing a hash of attributes' do
     it 'filters documents' do
       SimpleDocument.where(:field1 => 'ohai').count.should == 1
@@ -131,6 +139,7 @@ describe 'complex where queries' do
     context 'when using in' do
       it 'filters documents' do
         SimpleDocument.where(:field1.in => [3,5,9,33]).count.should == 3
+        expect { SimpleDocument.where(:field1.in => "asd").count }.to raise_error(/takes an array/)
       end
     end
 
@@ -426,6 +435,7 @@ describe 'complex where queries' do
         City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
         City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'mi'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
         City.where(:location.near => {:point => [48.87, 2.28], :max_distance => 1000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [paris]
+        expect { City.where(:location.near => {}) }.to raise_error(/near/)
       end
     end
 

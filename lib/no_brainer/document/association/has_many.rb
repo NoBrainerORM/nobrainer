@@ -47,7 +47,13 @@ class NoBrainer::Document::Association::HasMany
         raise ":dependent and :scope cannot be used together" if options[:dependent]
       end
 
-      add_callback_for(:before_destroy) if options[:dependent]
+      if options[:dependent]
+        unless [:destroy, :delete, :nullify, :restrict, nil].include?(options[:dependent])
+          raise "Invalid dependent option: `#{options[:dependent].inspect}'. " +
+                "Valid options are: :destroy, :delete, :nullify, or :restrict"
+        end
+        add_callback_for(:before_destroy)
+      end
     end
 
     eager_load_with :owner_key => ->{ primary_key }, :target_key => ->{ foreign_key }
@@ -63,8 +69,8 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def write(new_children)
-    raise "You can't assign #{target_name}. " \
-          "Instead, you must modify delete and create #{target_model} manually."
+    raise "You can't assign `#{target_name}'. " \
+          "Instead, you must modify delete and create `#{target_model}' manually."
   end
 
   def loaded?
@@ -96,12 +102,10 @@ class NoBrainer::Document::Association::HasMany
   def before_destroy_callback
     criteria = target_criteria.unscoped.without_cache
     case metadata.options[:dependent]
-    when nil       then
     when :destroy  then criteria.destroy_all
     when :delete   then criteria.delete_all
     when :nullify  then criteria.update_all(foreign_key => nil)
     when :restrict then raise NoBrainer::Error::ChildrenExist unless criteria.count.zero?
-    else raise "Unrecognized dependent option: #{metadata.options[:dependent]}"
     end
   end
 end

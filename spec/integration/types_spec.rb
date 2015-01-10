@@ -64,6 +64,10 @@ describe 'types' do
       doc.field1.should == '=1'
       doc.valid?.should == false
 
+      doc.field1 = :hello
+      doc.field1.should == :hello
+      doc.valid?.should == false
+
       doc.field1 = 2**100
       doc.field1.should == 2**100
       doc.valid?.should == true
@@ -284,6 +288,10 @@ describe 'types' do
       doc.field1.should == "hello"
       doc.valid?.should == false
 
+      doc.field1 = 123
+      doc.field1.should == 123
+      doc.valid?.should == false
+
       doc.field1 = "2014-06-26T15:34:12-02:00"
       doc.field1.should == Time.parse("2014-06-26T15:34:12-02:00")
       doc.valid?.should == true
@@ -439,6 +447,10 @@ describe 'types' do
       doc.field1.should == "2014-06-26T15:34:12-02:00"
       doc.valid?.should == false
 
+      doc.field1 = 123
+      doc.field1.should == 123
+      doc.valid?.should == false
+
       doc.field1 = "2014-06-26"
       doc.field1.should == Date.parse("2014-06-26")
       doc.valid?.should == true
@@ -576,6 +588,7 @@ describe 'types' do
       doc.field1 = ['1.2', '-2']
       doc.valid?.should == true
       doc.field1.should == type.new(1.2,-2)
+      doc.field1.inspect.should == [1.2, -2.0].inspect
 
       doc.field1 = ['1.2x', '-2']
       doc.valid?.should == false
@@ -620,5 +633,17 @@ describe 'types' do
       doc.reload
       doc.field1.should == type.new(1,2)
     end
+  end
+end
+
+describe 'types' do
+  before { load_simple_document }
+
+  it 'raises with Geo::Circle' do
+    expect { SimpleDocument.field :field1, :type => NoBrainer::Geo::Circle }.to raise_error(/Cannot store circles/)
+  end
+
+  it 'raises with bad types' do
+    expect { SimpleDocument.field :field1, :type => "asdasd" }.to raise_error(/type option/)
   end
 end

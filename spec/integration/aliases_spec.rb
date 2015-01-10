@@ -103,6 +103,10 @@ describe 'NoBrainer aliases' do
         SimpleDocument.order_by(:field1 => :asc).map(&:field1).should == [1,2]
         SimpleDocument.order_by(:field1 => :desc).map(&:field1).should == [2,1]
       end
+
+      it 'reflects' do
+        SimpleDocument.indexes[:field1].human_name.should == "index SimpleDocument.field1 as index_f1"
+      end
     end
 
     context 'when using a compound index' do

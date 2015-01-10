@@ -37,6 +37,16 @@ describe 'atomic ops' do
     end
   end
 
+  context 'when using to_s' do
+    it 'shows the atomic ops' do
+      doc.queue_atomic do
+        doc.field1 += 1
+        doc.field1 += 10
+      end
+      doc.field1.to_s.should == "<`field1' with 2 pending atomic operations>"
+    end
+  end
+
   context 'when using aliases' do
     before { SimpleDocument.field :field1, :store_as => :f1 }
 

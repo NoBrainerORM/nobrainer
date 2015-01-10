@@ -39,6 +39,8 @@ module DefineConstantMacros
 
     klass
   end
+
+  RSpec.configure { |config| config.include self }
 end
 
 RSpec.configure do |config|
@@ -53,6 +55,4 @@ RSpec.configure do |config|
       end
     end
   end
-
-  config.include DefineConstantMacros
 end

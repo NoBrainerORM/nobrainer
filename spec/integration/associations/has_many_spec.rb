@@ -33,13 +33,13 @@ describe 'has_many' do
 
   context 'when appending' do
     it 'raises' do
-      expect { post.comments << Comment.new }.to raise_error
+      expect { post.comments << Comment.new }.to raise_error(/frozen/)
     end
   end
 
   context 'when using =' do
     it 'raises' do
-      expect { post.comments = [] }.to raise_error
+      expect { post.comments = [] }.to raise_error(/manually/)
     end
   end
 

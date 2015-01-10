@@ -278,6 +278,10 @@ describe 'NoBrainer index' do
       SimpleDocument.where(:field1.any => 'is').count.should == 1
       SimpleDocument.where(:field1.any => ['hello', 'ohai']).count.should == 0
     end
+
+    it 'reflects' do
+      SimpleDocument.indexes[:field1].human_name.should == "index SimpleDocument.field1"
+    end
   end
 
   context 'when using a multi single field index (no hash)' do
@@ -381,6 +385,23 @@ describe 'NoBrainer index' do
     it 'reports the index to be used' do
       SimpleDocument.where_indexed?.should == true
       SimpleDocument.used_index.should == :field1
+    end
+  end
+
+  context 'with bad arguments' do
+    it 'raises' do
+      expect { SimpleDocument.index :name, 123 }.to raise_error(/argument must be/)
+      expect { SimpleDocument.index :or }.to raise_error(/reserved/)
+      expect { SimpleDocument.index :compount, [:field1] }.to raise_error(/more fields/)
+    end
+  end
+
+  context 'when removing an index' do
+    it 'removes the index' do
+      SimpleDocument.field :field1, :index => true
+      SimpleDocument.where(:field1 => 123).where_indexed?.should == true
+      SimpleDocument.field :field1, :index => false
+      SimpleDocument.where(:field1 => 123).where_indexed?.should == false
     end
   end
 end
