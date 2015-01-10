@@ -25,23 +25,32 @@ module NoBrainer::Error
   end
 
   class InvalidType < RuntimeError
-    attr_accessor :attr_name, :value, :type
+    attr_accessor :model, :attr_name, :value, :type, :error
     def initialize(options={})
-      @attr_name = options[:attr_name]
-      @value     = options[:value]
-      @type      = options[:type]
+      update(options)
+    end
+
+    def update(options={})
+      options.assert_valid_keys(:model, :attr_name, :type, :value, :error)
+      options.each { |k,v| instance_variable_set("@#{k}", v) }
     end
 
     def human_type_name
       type.to_s.underscore.humanize.downcase
     end
 
+    def error
+      # dup because errors.add eventually .delete() on our option.
+      @error.nil? ? (type && { :type => human_type_name }) : @error.dup
+    end
+
     def message
-      if attr_name && type && value
-        "#{attr_name} should be used with a #{human_type_name}. Got `#{value}` (#{value.class})"
-      else
-        super
-      end
+      return super unless model && attr_name && error
+      value = self.value
+      mock = model.allocate
+      mock.singleton_class.send(:define_method, :read_attribute_for_validation) { |_| value }
+      mock.errors.add(attr_name, :invalid_type, error)
+      mock.errors.full_messages.first
     end
   end
 

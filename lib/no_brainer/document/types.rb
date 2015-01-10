@@ -6,7 +6,7 @@ module NoBrainer::Document::Types
   def add_type_errors
     return unless @pending_type_errors
     @pending_type_errors.each do |name, error|
-      errors.add(name, :invalid_type, :type => error.human_type_name)
+      errors.add(name, :invalid_type, error.error)
     end
   end
 
@@ -33,9 +33,7 @@ module NoBrainer::Document::Types
         value
       end
     rescue NoBrainer::Error::InvalidType => error
-      error.type = type
-      error.value = value
-      error.attr_name = attr
+      error.update(:model => self, :value => value, :attr_name => attr, :type => type)
       raise error
     end
 
@@ -100,11 +98,10 @@ module NoBrainer::Document::Types
     end
   end
 
-  require File.join(File.dirname(__FILE__), 'types', 'binary')
-  require File.join(File.dirname(__FILE__), 'types', 'boolean')
-  Binary = NoBrainer::Binary
-  Boolean = NoBrainer::Boolean
-  Geo = NoBrainer::Geo
+  %w(binary boolean text geo).each do |type|
+    require File.join(File.dirname(__FILE__), 'types', type)
+    const_set(type.camelize, NoBrainer.const_get(type.camelize))
+  end
 
   class << self
     mattr_accessor :loaded_extensions

@@ -1,4 +1,3 @@
-# We namespace our fake Boolean class to avoid polluting the global namespace
 class NoBrainer::Boolean
   def initialize; raise; end
   def self.inspect; 'Boolean'; end

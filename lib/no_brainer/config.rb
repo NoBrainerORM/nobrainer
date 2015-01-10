@@ -20,6 +20,7 @@ module NoBrainer::Config
     :machine_id             => { :default => ->{ default_machine_id } },
     :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
     :criteria_cache_max_entries => { :default => -> { 10_000 } },
+    :max_string_length      => { :default => -> { 255 } },
   }
 
   class << self

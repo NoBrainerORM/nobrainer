@@ -33,13 +33,34 @@ describe 'types' do
       end
     end
 
-    context 'when changing from invalid to valid' do
-      it 'passes the validations' do
-        doc.field1 = (1..2)
-        doc.valid?.should == false
+    it 'type checks and casts on length' do
+      doc.field1 = "x" * NoBrainer::Config.max_string_length
+      doc.field1.should == "x" * NoBrainer::Config.max_string_length
+      doc.valid?.should == true
+
+      doc.field1 = "x" * (NoBrainer::Config.max_string_length + 1)
+      doc.field1.should == "x" * (NoBrainer::Config.max_string_length + 1)
+      doc.valid?.should == false
+      doc.errors.full_messages.first.should == "Field1 is too long (maximum is #{NoBrainer::Config.max_string_length} characters)"
+    end
+  end
+
+  context 'when using Text type' do
+    let(:type) { SimpleDocument::Text }
+
+    it 'type checks and casts' do
         doc.field1 = 'ohai'
+        doc.field1.should == 'ohai'
         doc.valid?.should == true
-      end
+        doc.field1 = :ohai
+        doc.field1.should == :ohai
+        doc.valid?.should == false
+    end
+
+    it 'type does not checks length' do
+      doc.field1 = "x" * (NoBrainer::Config.max_string_length + 1)
+      doc.field1.should == "x" * (NoBrainer::Config.max_string_length + 1)
+      doc.valid?.should == true
     end
   end
 

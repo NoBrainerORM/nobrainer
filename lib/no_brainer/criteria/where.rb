@@ -164,8 +164,10 @@ module NoBrainer::Criteria::Where
       case association
       when NoBrainer::Document::Association::BelongsTo::Metadata
         target_model = association.target_model
-        opts = { :attr_name => key, :value => value, :type => target_model }
-        raise NoBrainer::Error::InvalidType.new(opts) unless value.is_a?(target_model)
+        unless value.is_a?(target_model)
+          opts = { :model => model, :attr_name => key, :type => target_model, :value => value }
+          raise NoBrainer::Error::InvalidType.new(opts)
+        end
         value.pk_value
       else
         case op
