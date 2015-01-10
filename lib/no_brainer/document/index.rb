@@ -14,12 +14,6 @@ module NoBrainer::Document::Index
     def index(name, *args)
       name = name.to_sym
       options = args.extract_options!
-
-      if options[:as]
-        STDERR.puts "[NoBrainer] `:as' is deprecated and will be removed. Please use `:store_as' instead (from the #{self} model)"
-        options[:store_as] = options.delete(:as)
-      end
-
       options.assert_valid_keys(*VALID_INDEX_OPTIONS)
 
       raise "Too many arguments: #{args}" if args.size > 1

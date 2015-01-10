@@ -56,7 +56,5 @@ class NoBrainer::Connection
       NoBrainer.run { |r| r.table(table_name).delete }
     end
     true
-  rescue RuntimeError => e
-    raise e unless e.message =~ /No entry with that name/
   end
 end

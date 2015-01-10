@@ -19,14 +19,6 @@ module NoBrainer::Document::Aliases
       super
     end
 
-    def field(attr, options={})
-      if options[:as]
-        STDERR.puts "[NoBrainer] `:as' is deprecated and will be removed. Please use `:store_as' instead (from the #{self} model)"
-        options[:store_as] = options.delete(:as)
-      end
-      super
-    end
-
     def _remove_field(attr, options={})
       super
 
