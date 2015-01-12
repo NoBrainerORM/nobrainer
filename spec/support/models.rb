@@ -53,5 +53,23 @@ module ModelsHelper
     end
   end
 
+  def load_polymorphically_associated_models
+    define_class :Picture do
+      include NoBrainer::Document
+      belongs_to :imageable, polymorphic: true
+    end
+
+    define_class :Employee do
+      include NoBrainer::Document
+      field :ssn, primary_key: true
+      has_one :picture, as: :imageable
+    end
+
+    define_class :Product do
+      include NoBrainer::Document
+      has_many :pictures, as: :imageable
+    end
+  end
+
   RSpec.configure { |config| config.include self }
 end

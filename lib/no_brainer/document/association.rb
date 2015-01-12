@@ -1,6 +1,6 @@
 module NoBrainer::Document::Association
   extend NoBrainer::Autoload
-  autoload :Core, :BelongsTo, :HasMany, :HasManyThrough, :HasOne, :HasOneThrough, :EagerLoader
+  autoload :Core, :BelongsTo, :BelongsToPolymorphic, :HasMany, :HasManyThrough, :HasOne, :HasOneThrough, :EagerLoader
   METHODS = [:belongs_to, :has_many, :has_one]
 
   extend ActiveSupport::Concern
@@ -28,7 +28,13 @@ module NoBrainer::Document::Association
           raise "Cannot change the :through option" unless r.options[:through] == options[:through]
           r.options.merge!(options)
         else
-          model_name = (options[:through] ? "#{association}_through" : association.to_s).camelize
+          model_name =
+            case
+            when options[:through] then "#{association}_through"
+            when options[:polymorphic] then "#{association}_polymorphic"
+            else association.to_s
+            end.camelize
+
           metadata_model = NoBrainer::Document::Association.const_get(model_name).const_get(:Metadata)
           r = metadata_model.new(self, target, options)
           ([self] + descendants).each do |model|
