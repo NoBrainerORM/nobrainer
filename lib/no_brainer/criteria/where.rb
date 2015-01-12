@@ -251,9 +251,11 @@ module NoBrainer::Criteria::Where
 
   def parse_clause_stub(key, value)
     case key
-    when :and then parse_multi_value(:and, value)
-    when :or  then parse_multi_value(:or,  value)
-    when :not then UnaryOperator.new(:not, parse_clause(value))
+    when :and  then parse_multi_value(:and, value)
+    when :or   then parse_multi_value(:or,  value)
+    when :_and then parse_multi_value(:and, value, :safe => true)
+    when :_or  then parse_multi_value(:or,  value, :safe => true)
+    when :not  then UnaryOperator.new(:not, parse_clause(value))
     when String, Symbol then parse_clause_stub_eq(key, value)
     when Symbol::Decoration then
       case key.decorator
@@ -269,12 +271,13 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  def parse_multi_value(op, value)
+  def parse_multi_value(op, value, options={})
     raise "The `#{op}' operator takes an array as argument" unless value.is_a?(Array)
-    if value.size == 1 && value.first.is_a?(Hash)
+    if value.size == 1 && value.first.is_a?(Hash) && !options[:safe]
       raise "The `#{op}' operator was provided an array with a single hash element.\n" +
             "In Ruby, [:a => :b, :c => :d] means [{:a => :b, :c => :d}] which is not the same as [{:a => :b}, {:c => :d}].\n" +
-            "To prevent mistakes, the former construct is prohibited as you probably mean the latter."
+            "To prevent mistakes, the former construct is prohibited as you probably mean the latter.\n" +
+            "However, if you know what you are doing, you can use the `_#{op}' operator instead."
     end
     MultiOperator.new(op, value.map { |v| parse_clause(v) })
   end

@@ -156,7 +156,19 @@ describe 'complex where queries' do
 
       context 'when detecting a possible misuse of or' do
         it 'does not filter documents' do
-          expect { SimpleDocument.where(:or => [:field1 => 3, :field1 => 7, :field1 => 33]).count }.to raise_error(/single hash element/)
+          expect { SimpleDocument.where(:or => [:field1 => 3, :field2 => 7, :field3 => 33]).count }.to raise_error(/single hash element/)
+        end
+      end
+    end
+
+    context 'when using _or' do
+      it 'filters documents' do
+        SimpleDocument.where(:_or => [{:field1 => 3}, {:field1 => 7}, {:field1 => 33}]).count.should == 2
+      end
+
+      context 'when detecting a possible misuse of _or' do
+        it 'does filter documents' do
+          expect { SimpleDocument.where(:_or => [:field1 => 3, :field2 => 7, :field3 => 33]).count }.to_not raise_error
         end
       end
     end
