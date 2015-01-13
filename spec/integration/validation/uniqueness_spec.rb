@@ -229,5 +229,14 @@ describe 'uniqueness validator' do
       Lock.unlocked_keys = []
       doc.update(:field3 => 'hello', :field1 => nil)
     end
+
+    context 'when using incorrect type' do
+      before { SimpleDocument.field :field1, :type => Integer, :uniq => true }
+
+      it 'does not raise' do
+        SimpleDocument.new(:field1 => 1).valid?.should == true
+        SimpleDocument.new(:field1 => 'x').valid?.should == false
+      end
+    end
   end
 end
