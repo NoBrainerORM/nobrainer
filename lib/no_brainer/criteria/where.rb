@@ -285,9 +285,22 @@ module NoBrainer::Criteria::Where
   def parse_clause_stub_eq(key, value)
     case value
     when Range  then instantiate_binary_op(key, :between, value)
-    when Regexp then instantiate_binary_op(key, :match, value.inspect[1..-2])
+    when Regexp then instantiate_binary_op(key, :match, translate_regexp_to_re2_syntax(value))
     else instantiate_binary_op(key, :eq, value)
     end
+  end
+
+  def translate_regexp_to_re2_syntax(value)
+    # Ruby always uses what RE2 calls "multiline mode" (the "m" flag),
+    # meaning that "foo\nbar" matches /^bar$/.
+    #
+    # Ruby's /m modifier means that . matches \n and corresponds to RE2's "s" flag.
+
+    flags = "m"
+    flags << "s" if value.options & Regexp::MULTILINE != 0
+    flags << "i" if value.options & Regexp::IGNORECASE != 0
+
+    "(?#{flags})#{value.source}"
   end
 
   def instantiate_binary_op(key, op, value)
