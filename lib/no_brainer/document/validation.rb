@@ -23,14 +23,17 @@ module NoBrainer::Document::Validation
     self.validation_context = current_context
   end
 
-  SHORTHANDS = { :format => :format, :length => :length, :required => :not_null,
+  SHORTHANDS = { :format => :format, :length => :length, :required => :presence,
                  :uniq => :uniqueness, :unique => :uniqueness, :in => :inclusion }
 
   module ClassMethods
     def _field(attr, options={})
       super
 
-      SHORTHANDS.each { |k,v| validates(attr, v => options[k]) if options.has_key?(k) }
+      shorthands = SHORTHANDS
+      shorthands = shorthands.merge(:required => :not_null) if options[:type] == NoBrainer::Boolean
+      shorthands.each { |k,v| validates(attr, v => options[k]) if options.has_key?(k) }
+
       validates(attr, options[:validates]) if options[:validates]
       validates(attr, :length => { :minimum => options[:min_length] }) if options[:min_length]
       validates(attr, :length => { :maximum => options[:max_length] }) if options[:max_length]
