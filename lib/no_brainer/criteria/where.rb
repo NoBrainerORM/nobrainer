@@ -285,8 +285,19 @@ module NoBrainer::Criteria::Where
   def parse_clause_stub_eq(key, value)
     case value
     when Range  then instantiate_binary_op(key, :between, value)
-    when Regexp then instantiate_binary_op(key, :match, value.inspect[1..-2])
+    when Regexp then instantiate_binary_op(key, :match, translate_regexp_to_re2_syntax(value))
     else instantiate_binary_op(key, :eq, value)
+    end
+  end
+
+  def translate_regexp_to_re2_syntax(value)
+    options = ""
+    options << "i" if 0 != value.options & Regexp::IGNORECASE
+
+    if options.empty?
+      value.source
+    else
+      "(?#{options}:#{value.source})"
     end
   end
 
