@@ -4,7 +4,7 @@ describe 'where' do
   before { load_simple_document }
 
   let!(:doc1) { SimpleDocument.create(:field1 => 'ohai') }
-  let!(:doc2) { SimpleDocument.create(:field1 => 'hello') }
+  let!(:doc2) { SimpleDocument.create(:field1 => "hello\nfoo\nbar") }
   let!(:doc3) { SimpleDocument.create(:field1 => 'hola') }
 
   context 'when passing empty conditions' do
@@ -93,6 +93,12 @@ describe 'where' do
     it 'can filter using case-insensitive regex' do
       SimpleDocument.where(:field1 => /^H/i).count.should == 2
       SimpleDocument.where(:field1 => /^H/).count.should == 0
+    end
+
+    it 'can filter using multiline regex' do
+      SimpleDocument.where(:field1 => /hello.*bar/).count.should == 0
+      SimpleDocument.where(:field1 => /hello.*bar/m).count.should == 1
+      SimpleDocument.where(:field1 => /^bar$/).count.should == 1
     end
 
     it 'can filter using that regex with a chained where clause' do
