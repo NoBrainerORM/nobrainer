@@ -187,4 +187,32 @@ describe 'attributes' do
       end
     end
   end
+
+  describe 'raw_attribute' do
+    before do
+      SimpleDocument.class_eval do
+        def field1
+          "hello #{super}"
+        end
+
+        def field1=(value)
+          super(value.upcase)
+        end
+      end
+    end
+
+    let(:doc) { SimpleDocument.new }
+
+    it 'bypasses getter' do
+      doc.field1 = 'bonjour'
+      doc.attributes[:field1].should == 'hello BONJOUR'
+
+      doc.raw_attributes[:field1] = 'bonjour'
+
+      doc.save
+      doc.reload
+
+      doc.raw_attributes[:field1].should == 'bonjour'
+    end
+  end
 end

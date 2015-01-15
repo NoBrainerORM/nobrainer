@@ -24,6 +24,10 @@ module NoBrainer::Document::Attributes
     Hash[readable_attributes.map { |k| [k, read_attribute(k)] }].with_indifferent_access.freeze
   end
 
+  def raw_attributes
+    @_attributes
+  end
+
   def _read_attribute(name)
     @_attributes[name]
   end
