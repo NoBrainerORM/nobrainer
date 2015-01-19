@@ -6,19 +6,19 @@ module NoBrainer::Config
     :environment            => { :default => ->{ default_environment } },
     :rethinkdb_url          => { :default => ->{ default_rethinkdb_url } },
     :logger                 => { :default => ->{ default_logger } },
+    :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
     :max_retries_on_connection_failure => { :default => ->{ default_max_retries_on_connection_failure } },
     :durability             => { :default => ->{ default_durability }, :valid_values => [:hard, :soft] },
+    :max_string_length      => { :default => -> { 255 } },
     :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
     :db_timezone            => { :default => ->{ :utc }, :valid_values => [:unchanged, :utc, :local] },
-    :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
+    :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
     :distributed_lock_class => { :default => ->{ NoBrainer::Lock } },
     :lock_options           => { :default => ->{ { :expire => 60, :timeout => 10 } } },
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
     :machine_id             => { :default => ->{ default_machine_id } },
-    :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
     :criteria_cache_max_entries => { :default => -> { 10_000 } },
-    :max_string_length      => { :default => -> { 255 } },
   }
 
   class << self
