@@ -188,7 +188,7 @@ describe 'attributes' do
     end
   end
 
-  describe 'raw_attribute' do
+  describe 'inspectable_attributes' do
     before do
       SimpleDocument.class_eval do
         def field1
@@ -206,13 +206,12 @@ describe 'attributes' do
     it 'bypasses getter' do
       doc.field1 = 'bonjour'
       doc.attributes[:field1].should == 'hello BONJOUR'
-
-      doc.raw_attributes[:field1] = 'bonjour'
+      doc.inspectable_attributes[:field1].should == 'BONJOUR'
 
       doc.save
       doc.reload
 
-      doc.raw_attributes[:field1].should == 'bonjour'
+      doc.inspectable_attributes[:field1].should == 'BONJOUR'
     end
   end
 end

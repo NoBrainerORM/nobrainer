@@ -90,7 +90,7 @@ module NoBrainer::Document::Attributes
 
   def inspectable_attributes
     # TODO test that thing
-    Hash[@_attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }]
+    Hash[@_attributes.sort_by { |k,v| self.class.fields.keys.index(k.to_sym) || 2**10 }].with_indifferent_access.freeze
   end
 
   def to_s
