@@ -126,15 +126,15 @@ module NoBrainer::Document::Persistance
   alias_method :update_attributes!, :update!
 
   def update_attributes?(*args)
-    update?(*args).tap { STDERR.puts "[NoBrainer] update_attribute?() is deprecated. Please use update?() instead" }
+    update?(*args).tap { STDERR.puts "[NoBrainer] update_attributes?() is deprecated. Please use update?() instead" }
   end
 
   def update_attributes(*args)
-    update(*args).tap { STDERR.puts "[NoBrainer] update_attribute() is deprecated. Please use update() instead" }
+    update(*args).tap { STDERR.puts "[NoBrainer] update_attributes() is deprecated. Please use update() instead" }
   end
 
   def update_attributes!(*args)
-    update!(*args).tap { STDERR.puts "[NoBrainer] update_attribute!() is deprecated. Please use update() instead" }
+    update!(*args).tap { STDERR.puts "[NoBrainer] update_attributes!() is deprecated. Please use update() instead" }
   end
 
   def delete
