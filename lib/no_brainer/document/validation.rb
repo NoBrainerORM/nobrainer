@@ -43,6 +43,7 @@ end
 
 class ActiveModel::EachValidator
   def should_validate_field?(record, attribute)
+    return true unless record.is_a?(NoBrainer::Document)
     record.new_record? || record.__send__("#{attribute}_changed?")
   end
 
