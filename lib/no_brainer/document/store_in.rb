@@ -16,13 +16,13 @@ module NoBrainer::Document::StoreIn
 
     def database_name
       db = self.store_in_options[:database]
-      db.is_a?(Proc) ? db.call : db
+      (db.is_a?(Proc) ? db.call : db).try(:to_s)
     end
 
     def table_name
       table = store_in_options[:table]
       table_name = table.is_a?(Proc) ? table.call : table
-      table_name || root_class.name.tableize.gsub('/', '__')
+      table_name.try(:to_s) || root_class.name.tableize.gsub('/', '__')
     end
 
     def rql_table

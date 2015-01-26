@@ -87,6 +87,20 @@ describe 'NoBrainer store_in' do
     end
   end
 
+  context 'when using store_in with symbols' do
+    it 'converts names to strings' do
+      SimpleDocument.store_in :database => :test_db1, :table => :table1
+      SimpleDocument.table_name.should == 'table1'
+      SimpleDocument.database_name.should == 'test_db1'
+    end
+
+    it 'converts lambda names to strings' do
+      SimpleDocument.store_in :database => ->{ :test_db1} , :table => ->{ :table1 }
+      SimpleDocument.table_name.should == 'table1'
+      SimpleDocument.database_name.should == 'test_db1'
+    end
+  end
+
   context 'when using store_in and with_databases' do
     before do
       SimpleDocument.store_in :database => ->{ @database }
