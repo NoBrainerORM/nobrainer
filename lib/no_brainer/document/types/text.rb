@@ -4,7 +4,7 @@ class NoBrainer::Text
   def self.to_s; inspect; end
   def self.name; inspect; end
 
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -14,5 +14,5 @@ class NoBrainer::Text
       end
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

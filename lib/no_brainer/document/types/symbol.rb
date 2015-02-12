@@ -1,5 +1,5 @@
 class Symbol
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -17,5 +17,5 @@ class Symbol
       value.to_sym rescue (value.to_s.to_sym rescue value)
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

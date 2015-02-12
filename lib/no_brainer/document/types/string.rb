@@ -1,5 +1,5 @@
 class String
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -13,5 +13,5 @@ class String
       end
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

@@ -4,7 +4,7 @@ class NoBrainer::Boolean
   def self.to_s; inspect; end
   def self.name; inspect; end
 
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -20,5 +20,5 @@ class NoBrainer::Boolean
       end
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

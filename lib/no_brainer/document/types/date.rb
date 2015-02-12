@@ -1,5 +1,5 @@
 class Date
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -22,5 +22,5 @@ class Date
       value.is_a?(Date) ? Time.utc(value.year, value.month, value.day) : value
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

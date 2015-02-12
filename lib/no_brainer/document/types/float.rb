@@ -1,5 +1,5 @@
 class Float
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -16,5 +16,5 @@ class Float
       end
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end

@@ -1,7 +1,7 @@
 require 'time'
 
 class Time
-  module NoBrainerExtentions
+  module NoBrainerExtensions
     InvalidType = NoBrainer::Error::InvalidType
 
     def nobrainer_cast_user_to_model(value)
@@ -37,5 +37,5 @@ class Time
       end
     end
   end
-  extend NoBrainerExtentions
+  extend NoBrainerExtensions
 end
