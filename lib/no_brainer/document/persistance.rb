@@ -29,7 +29,7 @@ module NoBrainer::Document::Persistance
 
   def _reload(options={})
     attrs = NoBrainer.run { _reload_selector(options) }
-    raise NoBrainer::Error::DocumentNotFound, "#{self.class} #{self.class.pk_name}: #{pk_value} not found" unless attrs
+    raise NoBrainer::Error::DocumentNotFound, "#{self.class} :#{self.class.pk_name}=>\"#{pk_value}\" not found" unless attrs
 
     options = options.merge(:pristine => true, :from_db => true)
 

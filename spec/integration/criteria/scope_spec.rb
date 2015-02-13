@@ -79,8 +79,8 @@ describe 'scope' do
     end
 
     context 'when using find()' do
-      it 'does not apply the default scope' do
-        SimpleDocument.find(doc2.pk_value).should == doc2
+      it 'does apply the default scope' do
+        SimpleDocument.find?(doc2.pk_value).should == nil
       end
     end
 

@@ -2,7 +2,8 @@ module NoBrainer::Document::Criteria
   extend ActiveSupport::Concern
 
   def selector
-    self.class.selector_for(pk_value)
+    # Used for writes
+    self.class.rql_table.get(pk_value)
   end
 
   included do
@@ -28,7 +29,7 @@ module NoBrainer::Document::Criteria
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
-             :find_by?, :find_by,            # FindBy
+             :find_by?, :find_by, :find_by!, :find?, :find, :find!, # Find
              :to => :all
 
     def all
@@ -56,20 +57,6 @@ module NoBrainer::Document::Criteria
       subclass.default_scopes = self.default_scopes.dup
       super
     end
-
-    def selector_for(pk)
-      rql_table.get(pk)
-    end
-
-    def find?(pk)
-      attrs = NoBrainer.run { selector_for(pk) }
-      new_from_db(attrs).tap { |doc| doc.run_callbacks(:find) } if attrs
-    end
-
-    def find(pk)
-      find?(pk).tap { |doc| raise NoBrainer::Error::DocumentNotFound, "#{self} #{pk_name}: #{pk} not found" unless doc }
-    end
-    alias_method :find!, :find
 
     def disable_perf_warnings
       self.perf_warnings_disabled = true
