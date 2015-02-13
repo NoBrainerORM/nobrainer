@@ -28,6 +28,7 @@ module NoBrainer::Document::Criteria
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
+             :find_by?, :find_by,            # FindBy
              :to => :all
 
     def all
