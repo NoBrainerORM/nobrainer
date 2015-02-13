@@ -4,6 +4,7 @@ Gemfile.lock
 todo
 *.gem
 .bundle
+.idea
 coverage
 tmp
 tmp2
