@@ -272,4 +272,22 @@ describe 'validations' do
       doc.valid?.should == true
     end
   end
+
+  context 'when the validated attribute is not a field' do
+    before do
+      SimpleDocument.class_eval do
+        alias_method :some_attr, :field1
+        validates :some_attr, :presence => true
+      end
+    end
+
+    it 'always calls its validator' do
+      SimpleDocument.new.valid?.should == false
+      SimpleDocument.create({}, :validate => false)
+      doc = SimpleDocument.first
+      doc.valid?.should == false
+      doc.field1 = 'a'
+      doc.valid?.should == true
+    end
+  end
 end
