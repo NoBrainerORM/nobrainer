@@ -44,7 +44,9 @@ end
 class ActiveModel::EachValidator
   def should_validate_field?(record, attribute)
     return true unless record.is_a?(NoBrainer::Document)
-    record.new_record? || record.__send__("#{attribute}_changed?")
+    # Adding 'rescue false' solves a problem introduced by this monkeypatch + has_secure_password behavior.
+    # Solves problem of "undefined method `password_changed?' for #<User:xxxxxx>"
+    record.new_record? || record.__send__("#{attribute}_changed?") rescue false
   end
 
   # XXX Monkey Patching :(
