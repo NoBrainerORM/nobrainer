@@ -2,7 +2,8 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_store_as, :index, :validates, :required]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_store_as, :index, :validates, :required,
+                     :polymorphic]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 

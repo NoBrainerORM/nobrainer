@@ -2,13 +2,17 @@ class NoBrainer::Document::Association::HasMany
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent, :scope]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent, :scope, :as]
     include NoBrainer::Document::Association::Core::Metadata
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{owner_model.pk_name}"
+      if polymorphic?
+        "#{polymorphic_target_association_name}_#{NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME}"
+      else
+        options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{owner_model.pk_name}"
+      end
     end
 
     def primary_key
@@ -19,6 +23,14 @@ class NoBrainer::Document::Association::HasMany
     def target_model
       # TODO test :class_name
       (options[:class_name] || target_name.to_s.singularize.camelize).constantize
+    end
+
+    def polymorphic_target_association_name
+      options[:as]
+    end
+
+    def polymorphic?
+      not options[:as].nil?
     end
 
     def base_criteria
@@ -32,10 +44,13 @@ class NoBrainer::Document::Association::HasMany
       # XXX Without caching, this is going to get CPU intensive quickly, but
       # caching is hard (rails console reload, etc.).
       target_model.association_metadata.values.select do |assoc|
-        assoc.is_a?(NoBrainer::Document::Association::BelongsTo::Metadata) and
-        assoc.foreign_key == self.foreign_key                              and
-        assoc.primary_key == self.primary_key                              and
-        assoc.target_model.root_class == owner_model.root_class
+        assoc.is_a?(NoBrainer::Document::Association::BelongsToPolymorphic::Metadata) &&
+          assoc.target_name == self.polymorphic_target_association_name \
+        or
+          assoc.is_a?(NoBrainer::Document::Association::BelongsTo::Metadata) &&
+          assoc.foreign_key == self.foreign_key                              &&
+          assoc.primary_key == self.primary_key                              &&
+          assoc.target_model.root_class == owner_model.root_class
       end
     end
 
