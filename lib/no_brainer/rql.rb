@@ -8,7 +8,9 @@ module NoBrainer::RQL
 
   def rql_proc_as_json(block)
     reset_lambda_var_counter
-    RethinkDB::RQL.new.new_func(&block).as_json
+    RethinkDB::Shim.load_json(
+      RethinkDB::Shim.dump_json(
+        RethinkDB::RQL.new.new_func(&block)))
   end
 
   def is_write_query?(rql_query)
