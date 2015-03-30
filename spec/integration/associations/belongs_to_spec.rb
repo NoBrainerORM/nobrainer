@@ -79,4 +79,24 @@ describe 'belongs_to' do
       expect { Comment.create(:post => Comment.new) }.to raise_error NoBrainer::Error::InvalidType
     end
   end
+  
+  context 'when the association is set with a different primary_key' do
+    let(:columnist) { Columnist.create(:employee_id => 4500) }
+    let(:article)   { Article.create(:columnist_employee_id => columnist.employee_id) }
+    
+    it 'returns the object' do
+      article.columnist.should == columnist
+      article.columnist_employee_id.should == 4500
+    end
+  end
+  
+  context 'when the association is set with a different foreign_key' do
+    let(:article) { Article.create(:slug => 'shortened-slugged-title') }
+    let(:note)    { Footnote.create(:article_slug_url => article.slug) }
+    
+    it 'returns the object' do
+      note.article.should == article
+      note.article_slug_url.should == 'shortened-slugged-title'
+    end
+  end
 end

@@ -73,4 +73,58 @@ describe 'find' do
       SimpleDocument.where(:field2 => 'orange').find(doc.pk_value).field2.should == 'orange'
     end
   end
+  
+  context 'when passing multiple pks to find' do
+     let(:doc2) { SimpleDocument.create(:field1 => 'banana', :field2 => 'grape') }
+     let(:doc3) { SimpleDocument.create(:field1 => 'blueberry', :field2 => 'strawberry') }
+     
+     it 'returns both documents' do
+       pks = [doc, doc2].map(&:pk_value)
+       docs = SimpleDocument.find(pks)
+       expect(docs).to contain_exactly(doc, doc2)
+     end     
+     
+     it 'is chainable' do
+       pks = [doc, doc2].map(&:pk_value)
+       SimpleDocument.find(pks).count.should == 2
+     end   
+     
+     it 'returns an array if passed an array' do
+       ary = SimpleDocument.find([doc.pk_value])
+       expect(ary).to be_an(Array)
+       expect(ary).to contain_exactly(doc)
+     end 
+
+     it 'respects "limit"' do
+       pks = [doc, doc2, doc3].map(&:pk_value)
+       SimpleDocument.find(pks).size.should == 3
+       SimpleDocument.find(pks).limit(2).size.should == 2
+     end
+    
+    it 'it returns [] for passing [] with find_by?' do
+      docs = SimpleDocument.find?([])
+      expect(docs).to be == []
+    end
+
+    context 'with missing pks' do
+      let(:pks) { [doc, doc2, doc3].map(&:pk_value) << 'anything' << 'something' }
+      
+      it 'it returns nil for missing pk with find_by?' do
+        docs = SimpleDocument.find?(pks)
+        expect(docs).to contain_exactly(doc, doc2, doc3)
+        docs = SimpleDocument.find?(nil)
+        expect(docs).to be_nil        
+      end
+      
+      it 'it raises with find' do
+        expect { SimpleDocument.find(pks) }
+          .to raise_error(NoBrainer::Error::DocumentNotFound, /SimpleDocument :#{SimpleDocument.pk_name}=>"anything, something" not found/)
+      end
+
+      it 'it raises with find!' do
+        expect { SimpleDocument.find!(pks) }
+          .to raise_error(NoBrainer::Error::DocumentNotFound, /SimpleDocument :#{SimpleDocument.pk_name}=>"anything, something" not found/)
+      end    
+    end
+  end
 end

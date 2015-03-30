@@ -36,6 +36,34 @@ module ModelsHelper
 
       belongs_to :post
     end
+    
+    define_class :Columnist do
+      include NoBrainer::Document
+
+      field :last_name
+      field :employee_id
+
+      has_many :articles, primary_key: :employee_id
+    end
+
+    define_class :Article do
+      include NoBrainer::Document
+
+      field :title
+      field :slug
+      field :body
+
+      belongs_to :columnist, primary_key: :employee_id
+      has_many :notes, class_name: 'Footnote', foreign_key: :article_slug_url, primary_key: :slug
+    end
+
+    define_class :Footnote do
+      include NoBrainer::Document
+
+      field :body
+
+      belongs_to :article, foreign_key: :article_slug_url, primary_key: :slug
+    end
   end
 
   def load_polymorphic_models
