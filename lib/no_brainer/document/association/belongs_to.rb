@@ -7,17 +7,14 @@ class NoBrainer::Document::Association::BelongsTo
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
-      # TODO test :foreign_key
       options[:foreign_key].try(:to_sym) || :"#{target_name}_#{primary_key}"
     end
 
     def primary_key
-      # TODO test :primary_key
       options[:primary_key].try(:to_sym) || target_model.pk_name
     end
 
     def target_model
-      # TODO test :class_name
       (options[:class_name] || target_name.to_s.camelize).constantize
     end
 
@@ -27,12 +24,14 @@ class NoBrainer::Document::Association::BelongsTo
 
     def hook
       super
+      # XXX We are loading the target_model unless the primary_key is not
+      # specified. This may eager load a part of the application.
+      # Oh well.
 
-      # TODO It would be good to set the type we want to work with, but because
-      # the target class is eager loaded, we are not doing it.
-      # This would have the effect of loading all the models because they
-      # are likely to be related to each other. So we don't know the type
-      # of the primary key of the target.
+      # TODO if the primary key of the target_model changes, we need to revisit
+      # our default foreign_key/primary_key value
+
+      # TODO set the type of the foreign key to be the same as the target's primary key
       owner_model.field(foreign_key, :store_as => options[:foreign_key_store_as], :index => options[:index])
       owner_model.validates(target_name, :presence => options[:required]) if options[:required]
       owner_model.validates(target_name, options[:validates]) if options[:validates]
@@ -64,7 +63,7 @@ class NoBrainer::Document::Association::BelongsTo
 
   def write(target)
     assert_target_type(target)
-    owner.write_attribute(foreign_key, target.try(:pk_value))
+    owner.write_attribute(foreign_key, target.try(primary_key))
     preload(target)
   end
 

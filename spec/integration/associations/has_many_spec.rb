@@ -51,4 +51,42 @@ describe 'has_many' do
       post.comments.map(&:body).should == [2,3,4]
     end
   end
+
+  context 'when primary_key is set' do
+    before { load_columnist_models }
+    let(:columnist) { Columnist.create(:employee_id => 9000) }
+    let(:article)   { Article.create(:columnist => columnist) }
+
+    it 'responds to and sets the target foreign key' do
+      article.columnist_employee_id.should == columnist.employee_id
+      article.columnist.should== columnist
+    end
+  end
+
+  context 'when class_name is set' do
+    before { load_columnist_models }
+    let(:article) { Article.create(slug: 'short-titled-article') }
+    let!(:footnotes) { 2.times.map { |i| Footnote.create(:body => i, :article => article) } }
+
+    it 'responds to and sets the target class' do
+      article.notes.to_a.should =~ footnotes
+    end
+
+    it 'responds to and sets the foreign key' do
+      footnote = footnotes.first
+      footnote.article_slug_url.should == article.slug
+      footnote.article.should == article
+    end
+  end
+
+  context 'when a custom primary key model is used' do
+    before { load_album_models }
+
+    let(:album)    { Album.create(:slug => 'slug') }
+    let!(:pictures) { 2.times.map { Picture.create(:album => album) } }
+
+    it 'should use the primary key properly' do
+      album.pictures.to_a.should =~ pictures
+    end
+  end
 end

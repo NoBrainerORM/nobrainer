@@ -7,17 +7,14 @@ class NoBrainer::Document::Association::HasMany
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
-      # TODO test :foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{owner_model.pk_name}"
+      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{primary_key}"
     end
 
     def primary_key
-      # TODO test :primary_key
-      options[:primary_key].try(:to_sym) || target_model.pk_name
+      options[:primary_key].try(:to_sym) || owner_model.pk_name
     end
 
     def target_model
-      # TODO test :class_name
       (options[:class_name] || target_name.to_s.singularize.camelize).constantize
     end
 
@@ -60,7 +57,7 @@ class NoBrainer::Document::Association::HasMany
   end
 
   def target_criteria
-    @target_criteria ||= base_criteria.where(foreign_key => owner.pk_value)
+    @target_criteria ||= base_criteria.where(foreign_key => owner.__send__(primary_key))
                                       .after_find(set_inverse_proc)
   end
 
