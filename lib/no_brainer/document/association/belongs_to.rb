@@ -7,17 +7,14 @@ class NoBrainer::Document::Association::BelongsTo
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
-      # TODO test :foreign_key
       options[:foreign_key].try(:to_sym) || :"#{target_name}_#{primary_key}"
     end
 
     def primary_key
-      # TODO test :primary_key
       options[:primary_key].try(:to_sym) || target_model.pk_name
     end
 
     def target_model
-      # TODO test :class_name
       (options[:class_name] || target_name.to_s.camelize).constantize
     end
 
@@ -64,7 +61,7 @@ class NoBrainer::Document::Association::BelongsTo
 
   def write(target)
     assert_target_type(target)
-    owner.write_attribute(foreign_key, target.try(:pk_value))
+    owner.write_attribute(foreign_key, target.try(primary_key))
     preload(target)
   end
 
