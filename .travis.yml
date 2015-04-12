@@ -1,7 +1,7 @@
 language: ruby
 rvm:
-  - ruby-2.0
   - ruby-2.1
+  - ruby-2.2
   - ruby-head
 before_install:
   - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
@@ -17,3 +17,6 @@ notifications:
     on_failure: change
 bundler_args: --without development
 script: bundle exec rspec spec
+matrix:
+  allow_failures:
+    - rvm: ruby-head
