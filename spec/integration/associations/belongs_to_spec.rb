@@ -12,13 +12,6 @@ describe 'belongs_to' do
     end
   end
 
-  context 'when the association is set, but is invalid' do
-    let(:comment) { Comment.create("post_#{Post.pk_name}" => "000000000000000000000000") }
-    it 'returns nil' do
-      comment.post.should == nil
-    end
-  end
-
   context 'when the association is set with the id' do
     let(:post)    { Post.create }
     let(:comment) { Comment.create("post_#{Post.pk_name}" => post.pk_value) }

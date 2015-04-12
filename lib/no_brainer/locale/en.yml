@@ -4,3 +4,4 @@ en:
       taken: "is already taken"
       invalid_type: "should be a %{type}"
       undefined: "must be defined"
+      invalid_foreign_key: "is an invalid foreign key: %{target_model}(%{primary_key}: %{value}) is not found"

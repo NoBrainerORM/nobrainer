@@ -33,8 +33,21 @@ class NoBrainer::Document::Association::BelongsTo
 
       # TODO set the type of the foreign key to be the same as the target's primary key
       owner_model.field(foreign_key, :store_as => options[:foreign_key_store_as], :index => options[:index])
-      owner_model.validates(target_name, :presence => options[:required]) if options[:required]
-      owner_model.validates(target_name, options[:validates]) if options[:validates]
+
+      unless options[:validates] == false
+        owner_model.validates(target_name, options[:validates]) if options[:validates]
+
+        if options[:required]
+          owner_model.validates(target_name, :presence => options[:required])
+        else
+          # Always validate the validity of the foreign_key if not nil.
+          owner_model.validates_each(foreign_key) do |doc, attr, value|
+            if !value.nil? && doc.read_attribute_for_validation(target_name).nil?
+              doc.errors.add(attr, :invalid_foreign_key, :target_model => target_model, :primary_key => primary_key)
+            end
+          end
+        end
+      end
 
       delegate("#{foreign_key}=", :assign_foreign_key, :call_super => true)
       delegate("#{target_name}_changed?", "#{foreign_key}_changed?", :to => :self)

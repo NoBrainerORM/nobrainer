@@ -212,35 +212,109 @@ describe 'validations' do
     end
   end
 
-  context 'when using required on a belongs_to' do
-    before { load_blog_models }
-    before { Comment.belongs_to :post, :required => true }
+  context 'when validating belongs_to' do
+    context 'the foreign_key should always be nil or valid' do
+      before { load_blog_models }
+      before { Comment.belongs_to :post }
 
-    it 'validates' do
-      post = Post.create
-      c = Comment.create({}, :validate => false)
+      it 'validates' do
+        post = Post.create
+        c = Comment.create({}, :validate => false)
 
-      c.post = Post.new
-      expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
+        c.post = Post.new
+        expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
 
-      c.post = post
-      c.send("post_#{Post.pk_name}").should == post.pk_value
-      c.valid?.should == true
+        c.post = post
+        c.send("post_#{Post.pk_name}").should == post.pk_value
+        c.valid?.should == true
 
-      c.post = nil
-      c.send("post_#{Post.pk_name}").should == nil
-      c.valid?.should == false
+        c.post = nil
+        c.send("post_#{Post.pk_name}").should == nil
+        c.valid?.should == true
 
-      c.send("post_#{Post.pk_name}=", '123')
-      c.valid?.should == false
+        c.send("post_#{Post.pk_name}=", '123')
+        c.valid?.should == false
+        c.errors.full_messages.first.should =~ /Post\(#{Post.pk_name}: 123\) is not found/
 
-      c.send("post_#{Post.pk_name}=", post.pk_value)
-      c.valid?.should == true
-      Post.delete_all
-      c.valid?.should == true
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == true
+        Post.delete_all
+        c.valid?.should == true
 
-      c.send("post_#{Post.pk_name}=", post.pk_value)
-      c.valid?.should == false
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == false
+      end
+    end
+
+    context 'when using required => true on a belongs_to' do
+      before { load_blog_models }
+      before { Comment.belongs_to :post, :required => true }
+
+      it 'validates' do
+        post = Post.create
+        c = Comment.create({}, :validate => false)
+
+        c.post = Post.new
+        expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
+
+        c.post = post
+        c.send("post_#{Post.pk_name}").should == post.pk_value
+        c.valid?.should == true
+
+        c.post = nil
+        c.send("post_#{Post.pk_name}").should == nil
+        c.valid?.should == false
+
+        c.send("post_#{Post.pk_name}=", '123')
+        c.valid?.should == false
+
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == true
+        Post.delete_all
+        c.valid?.should == true
+
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == false
+      end
+    end
+
+    context 'when using validates => false on a belongs_to' do
+      before do
+        define_class :Post do
+          include NoBrainer::Document
+        end
+        define_class :Comment do
+          include NoBrainer::Document
+          belongs_to :post, :validates => false
+        end
+      end
+
+      it 'validates' do
+        post = Post.create
+        c = Comment.create({}, :validate => false)
+
+        c.post = Post.new
+        expect { c.valid? }.to raise_error(NoBrainer::Error::AssociationNotPersisted)
+
+        c.post = post
+        c.send("post_#{Post.pk_name}").should == post.pk_value
+        c.valid?.should == true
+
+        c.post = nil
+        c.send("post_#{Post.pk_name}").should == nil
+        c.valid?.should == true
+
+        c.send("post_#{Post.pk_name}=", '123')
+        c.valid?.should == true
+
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == true
+        Post.delete_all
+        c.valid?.should == true
+
+        c.send("post_#{Post.pk_name}=", post.pk_value)
+        c.valid?.should == true
+      end
     end
   end
 
