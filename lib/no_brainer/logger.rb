@@ -1,16 +1,9 @@
-class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
-  def call(env)
-    start_time = Time.now
-    @runner.call(env).tap { log_query(env, start_time) }
-  rescue Exception => e
-    log_query(env, start_time, e)
-    raise e
-  end
-
-  private
-
-  def log_query(env, start_time, exception=nil)
-    return if handle_on_demand_exception?(env, exception)
+class NoBrainer::Logger
+  def on_query(env)
+    # env[:end_time] = Time.now
+    # env[:duration] = env[:end_time] - env[:start_time]
+    # env[:exception] = exception
+    # env[:query_type] = NoBrainer::RQL.type_of(env[:query])
 
     not_indexed = env[:criteria] && env[:criteria].where_present? &&
                     !env[:criteria].where_indexed? &&
@@ -19,8 +12,6 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
     level = exception ? Logger::ERROR :
              not_indexed ? Logger::INFO : Logger::DEBUG
     return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
-
-    duration = Time.now - start_time
 
     msg_duration = (duration * 1000.0).round(1).to_s
     msg_duration = " " * [0, 6 - msg_duration.size].max + msg_duration
@@ -51,11 +42,5 @@ class NoBrainer::QueryRunner::Logger < NoBrainer::QueryRunner::Middleware
 
     msg = [msg_duration, msg_db, msg_query, msg_exception, msg_last].join
     NoBrainer.logger.add(level, msg)
-  end
-
-  def handle_on_demand_exception?(env, e)
-    # pretty gross I must say.
-    e && (NoBrainer::QueryRunner::DatabaseOnDemand.new(nil).handle_database_on_demand_exception?(env, e) ||
-          NoBrainer::QueryRunner::TableOnDemand.new(nil).handle_table_on_demand_exception?(env, e))
   end
 end

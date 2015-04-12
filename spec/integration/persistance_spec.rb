@@ -91,6 +91,8 @@ describe 'NoBrainer persistance' do
   end
 
   context "when the document already exists" do
+    before { NoBrainer.logger.level = Logger::FATAL }
+
     it 'raises an error when creating' do
       expect { SimpleDocument.create(SimpleDocument.pk_name => doc.pk_value) }
         .to raise_error(NoBrainer::Error::DocumentNotPersisted)

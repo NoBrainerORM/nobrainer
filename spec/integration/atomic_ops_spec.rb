@@ -428,6 +428,8 @@ describe 'atomic ops' do
 
     context 'with no types' do
       before { SimpleDocument.field :field2 }
+      before { NoBrainer.logger.level = Logger::FATAL }
+
       it 'does not do something stupid with +=' do
         expect { doc.queue_atomic { doc.field2 += 1 }; doc.save }.to raise_error(/No attribute.*in object/)
       end

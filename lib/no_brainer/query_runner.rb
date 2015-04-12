@@ -11,7 +11,7 @@ module NoBrainer::QueryRunner
   end
 
   autoload :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
-           :Reconnect, :Selection, :RunOptions, :Logger, :MissingIndex,
+           :Reconnect, :Selection, :RunOptions, :Profiler, :MissingIndex,
            :ConnectionLock
 
   class << self
@@ -28,11 +28,11 @@ module NoBrainer::QueryRunner
   # thread-safe, since require() is ran with a mutex.
   self.stack = ::Middleware::Builder.new do
     use RunOptions
-    use WriteError
     use MissingIndex
     use DatabaseOnDemand
     use TableOnDemand
-    use Logger
+    use Profiler
+    use WriteError
     use ConnectionLock
     use Reconnect
     use Driver

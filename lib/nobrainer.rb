@@ -13,7 +13,7 @@ module NoBrainer
 
   # We eager load things that could be loaded when handling the first web request.
   # Code that is loaded through the DSL of NoBrainer should not be eager loaded.
-  autoload :Document, :IndexManager, :Loader, :Fork, :Geo, :Lock
+  autoload :Document, :IndexManager, :Loader, :Fork, :Geo, :Lock, :Profiler
   eager_autoload :Config, :Connection, :ConnectionManager,  :Error,
                  :QueryRunner, :Criteria, :RQL
 
@@ -41,4 +41,5 @@ ActiveSupport.on_load(:i18n) do
   I18n.load_path << File.dirname(__FILE__) + '/no_brainer/locale/en.yml'
 end
 
+require 'no_brainer/profiler/logger'
 require 'no_brainer/railtie' if defined?(Rails)

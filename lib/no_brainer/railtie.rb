@@ -42,4 +42,9 @@ class NoBrainer::Railtie < Rails::Railtie
       NoBrainer::Loader.cleanup
     end
   end
+
+  ActiveSupport.on_load(:action_controller) do
+    require 'no_brainer/profiler/controller_runtime'
+    include NoBrainer::Profiler::ControllerRuntime
+  end
 end
