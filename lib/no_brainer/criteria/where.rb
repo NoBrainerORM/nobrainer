@@ -401,7 +401,8 @@ module NoBrainer::Criteria::Where
         options[:right_bound] = {:lt => :open, :le => :closed}[right_bound.op] if right_bound
 
         return IndexStrategy.new(self, ast, [left_bound, right_bound].compact, index, :between,
-                                 [left_bound.try(:value), right_bound.try(:value)], options)
+                                 [left_bound  ? left_bound.try(:value)  : RethinkDB::RQL.new.minval,
+                                  right_bound ? right_bound.try(:value) : RethinkDB::RQL.new.maxval], options)
       end
       return nil
     end
