@@ -82,4 +82,15 @@ describe "each" do
   it 'proxies missing methods to enum' do
     SimpleDocument.all.should respond_to(:unshift)
   end
+
+  context 'when using as_json' do
+    let!(:documents) { 5.times.map { |i| SimpleDocument.create(:field1 => i) } }
+    it 'enumerates first' do
+      SimpleDocument.all.as_json.count.should == 5
+      SimpleDocument.all.as_json(nil).count.should == 5
+      SimpleDocument.all.as_json({}).count.should == 5
+
+      JSON.parse(SimpleDocument.all.to_json).count.should == 5
+    end
+  end
 end

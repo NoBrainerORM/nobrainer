@@ -21,4 +21,6 @@ module NoBrainer::Criteria::Enumerable
     return super unless [].respond_to?(name)
     to_a.__send__(name, *args, &block)
   end
+
+  delegate :as_json, :to => :each
 end
