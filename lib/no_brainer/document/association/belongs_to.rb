@@ -15,7 +15,7 @@ class NoBrainer::Document::Association::BelongsTo
     end
 
     def target_model
-      (options[:class_name] || target_name.to_s.camelize).constantize
+      get_model_by_name(options[:class_name] || target_name.to_s.camelize)
     end
 
     def base_criteria

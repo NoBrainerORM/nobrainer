@@ -106,4 +106,38 @@ describe 'belongs_to' do
       picture.album_slug.should == 'slug'
     end
   end
+
+  context 'when model is created inside module' do
+    it 'should find association' do
+      define_class('ModuleA::Model1') do
+        include NoBrainer::Document
+      end
+      define_class('ModuleA::Model2') do
+        include NoBrainer::Document
+        belongs_to :model1
+      end
+    end
+
+    it 'should find association if associated model is toplevel class ' do
+      define_class('Model1') do
+        include NoBrainer::Document
+      end
+      define_class('ModuleA::Model2') do
+        include NoBrainer::Document
+        belongs_to :model1
+      end
+    end
+
+    it 'should raise error if associated model is in different module' do
+      define_class('ModuleA::Model1') do
+        include NoBrainer::Document
+      end
+      expect do
+        define_class('ModuleB::Model2') do
+          include NoBrainer::Document
+          belongs_to :model1
+        end
+      end.to raise_error NameError
+    end
+  end
 end
