@@ -46,6 +46,17 @@ module NoBrainer::Document::Association::Core
         end
       RUBY
     end
+
+    def get_model_by_name(model_name)
+      return model_name if model_name.is_a?(Module)
+
+      model_name = model_name.to_s
+      current_module = @owner_model.parent
+      return model_name.constantize if current_module == Object
+      return model_name.constantize if model_name =~ /^::/
+      return model_name.constantize if !current_module.const_defined?(model_name)
+      current_module.const_get(model_name)
+    end
   end
 
   included { attr_accessor :metadata, :owner }

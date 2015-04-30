@@ -7,7 +7,7 @@ class NoBrainer::Document::Association::HasMany
     extend NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
-      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.underscore}_#{primary_key}"
+      options[:foreign_key].try(:to_sym) || :"#{owner_model.name.split('::').last.underscore}_#{primary_key}"
     end
 
     def primary_key
@@ -15,7 +15,7 @@ class NoBrainer::Document::Association::HasMany
     end
 
     def target_model
-      (options[:class_name] || target_name.to_s.singularize.camelize).constantize
+      get_model_by_name(options[:class_name] || target_name.to_s.singularize.camelize)
     end
 
     def base_criteria

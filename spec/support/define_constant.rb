@@ -20,21 +20,21 @@ module DefineConstantMacros
         Object.const_set(module_name, mod)
       end
 
+      @defined_constants[mod] ||= []
+      @defined_constants[mod] << klass_name
+
       klass = Class.new(base)
       mod.const_set(klass_name, klass)
 
       klass.class_eval(&block) if block_given?
-
-      @defined_constants[mod] ||= []
-      @defined_constants[mod] << klass_name
     else
       klass = Class.new(base)
       Object.const_set(class_name, klass)
 
-      klass.class_eval(&block) if block_given?
-
       @defined_constants[Object] ||= []
       @defined_constants[Object] << class_name
+
+      klass.class_eval(&block) if block_given?
     end
 
     klass
