@@ -26,6 +26,6 @@ module NoBrainer::Criteria::First
   private
 
   def get_one(criteria)
-    instantiate_doc(criteria.limit(1).run.first)
+    instantiate_doc(criteria.limit(1).__send__(:run).first)
   end
 end

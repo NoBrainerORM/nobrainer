@@ -32,11 +32,6 @@ module NoBrainer::Criteria::Core
     to_rql.inspect rescue super
   end
 
-  def run(&block)
-    block ||= proc { to_rql }
-    NoBrainer.run(:criteria => self, &block)
-  end
-
   def merge!(criteria, options={})
     criteria.options.each do |k,v|
       merge_proc = self.class.options_definitions[k]
@@ -59,6 +54,11 @@ module NoBrainer::Criteria::Core
 
   def chain(options={}, merge_options={})
     merge(self.class.new(options), merge_options)
+  end
+
+  def run(&block)
+    block ||= proc { to_rql }
+    NoBrainer.run(:criteria => self, &block)
   end
 
   def compile_rql_pass1
