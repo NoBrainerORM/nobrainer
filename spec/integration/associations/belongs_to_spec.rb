@@ -106,4 +106,14 @@ describe 'belongs_to' do
       picture.album_slug.should == 'slug'
     end
   end
+
+  context 'when using two belongs_to on the same class name' do
+    it 'errors due to foreign key conflicts' do
+      expect { define_class('SomePost') do
+        include NoBrainer::Document
+        belongs_to :some_author, :class_name => 'Author', :foreign_key => "author_#{Author.pk_name}"
+        belongs_to :author
+      end }.to raise_error(/Cannot declare `author' in SomePost: the foreign_key `author_#{Author.pk_name}' is already used/)
+    end
+  end
 end

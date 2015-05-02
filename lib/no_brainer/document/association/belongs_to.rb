@@ -24,14 +24,18 @@ class NoBrainer::Document::Association::BelongsTo
 
     def hook
       super
-      # XXX We are loading the target_model unless the primary_key is not
-      # specified. This may eager load a part of the application.
-      # Oh well.
+      # XXX We are loading the target_model unless the primary_key is specified.
+      # This may eager load a part of the application  Oh well.
 
       # TODO if the primary key of the target_model changes, we need to revisit
       # our default foreign_key/primary_key value
 
       # TODO set the type of the foreign key to be the same as the target's primary key
+      if owner_model.association_metadata.values.any? { |assoc|
+          assoc.is_a?(self.class) && assoc != self && assoc.foreign_key == foreign_key }
+        raise "Cannot declare `#{target_name}' in #{owner_model}: the foreign_key `#{foreign_key}' is already used"
+      end
+
       owner_model.field(foreign_key, :store_as => options[:foreign_key_store_as], :index => options[:index])
 
       unless options[:validates] == false
