@@ -46,6 +46,12 @@ module NoBrainer::Document::Association::Core
         end
       RUBY
     end
+
+    def get_model_by_name(model_name)
+      @owner_model.name.deconstantize.constantize.const_get(model_name)
+    rescue NameError
+      model_name.constantize
+    end
   end
 
   included { attr_accessor :metadata, :owner }

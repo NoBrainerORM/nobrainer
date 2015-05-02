@@ -89,4 +89,39 @@ describe 'has_many' do
       album.pictures.to_a.should =~ pictures
     end
   end
+
+  context 'when model is created inside module' do
+    it 'should find association' do
+      define_class('ModuleA::Model') do
+        include NoBrainer::Document
+      end
+      define_class('ModuleA::Model2') do
+        include NoBrainer::Document
+        has_many :models
+      end
+    end
+
+    it 'should find association if associated model is toplevel class ' do
+      define_class('Model') do
+        include NoBrainer::Document
+      end
+      define_class('ModuleA::Model2') do
+        include NoBrainer::Document
+        has_many :models
+      end
+    end
+
+    it 'should raise error if associated model is in different module' do
+      define_class('ModuleA::Model') do
+        include NoBrainer::Document
+      end
+      expect do
+        model_with_has_many_association = define_class('ModuleC::Model2') do
+          include NoBrainer::Document
+          has_many :models
+        end
+        model_with_has_many_association.new.models
+      end.to raise_error NameError
+    end
+  end
 end
