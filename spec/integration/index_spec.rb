@@ -200,6 +200,7 @@ describe 'NoBrainer index' do
       it 'uses the index' do
         SimpleDocument.where(:field1.in => ['hello', 'world']).where_indexed?.should == true
         SimpleDocument.where(:field1.in => ['hello', 'world']).count.should == 2
+        SimpleDocument.where(:field1.in => []).count.should == 0
       end
     end
   end

@@ -319,6 +319,8 @@ module NoBrainer::Criteria::Where
 
       def rql_proc
         lambda do |rql|
+          return RethinkDB::RQL.new.expr([]) if rql_op == :get_all && rql_args.empty?
+
           opt = (rql_options || {}).merge(:index => index.aliased_name)
           r = rql.__send__(rql_op, *rql_args, opt)
           r = r.map { |i| i['doc'] } if rql_op == :get_nearest

@@ -150,6 +150,7 @@ describe 'complex where queries' do
     context 'when using in' do
       it 'filters documents' do
         SimpleDocument.where(:field1.in => [3,5,9,33]).count.should == 3
+        SimpleDocument.where(:field1.in => []).count.should == 0
         expect { SimpleDocument.where(:field1.in => "asd").count }.to raise_error(/takes an array/)
       end
     end
