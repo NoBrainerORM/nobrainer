@@ -5,7 +5,7 @@ module NoBrainer::Document
   extend NoBrainer::Autoload
 
   autoload_and_include :Core, :StoreIn, :InjectionLayer, :Attributes, :Readonly,
-                       :Persistance, :Validation, :Types, :Callbacks, :Dirty, :PrimaryKey,
+                       :Persistance, :Callbacks, :Validation, :Types, :Dirty, :PrimaryKey,
                        :Association, :Serialization, :Criteria, :Polymorphic, :Index, :Aliases,
                        :MissingAttributes, :LazyFetch, :AtomicOps
 

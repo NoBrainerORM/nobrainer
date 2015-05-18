@@ -318,14 +318,6 @@ describe 'validations' do
     end
   end
 
-  context 'when using before save' do
-    before { SimpleDocument.before_save { errors.add(:field1, 'some error') } }
-
-    it 'keeps added errors' do
-      SimpleDocument.new.save?.should == false
-    end
-  end
-
   context 'when the field does not change' do
     before { SimpleDocument.validates :field1, :field2, :inclusion => %w(a b) }
 

@@ -208,18 +208,18 @@ describe 'uniqueness validator' do
     end
 
     it 'locks things around the before_save/update/create callbacks' do
-      r = self
-      cb = proc do |doc, block|
-        Lock.locked_keys.should == []
-        Lock.unlocked_keys.should == []
-        block.call
-        Lock.locked_keys.should_not r.be_empty
-        Lock.locked_keys.should == Lock.unlocked_keys.reverse
+      SimpleDocument.before_validation do
+        Lock.locked_keys.should_not == []
+        Lock.unlocked_keys.reverse.should == []
       end
 
-      SimpleDocument.around_save(&cb)
-      SimpleDocument.around_create(&cb)
-      SimpleDocument.around_update(&cb)
+      cb = proc do |doc|
+        Lock.locked_keys.should_not == []
+        Lock.unlocked_keys.reverse.should_not == []
+      end
+      SimpleDocument.after_save(&cb)
+      SimpleDocument.after_create(&cb)
+      SimpleDocument.after_update(&cb)
 
       Lock.locked_keys = []
       Lock.unlocked_keys = []

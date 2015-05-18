@@ -60,12 +60,11 @@ module NoBrainer::Document::Persistance
   end
 
   def _create(options={})
-    return false if options[:validate] != false && !valid?(nil, :clear_errors => false)
-
     attrs = self.class.persistable_attributes(@_attributes, :instance => self)
     result = NoBrainer.run(self.class.rql_table.insert(attrs))
     self.pk_value ||= result['generated_keys'].to_a.first
     @new_record = false
+    unlock_unique_fields # just an optimization for the uniquness validation
     true
   end
 
@@ -75,8 +74,6 @@ module NoBrainer::Document::Persistance
   end
 
   def _update_only_changed_attrs(options={})
-    return false if options[:validate] != false && !valid?(nil, :clear_errors => false)
-
     # We won't be using the `changes` values, because they went through
     # read_attribute(), and we want the raw values.
     attrs = Hash[self.changed.map do |k|
@@ -87,15 +84,15 @@ module NoBrainer::Document::Persistance
       [k, attr]
     end]
     _update(attrs) if attrs.present?
+    unlock_unique_fields # just an optimization for the uniquness validation
     true
   end
 
-  def _save?(options)
+  def _save?(options={})
     new_record? ? _create(options) : _update_only_changed_attrs(options)
   end
 
   def save?(options={})
-    errors.clear
     _save?(options)
   end
 

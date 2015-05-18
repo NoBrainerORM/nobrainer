@@ -20,7 +20,7 @@ module NoBrainer::Document::Callbacks
     run_callbacks(:update) { super }
   end
 
-  def _save?(*args, &block)
+  def save?(*args, &block)
     run_callbacks(:save) { super }
   end
 

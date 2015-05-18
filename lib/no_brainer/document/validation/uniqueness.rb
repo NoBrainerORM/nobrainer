@@ -1,14 +1,7 @@
 module NoBrainer::Document::Validation::Uniqueness
   extend ActiveSupport::Concern
 
-  def _create(options={})
-    lock_unique_fields
-    super
-  ensure
-    unlock_unique_fields
-  end
-
-  def _update_only_changed_attrs(options={})
+  def save?(options={})
     lock_unique_fields
     super
   ensure
