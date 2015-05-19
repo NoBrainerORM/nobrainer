@@ -10,7 +10,7 @@ describe 'uniqueness validator' do
     it 'cannot save a non-unique value' do
       doc2 = SimpleDocument.new field1: 'ohai'
       doc2.valid?.should == false
-      expect { doc2.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'uses the proper locale' do
@@ -43,7 +43,7 @@ describe 'uniqueness validator' do
     it 'cannot save a non-unique value' do
       doc2 = SimpleDocument.new field1: 'ohai'
       doc2.valid?.should == false
-      expect { doc2.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'can save a unique value' do
@@ -75,7 +75,7 @@ describe 'uniqueness validator' do
     it 'cannot save a non-unique value in the same scope' do
       doc2 = SimpleDocument.new field1: 'ohai', field2: 'there'
       doc2.valid?.should == false
-      expect { doc2.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'can save a unique value in the same scope' do
@@ -107,7 +107,7 @@ describe 'uniqueness validator' do
     it 'cannot save a non-unique value in all of the same scopes' do
       doc2 = SimpleDocument.new field1: 'ohai', field2: 'there', field3: 'bob'
       doc2.valid?.should == false
-      expect { doc2.save }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      expect { doc2.save! }.to raise_error(NoBrainer::Error::DocumentInvalid)
     end
 
     it 'can save a unique value in all of the same scopes' do

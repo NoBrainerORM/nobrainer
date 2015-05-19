@@ -32,19 +32,6 @@ describe 'NoBrainer persistance' do
     doc.field2.should == 'halp'
   end
 
-  it 'warns with save!' do
-    doc.field1 = 'ohai'
-    doc.save!.should == :you_should_be_using_the_non_bang_version_of_save
-    doc.reload
-    doc.field1.should == 'ohai'
-  end
-
-  it 'warns with update!' do
-    doc.update!(:field1 => 'ohai').should == :you_should_be_using_the_non_bang_version_of_update
-    doc.reload
-    doc.field1.should == 'ohai'
-  end
-
   it 'deletes' do
     doc.delete.should == true
     SimpleDocument.find?(doc.pk_value).should == nil

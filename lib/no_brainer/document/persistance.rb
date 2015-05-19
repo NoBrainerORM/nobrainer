@@ -96,14 +96,12 @@ module NoBrainer::Document::Persistance
     _save?(options)
   end
 
-  def save(*args)
+  def save!(*args)
     save?(*args) or raise NoBrainer::Error::DocumentInvalid, self
-    nil
   end
 
-  def save!(*args)
-    save(*args)
-    :you_should_be_using_the_non_bang_version_of_save
+  def save(*args)
+    save?(*args)
   end
 
   def update?(attrs, options={})
@@ -111,27 +109,13 @@ module NoBrainer::Document::Persistance
     save?(options)
   end
 
-  def update(*args)
-    update?(*args) or raise NoBrainer::Error::DocumentInvalid, self
-    nil
-  end
-
   def update!(*args)
-    update(*args)
-    :you_should_be_using_the_non_bang_version_of_update
+    update?(*args) or raise NoBrainer::Error::DocumentInvalid, self
   end
   alias_method :update_attributes!, :update!
 
-  def update_attributes?(*args)
-    update?(*args).tap { STDERR.puts "[NoBrainer] update_attributes?() is deprecated. Please use update?() instead" }
-  end
-
-  def update_attributes(*args)
-    update(*args).tap { STDERR.puts "[NoBrainer] update_attributes() is deprecated. Please use update() instead" }
-  end
-
-  def update_attributes!(*args)
-    update!(*args).tap { STDERR.puts "[NoBrainer] update_attributes!() is deprecated. Please use update() instead" }
+  def update(*args)
+    update?(*args)
   end
 
   def delete
@@ -149,9 +133,12 @@ module NoBrainer::Document::Persistance
 
   module ClassMethods
     def create(attrs={}, options={})
-      new(attrs, options).tap { |doc| doc.save(options) }
+      new(attrs, options).tap { |doc| doc.save?(options) }
     end
-    alias_method :create!, :create
+
+    def create!(attrs={}, options={})
+      new(attrs, options).tap { |doc| doc.save!(options) }
+    end
 
     def insert_all(*args)
       docs = args.shift

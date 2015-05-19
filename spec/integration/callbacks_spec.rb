@@ -79,7 +79,7 @@ describe 'NoBrainer callbacks' do
     it 'does not call the after callbacks' do
       SimpleDocument.after_create { raise "oh no" }
       SimpleDocument.validates_presence_of :field1
-      expect { SimpleDocument.create }.to raise_error NoBrainer::Error::DocumentInvalid
+      expect { SimpleDocument.create! }.to raise_error NoBrainer::Error::DocumentInvalid
     end
   end
 
