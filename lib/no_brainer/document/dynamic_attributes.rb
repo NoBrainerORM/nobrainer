@@ -12,4 +12,10 @@ module NoBrainer::Document::DynamicAttributes
   def readable_attributes
     @_attributes.keys
   end
+
+  module ClassMethods
+    def ensure_valid_key!(key)
+      # we never raise
+    end
+  end
 end

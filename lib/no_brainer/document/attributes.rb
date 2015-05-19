@@ -157,5 +157,10 @@ module NoBrainer::Document::Attributes
     def has_field?(attr)
       !!fields[attr.to_sym]
     end
+
+    def ensure_valid_key!(key)
+      return if has_field?(key) || has_index?(key)
+      raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a declared attribute of #{self}"
+    end
   end
 end

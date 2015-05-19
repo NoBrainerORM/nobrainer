@@ -32,6 +32,13 @@ describe 'order_by' do
           .map(&:field1).should == [1,1,2,2].reverse
       end
     end
+
+    context 'when using undefined fields' do
+      it 'raises' do
+        expect { SimpleDocument.all.order_by(:what) }
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a declared attribute of SimpleDocument")
+      end
+    end
   end
 
   context 'when using regular strings' do
@@ -53,6 +60,13 @@ describe 'order_by' do
       it 'orders documents in descending order' do
         SimpleDocument.all.order_by('field1' => :desc)
           .map(&:field1).should == [1,1,2,2].reverse
+      end
+    end
+
+    context 'when using undefined fields' do
+      it 'raises' do
+        expect { SimpleDocument.all.order_by('what') }
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a declared attribute of SimpleDocument")
       end
     end
   end

@@ -17,6 +17,8 @@ module NoBrainer::Criteria::OrderBy
       end
     end.reduce({}, :merge)
 
+    rules.keys.each { |k| model.ensure_valid_key!(k) unless k.is_a?(Proc) } if model
+
     chain(:order_by => rules, :ordering_mode => :normal)
   end
 
