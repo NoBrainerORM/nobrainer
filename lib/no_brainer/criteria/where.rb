@@ -1,6 +1,6 @@
 module NoBrainer::Criteria::Where
-  NON_CHAINABLE_OPERATORS = %w(in nin eq ne not gt ge gte lt le lte defined near intersects).map(&:to_sym)
-  CHAINABLE_OPERATORS = %w(any all).map(&:to_sym)
+  NON_CHAINABLE_OPERATORS = %w(in eq gt ge gte lt le lte defined near intersects).map(&:to_sym)
+  CHAINABLE_OPERATORS = %w(not any all).map(&:to_sym)
   OPERATORS = CHAINABLE_OPERATORS + NON_CHAINABLE_OPERATORS
 
   require 'symbol_decoration'
@@ -212,14 +212,23 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class UnaryOperator < Struct.new(:op, :value)
+  class UnaryOperator < Struct.new(:op, :clause)
     def simplify
-      value.is_a?(UnaryOperator) && [self.op, value.op] == [:not, :not] ? value.value : self
+      simplified_clause = self.clause.simplify
+
+      case simplified_clause
+      when UnaryOperator then
+        case [self.op, simplified_clause.op]
+        when [:not, :not] then simplified_clause.clause
+        else self.class.new(op, simplified_clause)
+        end
+      else self.class.new(op, simplified_clause)
+      end
     end
 
     def to_rql(doc)
       case op
-      when :not then value.to_rql(doc).not
+      when :not then clause.to_rql(doc).not
       end
     end
   end
@@ -256,15 +265,12 @@ module NoBrainer::Criteria::Where
     when :_and then parse_multi_value(:and, value, :safe => true)
     when :_or  then parse_multi_value(:or,  value, :safe => true)
     when :not  then UnaryOperator.new(:not, parse_clause(value))
-    when String, Symbol then parse_clause_stub_eq(key, value)
+    when String, Symbol then instantiate_binary_op(key, :eq, value)
     when Symbol::Decoration then
       case key.decorator
-      when :any, :all then parse_clause_stub_eq(key, value)
-      when :not, :ne  then parse_clause(:not => { key.symbol.eq => value })
-      when :nin then parse_clause(:not => { key.symbol.in => value })
-      when :gte then parse_clause(key.symbol.ge => value)
-      when :lte then parse_clause(key.symbol.le => value)
-      when :eq  then parse_clause_stub_eq(key.symbol, value)
+      when :any, :all, :not then instantiate_binary_op(key, :eq, value)
+      when :gte then instantiate_binary_op(key.symbol, :ge, value)
+      when :lte then instantiate_binary_op(key.symbol, :le, value)
       else instantiate_binary_op(key.symbol, key.decorator, value)
       end
     else raise "Invalid key: #{key}"
@@ -282,14 +288,6 @@ module NoBrainer::Criteria::Where
     MultiOperator.new(op, value.map { |v| parse_clause(v) })
   end
 
-  def parse_clause_stub_eq(key, value)
-    case value
-    when Range  then instantiate_binary_op(key, :between, value)
-    when Regexp then instantiate_binary_op(key, :match, translate_regexp_to_re2_syntax(value))
-    else instantiate_binary_op(key, :eq, value)
-    end
-  end
-
   def translate_regexp_to_re2_syntax(value)
     # Ruby always uses what RE2 calls "multiline mode" (the "m" flag),
     # meaning that "foo\nbar" matches /^bar$/.
@@ -304,8 +302,19 @@ module NoBrainer::Criteria::Where
   end
 
   def instantiate_binary_op(key, op, value)
+    op, value = case value
+                when Range  then [:between, value]
+                when Regexp then [:match, translate_regexp_to_re2_syntax(value)]
+                else [:eq, value]
+                end if op == :eq
+
     case key
-    when Symbol::Decoration then BinaryOperator.new(key.symbol, key.decorator, op, value, self.model)
+    when Symbol::Decoration
+      raise "Use only one .not, .all or .any modifiers in the query" if key.symbol.is_a?(Symbol::Decoration)
+      case key.decorator
+        when :any, :all then BinaryOperator.new(key.symbol, key.decorator, op, value, self.model)
+        when :not       then UnaryOperator.new(:not, BinaryOperator.new(key.symbol, :scalar, op, value, self.model))
+      end
     else BinaryOperator.new(key, :scalar, op, value, self.model)
     end
   end

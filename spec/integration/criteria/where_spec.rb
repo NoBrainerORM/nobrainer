@@ -56,6 +56,9 @@ describe 'where' do
         expect { SimpleDocument.where(:field_new => 'hi').count } \
           .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a declared attribute of SimpleDocument")
 
+        expect { SimpleDocument.where(:field_new.not => []).count } \
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a declared attribute of SimpleDocument")
+
         SimpleDocument.field :field_new
         SimpleDocument.first.update(:field_new => 'hi')
         SimpleDocument.where(:field_new => 'hi').count.should == 1
@@ -155,12 +158,6 @@ describe 'complex where queries' do
       end
     end
 
-    context 'when using nin' do
-      it 'filters documents' do
-        SimpleDocument.where(:field1.nin => [3,5,9,33]).count.should == 7
-      end
-    end
-
     context 'when using or' do
       it 'filters documents' do
         SimpleDocument.where(:or => [{:field1 => 3}, {:field1 => 7}, {:field1 => 33}]).count.should == 2
@@ -194,9 +191,14 @@ describe 'complex where queries' do
 
     context 'when using not' do
       it 'filters documents' do
-        SimpleDocument.where(:field1.ne  => 3).count.should == 9
         SimpleDocument.where(:field1.not => 3).count.should == 9
         SimpleDocument.where(:field1.not => (3..8)).count.should == 4
+      end
+
+      context 'when chaining not' do
+        it 'filters documents' do
+          SimpleDocument.where(:field1.not.in => [3,5,9,33]).count.should == 7
+        end
       end
     end
 
@@ -437,6 +439,15 @@ describe 'complex where queries' do
     it "applies filter to all element" do
       SimpleDocument.where(:field1.all.gte => 5).count.should == 2
       SimpleDocument.where(:field1.all => 2).count.should == 1
+    end
+  end
+
+  context 'when chaining all, not, any' do
+    let(:error_msg) { 'Use only one .not, .all or .any modifiers in the query' }
+    it 'raises' do
+      expect { SimpleDocument.where(:field1.all.all => 1) }.to raise_error(error_msg)
+      expect { SimpleDocument.where(:field1.not.any => 1) }.to raise_error(error_msg)
+      expect { SimpleDocument.where(:field1.all.any => 1) }.to raise_error(error_msg)
     end
   end
 

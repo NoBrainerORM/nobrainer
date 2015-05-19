@@ -93,7 +93,7 @@ module NoBrainer::Document::Validation::Uniqueness
     end
 
     def exclude_doc(criteria, doc)
-      criteria.where(doc.class.pk_name.ne => doc.pk_value)
+      criteria.where(doc.class.pk_name.not => doc.pk_value)
     end
   end
 end

@@ -15,6 +15,9 @@ describe 'where types' do
 
       expect { SimpleDocument.where(:field1.in => ("a".."z")) }.to raise_error(NoBrainer::Error::InvalidType, "Field1 should be a integer")
       SimpleDocument.where(:field1.in => (1..200)).count.should == 1
+
+      expect { SimpleDocument.where(:field1.not.in => ("a".."z")) }.to raise_error(NoBrainer::Error::InvalidType, "Field1 should be a integer")
+      SimpleDocument.where(:field1.not.in => (1..200)).count.should == 0
     end
 
     context 'when using a belongs_to association' do
