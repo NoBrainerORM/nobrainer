@@ -465,12 +465,14 @@ describe 'complex where queries' do
     shared_examples_for 'near queries' do
       it 'finds nearest points' do
         City.where(:location.near => {:point => nyc.location, :max_distance => 300_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
-        City.where(:location.near => {:point => nyc.location, :max_distance => 350_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
-        City.where(:location.near => {:point => nyc.location, :max_distance => 350, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
-        City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
-        City.where(:location.near => {:point => nyc.location, :max_distance => 300, :unit => 'mi'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
-        City.where(:location.near => {:point => [48.87, 2.28], :max_distance => 1000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [paris]
+        City.where(:location.near => {:center => nyc.location, :radius => 300_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
+        City.where(:location.near => {:center => nyc.location, :radius => 350_000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:center => nyc.location, :radius => 350, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:center => nyc.location, :radius => 300, :unit => 'km'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
+        City.where(:location.near => {:center => nyc.location, :radius => 300, :unit => 'mi'}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc, boston]
+        City.where(:location.near => {:center => [48.87, 2.28], :radius => 1000}).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [paris]
         expect { City.where(:location.near => {}) }.to raise_error(/near/)
+        City.where(:location.near => NoBrainer::Geo::Circle.new(:center => nyc.location, :radius => 300, :unit => 'km')).tap { |c| c.where_indexed?.should == should_use_index }.to_a.should =~ [nyc]
       end
     end
 

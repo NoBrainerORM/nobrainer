@@ -134,12 +134,9 @@ module NoBrainer::Criteria::Where
       when :in         then RethinkDB::RQL.new.expr(value).contains(lvalue)
       when :intersects then lvalue.intersects(value.to_rql)
       when :near
-        options = value.dup
-        point = options.delete(:point)
-        max_dist = options.delete(:max_dist)
-        # XXX max_results is not used, seems to be a workaround of rethinkdb index implemetnation.
-        _ = options.delete(:max_results)
-        RethinkDB::RQL.new.distance(lvalue, point.to_rql, options) <= max_dist
+        # XXX options[:max_results] is not used, seems to be a workaround of rethinkdb index implementation.
+        circle = value[:circle]
+        RethinkDB::RQL.new.distance(lvalue, circle.center.to_rql, circle.options) <= circle.radius
       else lvalue.__send__(op, value)
       end
     end
@@ -176,18 +173,23 @@ module NoBrainer::Criteria::Where
           raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
           value
         when :near
-          raise "Incorrect use of `near': rvalue must be a hash" unless value.is_a?(Hash)
-          options = NoBrainer::Geo::Base.normalize_geo_options(value)
+          case value
+            when Hash
+              options = NoBrainer::Geo::Base.normalize_geo_options(value)
 
-          unless options[:point] && options[:max_dist]
-            raise "`near' takes something like {:point => P, :max_distance => d}"
+              options[:radius] = options.delete(:max_distance) if options[:max_distance]
+              options[:radius] = options.delete(:max_dist) if options[:max_dist]
+              options[:center] = options.delete(:point) if options[:point]
+
+              unless options[:circle]
+                unless options[:center] && options[:radius]
+                  raise "`near' takes something like {:center => P, :radius => d}"
+                end
+                { :circle => NoBrainer::Geo::Circle.new(options), :max_results => options[:max_results] }
+              end
+            when NoBrainer::Geo::Circle then { :circle => value }
+            else raise "Incorrect use of `near': rvalue must be a hash or a circle"
           end
-
-          unless options[:point].is_a?(NoBrainer::Geo::Point)
-            options[:point] = NoBrainer::Geo::Point.nobrainer_cast_user_to_model(options[:point])
-          end
-
-          options
         else
           case key_modifier
           when :scalar    then model.cast_user_to_db_for(key, value)
@@ -328,9 +330,7 @@ module NoBrainer::Criteria::Where
           opt = (rql_options || {}).merge(:index => index.aliased_name)
           r = rql.__send__(rql_op, *rql_args, opt)
           r = r.map { |i| i['doc'] } if rql_op == :get_nearest
-          # TODO distinct: waiting for issue #3345
-          # TODO coerce_to: waiting for issue #3346
-          r = r.coerce_to('array').distinct if index.multi && !index_finder.criteria.options[:without_distinct]
+          r = r.distinct if index.multi && !index_finder.criteria.options[:without_distinct]
           r
         end
       end
@@ -363,8 +363,10 @@ module NoBrainer::Criteria::Where
           when :intersects then [:get_intersecting, clause.value.to_rql]
           when :near
             options = clause.value.dup
-            point = options.delete(:point)
-            [:get_nearest, point.to_rql, options]
+            circle = options.delete(:circle)
+            options.delete(:max_results) if options[:max_results].nil?
+            options[:max_dist] = circle.radius
+            [:get_nearest, circle.center.to_rql, circle.options.merge(options)]
           when :eq      then [:get_all, [clause.value]]
           when :in      then [:get_all, clause.value]
           when :between then [:between, [clause.value.min, clause.value.max],
