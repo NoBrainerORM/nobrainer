@@ -46,7 +46,7 @@ class NoBrainer::Document::Index::Synchronizer
   end
 
   def generate_plan
-    @models_indexes_map.map { |model, indexes| _generate_plan_for(model, indexes) }.flatten(1)
+    @models_indexes_map.flat_map { |model, indexes| _generate_plan_for(model, indexes) }
   end
 
   def sync_indexes(options={})

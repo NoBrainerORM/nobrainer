@@ -57,7 +57,7 @@ module NoBrainer::Criteria::Where
       same_op_clauses, other_clauses = clauses.partition do |v|
         v.is_a?(self.class) && (v.clauses.size == 1 || v.op == self.op)
       end
-      simplified_clauses = other_clauses + same_op_clauses.map(&:clauses).flatten(1)
+      simplified_clauses = other_clauses + same_op_clauses.flat_map(&:clauses)
       simplified_clauses = BinaryOperator.simplify_clauses(op, simplified_clauses.uniq)
       self.class.new(op, simplified_clauses)
     end
@@ -81,7 +81,7 @@ module NoBrainer::Criteria::Where
         eq_clauses = get_candidate_clauses(ast_clauses, :in, :eq)
         new_clauses = eq_clauses.group_by { |c| [c.key, c.key_modifier] }.map do |(key, key_modifier), clauses|
           if key_modifier.in?([:scalar, :any]) && clauses.size > 1
-            values = clauses.map { |c| c.op == :in ? c.value : [c.value] }.flatten(1).uniq
+            values = clauses.flat_map { |c| c.op == :in ? c.value : [c.value] }.uniq
             [BinaryOperator.new(key, key_modifier, :in, values, clauses.first.model, true)]
           else
             clauses
