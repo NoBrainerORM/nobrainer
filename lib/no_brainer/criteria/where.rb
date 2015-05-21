@@ -173,22 +173,23 @@ module NoBrainer::Criteria::Where
           raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
           value
         when :near
+          # TODO enforce key is a geo type
           case value
-            when Hash
-              options = NoBrainer::Geo::Base.normalize_geo_options(value)
+          when Hash
+            options = NoBrainer::Geo::Base.normalize_geo_options(value)
 
-              options[:radius] = options.delete(:max_distance) if options[:max_distance]
-              options[:radius] = options.delete(:max_dist) if options[:max_dist]
-              options[:center] = options.delete(:point) if options[:point]
+            options[:radius] = options.delete(:max_distance) if options[:max_distance]
+            options[:radius] = options.delete(:max_dist) if options[:max_dist]
+            options[:center] = options.delete(:point) if options[:point]
 
-              unless options[:circle]
-                unless options[:center] && options[:radius]
-                  raise "`near' takes something like {:center => P, :radius => d}"
-                end
-                { :circle => NoBrainer::Geo::Circle.new(options), :max_results => options[:max_results] }
+            unless options[:circle]
+              unless options[:center] && options[:radius]
+                raise "`near' takes something like {:center => P, :radius => d}"
               end
-            when NoBrainer::Geo::Circle then { :circle => value }
-            else raise "Incorrect use of `near': rvalue must be a hash or a circle"
+              { :circle => NoBrainer::Geo::Circle.new(options), :max_results => options[:max_results] }
+            end
+          when NoBrainer::Geo::Circle then { :circle => value }
+          else raise "Incorrect use of `near': rvalue must be a hash or a circle"
           end
         else
           case key_modifier
