@@ -1,27 +1,24 @@
 module NoBrainer::Criteria::Find
   extend ActiveSupport::Concern
 
-  def find_by?(*args, &block)
-    where(*args, &block).first
-  end
-
   def find_by(*args, &block)
-    find_by?(*args, &block).tap { |doc| raise_not_found(args) unless doc }
+    raise "find_by() has unclear semantics. Please use where().first instead"
   end
   alias_method :find_by!, :find_by
+  alias_method :find_by?, :find_by
 
   def find?(pk)
-    without_ordering.find_by?(model.pk_name => pk)
+    without_ordering.where(model.pk_name => pk).first
   end
 
   def find(pk)
-    without_ordering.find_by(model.pk_name => pk)
+    find?(pk).tap { |doc| raise_not_found(pk) unless doc }
   end
   alias_method :find!, :find
 
   private
 
-  def raise_not_found(args)
-    raise NoBrainer::Error::DocumentNotFound, "#{model} #{args.inspect.gsub(/\[{(.*)}\]/, '\1')} not found"
+  def raise_not_found(pk)
+    raise NoBrainer::Error::DocumentNotFound, "#{model} :#{model.pk_name}=>#{pk.inspect} not found"
   end
 end
