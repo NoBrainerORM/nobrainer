@@ -506,4 +506,19 @@ describe 'complex where queries' do
       expect { SimpleDocument.where(non_permitted_attributes) }.to raise_error(ActiveModel::ForbiddenAttributesError)
     end
   end
+
+  context 'when using hashes' do
+    let!(:doc1) { SimpleDocument.create(:field1 => {:en => 'yes', :fr => 'oui'}) }
+    let!(:doc2) { SimpleDocument.create(:field1 => {:nested => {:en => 'yes', :fr => 'oui'} }) }
+
+    it 'filters documents' do
+      SimpleDocument.where(:field1 => {:en => 'yes'}).count.should == 1
+      SimpleDocument.where(:field1 => { :nested => {:en => 'yes'}}).count.should == 1
+
+      SimpleDocument.where(:field1 => {:en => 'yes', :fr => 'non'}).count.should == 0
+      SimpleDocument.where(:field1 => {:en => 'yes', :fr => 'oui'}).count.should == 1
+      SimpleDocument.where(:field1.eq => {:en => 'yes', :fr => 'oui'}).count.should == 1
+      SimpleDocument.where(:field1.eq => {:en => 'yes'}).count.should == 0
+    end
+  end
 end

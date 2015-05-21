@@ -70,7 +70,7 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  class BinaryOperator < Struct.new(:key, :key_modifier, :op, :value, :model, :casted_values)
+  class BinaryOperator < Struct.new(:key_path, :key_modifier, :op, :value, :model, :casted_values)
     def self.get_candidate_clauses(clauses, *types)
       clauses.select { |c| c.is_a?(self) && types.include?(c.op) }
     end
@@ -79,10 +79,10 @@ module NoBrainer::Criteria::Where
       # This code assumes that simplfy() has already been called on all clauses.
       if op == :or
         eq_clauses = get_candidate_clauses(ast_clauses, :in, :eq)
-        new_clauses = eq_clauses.group_by { |c| [c.key, c.key_modifier] }.map do |(key, key_modifier), clauses|
+        new_clauses = eq_clauses.group_by { |c| [c.key_path, c.key_modifier] }.map do |(key_path, key_modifier), clauses|
           if key_modifier.in?([:scalar, :any]) && clauses.size > 1
             values = clauses.flat_map { |c| c.op == :in ? c.value : [c.value] }.uniq
-            [BinaryOperator.new(key, key_modifier, :in, values, clauses.first.model, true)]
+            [BinaryOperator.new(key_path, key_modifier, :in, values, clauses.first.model, true)]
           else
             clauses
           end
@@ -97,7 +97,7 @@ module NoBrainer::Criteria::Where
     end
 
     def simplify
-      new_key = cast_key(key)
+      new_key_path = cast_key_path(key_path)
       new_op, new_value = case op
         when :in then
           case value
@@ -111,11 +111,14 @@ module NoBrainer::Criteria::Where
           [op, cast_value(value)]
         else [op, cast_value(value)]
       end
-      BinaryOperator.new(new_key, key_modifier, new_op, new_value, model, true)
+      BinaryOperator.new(new_key_path, key_modifier, new_op, new_value, model, true)
     end
 
     def to_rql(doc)
-      key = model.lookup_field_alias(self.key)
+      key_path = [model.lookup_field_alias(self.key_path.first), *self.key_path[1..-1]]
+
+      doc = key_path[0..-2].reduce(doc) { |d,k| d[k] }
+      key = key_path.last
 
       case key_modifier
       when :scalar then
@@ -148,10 +151,8 @@ module NoBrainer::Criteria::Where
     private
 
     def association
-      # FIXME This leaks memory with dynamic attributes. The internals of type
-      # checking will convert the key to a symbol, and Ruby does not garbage
-      # collect symbols.
-      @association ||= [model.association_metadata[key.to_sym]]
+      return nil if key_path.size > 1
+      @association ||= [model.association_metadata[key_path.first.to_sym]]
       @association.first
     end
 
@@ -162,7 +163,7 @@ module NoBrainer::Criteria::Where
       when NoBrainer::Document::Association::BelongsTo::Metadata
         target_model = association.target_model
         unless value.is_a?(target_model)
-          opts = { :model => model, :attr_name => key, :type => target_model, :value => value }
+          opts = { :model => model, :attr_name => key_path.first, :type => target_model, :value => value }
           raise NoBrainer::Error::InvalidType.new(opts)
         end
         value.pk_value
@@ -192,20 +193,24 @@ module NoBrainer::Criteria::Where
           else raise "Incorrect use of `near': rvalue must be a hash or a circle"
           end
         else
-          case key_modifier
-          when :scalar    then model.cast_user_to_db_for(key, value)
-          when :any, :all then model.cast_user_to_db_for(key, [value]).first
-          end
+          # 1) Box value in array if we have an any/all modifier
+          # 2) Box value in hash if we have a nested query.
+          value = [value] if key_modifier.in?([:any, :all])
+          value_hash = key_path.reverse.reduce(value) { |v,k| {k => v} }
+          value = model.cast_user_to_db_for(*value_hash.first)
+          value = key_path[1..-1].reduce(value) { |h,k| h[k] }
+          value = value.first if key_modifier.in?([:any, :all])
+          value
         end
       end
     end
 
-    def cast_key(key)
+    def cast_key_path(key)
       return key if casted_values
 
       case association
-      when NoBrainer::Document::Association::BelongsTo::Metadata then association.foreign_key
-      else model.ensure_valid_key!(key); key
+      when NoBrainer::Document::Association::BelongsTo::Metadata then [association.foreign_key]
+      else model.ensure_valid_key!(key_path.first); key_path
       end
     end
   end
@@ -241,49 +246,53 @@ module NoBrainer::Criteria::Where
     end
   end
 
-  def parse_clause(clause)
+  def parse_clause(clause, options={})
     clause = sanitize_for_mass_assignment(clause)
     case clause
-    when Array then MultiOperator.new(:and, clause.map { |c| parse_clause(c) })
-    when Hash  then MultiOperator.new(:and, clause.map { |k,v| parse_clause_stub(k,v) })
+    when Array then MultiOperator.new(:and, clause.map { |c| parse_clause(c, options) })
+    when Hash  then MultiOperator.new(:and, clause.map { |k,v| parse_clause_stub(k, v, options) })
     when Proc  then Lambda.new(clause)
     when Symbol::Decoration
       case clause.args.size
-      when 1 then parse_clause_stub(clause, clause.args.first)
+      when 1 then parse_clause_stub(clause, clause.args.first, options)
       else raise "Invalid argument: #{clause}"
       end
     else raise "Invalid clause: #{clause}"
     end
   end
 
-  def parse_clause_stub(key, value)
+  def parse_clause_stub(key, value, options={})
     case key
-    when :and  then parse_multi_value(:and, value)
-    when :or   then parse_multi_value(:or,  value)
-    when :_and then parse_multi_value(:and, value, :safe => true)
-    when :_or  then parse_multi_value(:or,  value, :safe => true)
-    when :not  then UnaryOperator.new(:not, parse_clause(value))
-    when String, Symbol then instantiate_binary_op(key, :eq, value)
+    when :and  then parse_multi_value(:and, value, false, options)
+    when :or   then parse_multi_value(:or,  value, false, options)
+    when :_and then parse_multi_value(:and, value, true, options)
+    when :_or  then parse_multi_value(:or,  value, true, options)
+    when :not  then UnaryOperator.new(:not, parse_clause(value, options))
+    when String, Symbol then
+      case value
+      when Hash then parse_clause(value, options.merge(:nested_prefix => (options[:nested_prefix] || []) + [key]))
+      else instantiate_binary_op(key, :eq, value, options)
+      end
     when Symbol::Decoration then
       case key.decorator
-      when :any, :all, :not then instantiate_binary_op(key, :eq, value)
-      when :gte then instantiate_binary_op(key.symbol, :ge, value)
-      when :lte then instantiate_binary_op(key.symbol, :le, value)
-      else instantiate_binary_op(key.symbol, key.decorator, value)
+      when :any, :all, :not then instantiate_binary_op(key, :eq, value, options)
+      when :gte then instantiate_binary_op(key.symbol, :ge, value, options)
+      when :lte then instantiate_binary_op(key.symbol, :le, value, options)
+      else instantiate_binary_op(key.symbol, key.decorator, value, options)
       end
     else raise "Invalid key: #{key}"
     end
   end
 
-  def parse_multi_value(op, value, options={})
+  def parse_multi_value(op, value, multi_safe, options={})
     raise "The `#{op}' operator takes an array as argument" unless value.is_a?(Array)
-    if value.size == 1 && value.first.is_a?(Hash) && !options[:safe]
+    if value.size == 1 && value.first.is_a?(Hash) && !multi_safe
       raise "The `#{op}' operator was provided an array with a single hash element.\n" +
             "In Ruby, [:a => :b, :c => :d] means [{:a => :b, :c => :d}] which is not the same as [{:a => :b}, {:c => :d}].\n" +
             "To prevent mistakes, the former construct is prohibited as you probably mean the latter.\n" +
             "However, if you know what you are doing, you can use the `_#{op}' operator instead."
     end
-    MultiOperator.new(op, value.map { |v| parse_clause(v) })
+    MultiOperator.new(op, value.map { |v| parse_clause(v, options) })
   end
 
   def translate_regexp_to_re2_syntax(value)
@@ -299,21 +308,22 @@ module NoBrainer::Criteria::Where
     "(?#{flags})#{value.source}"
   end
 
-  def instantiate_binary_op(key, op, value)
+  def instantiate_binary_op(key, op, value, options={})
     op, value = case value
                 when Range  then [:between, value]
                 when Regexp then [:match, translate_regexp_to_re2_syntax(value)]
                 else [:eq, value]
                 end if op == :eq
 
+    nested_prefix = options[:nested_prefix] || []
     case key
     when Symbol::Decoration
       raise "Use only one .not, .all or .any modifiers in the query" if key.symbol.is_a?(Symbol::Decoration)
       case key.decorator
-        when :any, :all then BinaryOperator.new(key.symbol, key.decorator, op, value, self.model)
-        when :not       then UnaryOperator.new(:not, BinaryOperator.new(key.symbol, :scalar, op, value, self.model))
+        when :any, :all then BinaryOperator.new(nested_prefix + [key.symbol], key.decorator, op, value, self.model)
+        when :not       then UnaryOperator.new(:not, BinaryOperator.new(nested_prefix + [key.symbol], :scalar, op, value, self.model))
       end
-    else BinaryOperator.new(key, :scalar, op, value, self.model)
+    else BinaryOperator.new(nested_prefix + [key], :scalar, op, value, self.model)
     end
   end
 
@@ -354,9 +364,9 @@ module NoBrainer::Criteria::Where
       clauses = get_candidate_clauses(:eq, :in, :between, :near, :intersects)
       return nil unless clauses.present?
 
-      usable_indexes = Hash[get_usable_indexes.map { |i| [i.name, i] }]
+      usable_indexes = Hash[get_usable_indexes.map { |i| [[i.name], i] }]
       clauses.map do |clause|
-        index = usable_indexes[clause.key]
+        index = usable_indexes[clause.key_path]
         next unless index && clause.compatible_with_index?(index)
         next unless index.geo == [:near, :intersects].include?(clause.op)
 
@@ -378,11 +388,11 @@ module NoBrainer::Criteria::Where
     end
 
     def find_strategy_compound
-      clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key, c] }]
+      clauses = Hash[get_candidate_clauses(:eq).map { |c| [c.key_path, c] }]
       return nil unless clauses.present?
 
       get_usable_indexes(:kind => :compound, :geo => false, :multi => false).each do |index|
-        indexed_clauses = index.what.map { |field| clauses[field] }
+        indexed_clauses = index.what.map { |field| clauses[[field]] }
         next unless indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
 
         return IndexStrategy.new(self, ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
@@ -391,11 +401,11 @@ module NoBrainer::Criteria::Where
     end
 
     def find_strategy_hidden_between
-      clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key)
+      clauses = get_candidate_clauses(:gt, :ge, :lt, :le).group_by(&:key_path)
       return nil unless clauses.present?
 
       get_usable_indexes(:geo => false).each do |index|
-        matched_clauses = clauses[index.name].try(:select) { |c| c.compatible_with_index?(index) }
+        matched_clauses = clauses[[index.name]].try(:select) { |c| c.compatible_with_index?(index) }
         next unless matched_clauses.present?
 
         op_clauses = Hash[matched_clauses.map { |c| [c.op, c] }]
