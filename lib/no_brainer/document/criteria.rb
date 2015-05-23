@@ -7,7 +7,6 @@ module NoBrainer::Document::Criteria
   end
 
   included do
-    cattr_accessor :perf_warnings_disabled, :instance_accessor => false
     singleton_class.send(:attr_accessor, :default_scopes)
     self.default_scopes = []
   end
@@ -56,10 +55,6 @@ module NoBrainer::Document::Criteria
     def inherited(subclass)
       subclass.default_scopes = self.default_scopes.dup
       super
-    end
-
-    def disable_perf_warnings
-      self.perf_warnings_disabled = true
     end
   end
 end
