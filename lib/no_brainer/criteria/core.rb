@@ -56,11 +56,6 @@ module NoBrainer::Criteria::Core
     merge(self.class.new(options), merge_options)
   end
 
-  def run(&block)
-    block ||= proc { to_rql }
-    NoBrainer.run(:criteria => self, &block)
-  end
-
   def compile_rql_pass1
     # This method is overriden by other modules.
     raise "Criteria not bound to a model" unless model
@@ -104,6 +99,10 @@ module NoBrainer::Criteria::Core
 
     def append_array(a, b)
       a ? a+b : b
+    end
+
+    def merge_hash(a, b)
+      a ? a.merge(b) : b
     end
   end
 end

@@ -8,9 +8,8 @@ class NoBrainer::Document::Index::Synchronizer
     end]
   end
 
-  def meta_store_on(db_name)
-    @meta_store ||= {}
-    @meta_store[db_name] ||= MetaStore.on(db_name) { MetaStore.all.to_a }
+  def meta_store
+    @meta_store ||= MetaStore.to_a
   end
 
   class Op < Struct.new(:index, :op, :args)
@@ -21,8 +20,7 @@ class NoBrainer::Document::Index::Synchronizer
 
   def _generate_plan_for(model, wanted_indexes)
     current_indexes = NoBrainer.run(model.rql_table.index_status).map do |s|
-      meta = meta_store_on(model.db_name)
-               .select { |i| i.table_name == model.table_name && i.index_name == s['index'] }.last
+      meta = meta_store.select { |i| i.table_name == model.table_name && i.index_name == s['index'] }.last
       Index.new(model, s['index'], s['index'], nil, nil, nil, s['geo'], s['multi'], meta)
     end
 

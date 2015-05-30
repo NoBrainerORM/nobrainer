@@ -22,7 +22,6 @@ class NoBrainer::QueryRunner::Profiler < NoBrainer::QueryRunner::Middleware
 
     env[:model] = env[:criteria] && env[:criteria].model
     env[:query_type] = NoBrainer::RQL.type_of(env[:query])
-    env[:custom_db_name] = env[:db_name] if env[:db_name] && env[:db_name].to_s != NoBrainer.connection.parsed_uri[:db]
 
     NoBrainer::Profiler.registered_profilers.each do |profiler|
       begin

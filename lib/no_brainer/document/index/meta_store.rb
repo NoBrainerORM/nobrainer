@@ -6,8 +6,7 @@ class NoBrainer::Document::Index::MetaStore
 
   default_scope ->{ order_by(:created_at) }
 
-  store_in :db    => ->{ Thread.current[:nobrainer_meta_store_db] },
-           :table => 'nobrainer_index_meta'
+  store_in :table => 'nobrainer_index_meta'
 
   field :table_name,   :type => String, :required => true
   field :index_name,   :type => String, :required => true
@@ -19,13 +18,5 @@ class NoBrainer::Document::Index::MetaStore
 
   def rql_function
     JSON.load(super)
-  end
-
-  def self.on(db_name, &block)
-    old_db_name = Thread.current[:nobrainer_meta_store_db]
-    Thread.current[:nobrainer_meta_store_db] = db_name
-    block.call
-  ensure
-    Thread.current[:nobrainer_meta_store_db] = old_db_name
   end
 end

@@ -75,19 +75,23 @@ describe 'NoBrainer index' do
 
     context 'when switching tables and dbs' do
       before do
-        SimpleDocument.store_in :db => "some_test_db", :table => 'some_table'
+        SimpleDocument.store_in :table => 'some_table'
         NoBrainer.run_with(:db => 'some_test_db') { NoBrainer.drop! }
       end
 
       it 'keeps indexes in sync' do
         SimpleDocument.index :idx
-        migration_plan.should == [[:idx, :create]]
-        NoBrainer.sync_indexes
-        migration_plan.should == []
 
         NoBrainer.run_with(:db => 'some_test_db') do
+          migration_plan.should == [[:idx, :create]]
+          NoBrainer.sync_indexes
+          migration_plan.should == []
+
           NoBrainer::Document::Index::MetaStore.first.table_name.should == 'some_table'
         end
+
+        migration_plan.should_not == []
+          NoBrainer::Document::Index::MetaStore.first.should == nil
       end
     end
 

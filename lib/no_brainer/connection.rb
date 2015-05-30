@@ -42,10 +42,17 @@ class NoBrainer::Connection
     RUBY
   end
 
+  def default_db
+    parsed_uri[:db]
+  end
+
+  def current_db
+    # Thread.current[:nobrainer_options] is set by NoBrainer::QueryRunner::RunOptions
+    Thread.current[:nobrainer_options].try(:[], :db) || default_db
+  end
+
   def drop!
-    # XXX Thread.current[:nobrainer_options] is set by NoBrainer::QueryRunner::RunOptions
-    db = (Thread.current[:nobrainer_options] || parsed_uri)[:db]
-    db_drop(db)['dropped'] == 1
+    db_drop(current_db)['dropped'] == 1
   end
 
   # Note that truncating each table (purge) is much faster than dropping the

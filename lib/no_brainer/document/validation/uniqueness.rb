@@ -10,7 +10,7 @@ module NoBrainer::Document::Validation::Uniqueness
 
   def _lock_key_from_field(field)
     value = read_attribute(field).to_s
-    ['nobrainer', self.class.db_name || NoBrainer.connection.parsed_uri[:db],
+    ['nobrainer', NoBrainer.current_db,
      self.class.table_name, field, value.empty? ? 'nil' : value].join(':')
   end
 

@@ -4,13 +4,15 @@ describe 'NoBrainer store_in' do
   before { load_simple_document }
   before do
     NoBrainer.drop!
-    NoBrainer.run_with(:db => 'test_db1') { NoBrainer.drop! }
-    NoBrainer.run_with(:db => 'test_db2') { NoBrainer.drop! }
+    NoBrainer.db_list.select { |db| db =~ /^test_db[0-9]/ }.each do |db|
+      NoBrainer.run_with(:db => db) { NoBrainer.drop! }
+    end
   end
   after do
     NoBrainer.drop!
-    NoBrainer.run_with(:db => 'test_db1') { NoBrainer.drop! }
-    NoBrainer.run_with(:db => 'test_db2') { NoBrainer.drop! }
+    NoBrainer.db_list.select { |db| db =~ /^test_db[0-9]/ }.each do |db|
+      NoBrainer.run_with(:db => db) { NoBrainer.drop! }
+    end
   end
 
   context 'when using the global wrapper' do
@@ -45,26 +47,6 @@ describe 'NoBrainer store_in' do
     end
   end
 
-  context 'when using store_in to switch databases' do
-    before do
-      SimpleDocument.store_in :db => ->{ @database }
-    end
-
-    it 'switches databases' do
-      @database = 'test_db1'
-      SimpleDocument.create
-      SimpleDocument.count.should == 1
-
-      @database = 'test_db2'
-      SimpleDocument.count.should == 0
-      2.times { SimpleDocument.create }
-      SimpleDocument.count.should == 2
-
-      @database = 'test_db1'
-      SimpleDocument.count.should == 1
-    end
-  end
-
   context 'when using store_in to switch tables' do
     before do
       SimpleDocument.store_in :table => ->{ @table }
@@ -89,43 +71,44 @@ describe 'NoBrainer store_in' do
 
   context 'when using store_in with symbols' do
     it 'converts names to strings' do
-      SimpleDocument.store_in :db => :test_db1, :table => :table1
+      SimpleDocument.store_in :table => :table1
       SimpleDocument.table_name.should == 'table1'
-      SimpleDocument.db_name.should == 'test_db1'
     end
 
     it 'converts lambda names to strings' do
-      SimpleDocument.store_in :db => ->{ :test_db1 } , :table => ->{ :table1 }
+      SimpleDocument.store_in :table => ->{ :table1 }
       SimpleDocument.table_name.should == 'table1'
-      SimpleDocument.db_name.should == 'test_db1'
     end
   end
 
-  context 'when using store_in and run_with(db: )' do
-    before do
-      SimpleDocument.store_in :db => ->{ @database }
-    end
-
+  context 'when using multiple run_with' do
     it 'switches databases' do
       NoBrainer.run_with(:db => 'test_db1') do
         SimpleDocument.create
         SimpleDocument.count.should == 1
       end
 
-      NoBrainer.run_with(:db => 'test_db1') do
-        @database = 'test_db2'
+      NoBrainer.run_with(:db => 'test_db2') do
         2.times { SimpleDocument.create }
         SimpleDocument.count.should == 2
       end
 
-      NoBrainer.run_with(:db => 'test_db1') do
-        @database = nil
-        SimpleDocument.count.should == 1
+      SimpleDocument.count.should == 0
+
+      NoBrainer.run_with(:db => 'test_db2') do
+        SimpleDocument.count.should == 2
+      end
+
+      SimpleDocument.run_with(:db => 'test_db1').count.should == 1
+
+      NoBrainer.run_with(:db => 'test_db2') do
+        SimpleDocument.run_with(:db => 'test_db1').count.should == 1
       end
 
       NoBrainer.run_with(:db => 'test_db2') do
-        @database = nil
-        SimpleDocument.count.should == 2
+        NoBrainer.run_with(:db => 'test_db1') do
+          SimpleDocument.count.should == 1
+        end
       end
     end
   end

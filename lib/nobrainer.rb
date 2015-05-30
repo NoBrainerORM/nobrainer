@@ -23,7 +23,7 @@ module NoBrainer
 
     delegate :db_create, :db_drop, :db_list,
              :table_create, :table_drop, :table_list,
-             :drop!, :purge!, :to => :connection
+             :drop!, :purge!, :default_db, :current_db, :to => :connection
 
     delegate :configure, :logger,   :to => 'NoBrainer::Config'
     delegate :run,                  :to => 'NoBrainer::QueryRunner'

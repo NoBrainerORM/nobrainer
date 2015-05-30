@@ -30,6 +30,7 @@ module NoBrainer::Document::Criteria
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
              :find_by?, :find_by, :find_by!, :find?, :find, :find!, # Find
+             :run_with,                      # RunWith
              :to => :all
 
     def all

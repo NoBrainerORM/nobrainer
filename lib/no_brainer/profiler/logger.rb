@@ -13,9 +13,8 @@ class NoBrainer::Profiler::Logger
     msg_duration = "[#{msg_duration}ms] "
 
     env[:query_type] = NoBrainer::RQL.type_of(env[:query])
-    env[:custom_db_name] = env[:db_name] if env[:db_name].to_s != NoBrainer.connection.parsed_uri[:db]
 
-    msg_db = "[#{env[:custom_db_name]}] " if env[:custom_db_name]
+    msg_db = "[#{env[:options][:db]}] " if env[:options][:db]
     msg_query = env[:query].inspect.gsub(/\n/, '').gsub(/ +/, ' ')
 
     msg_exception = "#{env[:exception].class} #{env[:exception].message.split("\n").first}" if env[:exception]

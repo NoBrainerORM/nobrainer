@@ -59,10 +59,8 @@ class NoBrainer::Document::Index::Index < Struct.new(
     NoBrainer::RQL.reset_lambda_var_counter
     NoBrainer.run(model.rql_table.index_create(aliased_name, opt, &rql_proc))
 
-    MetaStore.on(model.db_name) do
-      MetaStore.create(:table_name => model.table_name, :index_name => aliased_name,
-                       :rql_function => serialized_rql_proc)
-    end
+    MetaStore.create(:table_name => model.table_name, :index_name => aliased_name,
+                     :rql_function => serialized_rql_proc)
   end
 
   def delete(options={})
@@ -70,9 +68,7 @@ class NoBrainer::Document::Index::Index < Struct.new(
 
     NoBrainer.run(model.rql_table.index_drop(aliased_name))
 
-    MetaStore.on(model.db_name) do
-      MetaStore.where(:table_name => model.table_name, :index_name => aliased_name).delete_all
-    end
+    MetaStore.where(:table_name => model.table_name, :index_name => aliased_name).delete_all
   end
 
   def update(wanted_index, options={})
