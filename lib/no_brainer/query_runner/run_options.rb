@@ -2,10 +2,21 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
   # XXX NoBrainer::Database#drop() uses Thread.current[:nobrainer_options]
 
   def self.with_database(db_name, &block)
+    STDERR.puts "[NoBrainer] `with_database()' is deprecated, please use `with(db: ...)' instead"
     with(:db => db_name, &block)
   end
 
   def self.with(options={}, &block)
+    STDERR.puts "[NoBrainer] `with(...)' is deprecated, please use `run_with(...)' instead"
+    run_with(options, &block)
+  end
+
+  def self.run_with(options={}, &block)
+    if options[:database]
+      STDERR.puts "[NoBrainer] `run_with(database: ...)' is deprecated, please use `run_with(db: ...)' instead"
+      options[:db] = options.delete(:database)
+    end
+
     old_options = Thread.current[:nobrainer_options]
     Thread.current[:nobrainer_options] = (old_options || {}).merge(options.symbolize_keys)
     block.call if block

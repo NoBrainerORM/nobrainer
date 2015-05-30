@@ -6,8 +6,8 @@ class NoBrainer::Document::Index::MetaStore
 
   default_scope ->{ order_by(:created_at) }
 
-  store_in :database => ->{ Thread.current[:nobrainer_meta_store_db] },
-           :table    => 'nobrainer_index_meta'
+  store_in :db    => ->{ Thread.current[:nobrainer_meta_store_db] },
+           :table => 'nobrainer_index_meta'
 
   field :table_name,   :type => String, :required => true
   field :index_name,   :type => String, :required => true

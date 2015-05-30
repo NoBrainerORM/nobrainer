@@ -21,7 +21,7 @@ class NoBrainer::Document::Index::Synchronizer
 
   def _generate_plan_for(model, wanted_indexes)
     current_indexes = NoBrainer.run(model.rql_table.index_status).map do |s|
-      meta = meta_store_on(model.database_name)
+      meta = meta_store_on(model.db_name)
                .select { |i| i.table_name == model.table_name && i.index_name == s['index'] }.last
       Index.new(model, s['index'], s['index'], nil, nil, nil, s['geo'], s['multi'], meta)
     end

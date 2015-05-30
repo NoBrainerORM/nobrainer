@@ -4,28 +4,28 @@ describe 'NoBrainer store_in' do
   before { load_simple_document }
   before do
     NoBrainer.drop!
-    NoBrainer.with_database('test_db1') { NoBrainer.drop! }
-    NoBrainer.with_database('test_db2') { NoBrainer.drop! }
+    NoBrainer.run_with(:db => 'test_db1') { NoBrainer.drop! }
+    NoBrainer.run_with(:db => 'test_db2') { NoBrainer.drop! }
   end
   after do
     NoBrainer.drop!
-    NoBrainer.with_database('test_db1') { NoBrainer.drop! }
-    NoBrainer.with_database('test_db2') { NoBrainer.drop! }
+    NoBrainer.run_with(:db => 'test_db1') { NoBrainer.drop! }
+    NoBrainer.run_with(:db => 'test_db2') { NoBrainer.drop! }
   end
 
   context 'when using the global wrapper' do
     it 'switches databases' do
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         SimpleDocument.create
         SimpleDocument.count.should == 1
       end
 
-      NoBrainer.with_database('test_db2') do
+      NoBrainer.run_with(:db => 'test_db2') do
         SimpleDocument.count.should == 0
         2.times { SimpleDocument.create }
         SimpleDocument.count.should == 2
 
-        NoBrainer.with_database('test_db1') do
+        NoBrainer.run_with(:db => 'test_db1') do
           SimpleDocument.count.should == 1
         end
 
@@ -34,12 +34,12 @@ describe 'NoBrainer store_in' do
 
       SimpleDocument.count.should == 0
 
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         SimpleDocument.count.should == 1
         NoBrainer.drop!
       end
 
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         SimpleDocument.count.should == 0
       end
     end
@@ -47,7 +47,7 @@ describe 'NoBrainer store_in' do
 
   context 'when using store_in to switch databases' do
     before do
-      SimpleDocument.store_in :database => ->{ @database }
+      SimpleDocument.store_in :db => ->{ @database }
     end
 
     it 'switches databases' do
@@ -89,41 +89,41 @@ describe 'NoBrainer store_in' do
 
   context 'when using store_in with symbols' do
     it 'converts names to strings' do
-      SimpleDocument.store_in :database => :test_db1, :table => :table1
+      SimpleDocument.store_in :db => :test_db1, :table => :table1
       SimpleDocument.table_name.should == 'table1'
-      SimpleDocument.database_name.should == 'test_db1'
+      SimpleDocument.db_name.should == 'test_db1'
     end
 
     it 'converts lambda names to strings' do
-      SimpleDocument.store_in :database => ->{ :test_db1} , :table => ->{ :table1 }
+      SimpleDocument.store_in :db => ->{ :test_db1 } , :table => ->{ :table1 }
       SimpleDocument.table_name.should == 'table1'
-      SimpleDocument.database_name.should == 'test_db1'
+      SimpleDocument.db_name.should == 'test_db1'
     end
   end
 
-  context 'when using store_in and with_databases' do
+  context 'when using store_in and run_with(db: )' do
     before do
-      SimpleDocument.store_in :database => ->{ @database }
+      SimpleDocument.store_in :db => ->{ @database }
     end
 
     it 'switches databases' do
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         SimpleDocument.create
         SimpleDocument.count.should == 1
       end
 
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         @database = 'test_db2'
         2.times { SimpleDocument.create }
         SimpleDocument.count.should == 2
       end
 
-      NoBrainer.with_database('test_db1') do
+      NoBrainer.run_with(:db => 'test_db1') do
         @database = nil
         SimpleDocument.count.should == 1
       end
 
-      NoBrainer.with_database('test_db2') do
+      NoBrainer.run_with(:db => 'test_db2') do
         @database = nil
         SimpleDocument.count.should == 2
       end

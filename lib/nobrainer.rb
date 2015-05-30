@@ -28,7 +28,7 @@ module NoBrainer
     delegate :configure, :logger,   :to => 'NoBrainer::Config'
     delegate :run,                  :to => 'NoBrainer::QueryRunner'
     delegate :sync_indexes,         :to => 'NoBrainer::Document::Index::Synchronizer'
-    delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
+    delegate :with, :run_with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
 
     def jruby?
       RUBY_PLATFORM == 'java'

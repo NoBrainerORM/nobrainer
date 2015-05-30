@@ -7,26 +7,29 @@ SPEC_ROOT = File.expand_path File.dirname(__FILE__)
 Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f unless File.basename(f) =~ /^_/ }
 
 database_host = ENV['DB_HOST'] || 'localhost'
-database_name = ENV['DB_NAME'] || 'nobrainer_test'
+db_name       = ENV['DB_NAME'] || 'nobrainer_test'
 
 if ENV['TEST_ENV_NUMBER']
   DB_SUFFIX = "_N#{ENV['TEST_ENV_NUMBER']}"
-  database_name = database_name + DB_SUFFIX
+  db_name = db_name + DB_SUFFIX
 
   class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
     class << self
-      alias_method :with_database_orig, :with_database
-      def with_database(db_name, &block)
-        db_name += DB_SUFFIX unless db_name =~ /#{DB_SUFFIX}$/
-        with_database_orig(db_name, &block)
+      alias_method :run_with_orig, :run_with
+      def run_with(options={}, &block)
+        if options[:db]
+          options = options.dup
+          options[:db] = options[:db] + DB_SUFFIX unless options[:db] =~ /#{DB_SUFFIX}$/
+        end
+        run_with_orig(options, &block)
       end
     end
   end
 
   module NoBrainer::Document::StoreIn::ClassMethods
-    alias_method :database_name_orig, :database_name
-    def database_name
-      db_name = database_name_orig
+    alias_method :db_name_orig, :db_name
+    def db_name
+      db_name = db_name_orig
       db_name += DB_SUFFIX if db_name && db_name !~ /#{DB_SUFFIX}$/
       db_name
     end
@@ -56,7 +59,7 @@ RSpec.configure do |config|
   config.before(:each) do
     NoBrainer.configure do |c|
       c.reset!
-      c.rethinkdb_url = "rethinkdb://#{database_host}/#{database_name}"
+      c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
       c.durability = :soft
       c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
     end
