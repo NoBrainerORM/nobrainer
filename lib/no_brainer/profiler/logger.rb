@@ -1,6 +1,11 @@
 class NoBrainer::Profiler::Logger
   def on_query(env)
-    level = env[:exception] ? Logger::ERROR : Logger::DEBUG
+    not_indexed = env[:criteria] && env[:criteria].where_present? &&
+                    !env[:criteria].where_indexed? &&
+                    !env[:criteria].model.try(:perf_warnings_disabled)
+
+    level = env[:exception] ? Logger::ERROR :
+             not_indexed ? Logger::INFO : Logger::DEBUG
     return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
 
     msg_duration = (env[:duration] * 1000.0).round(1).to_s
@@ -14,6 +19,7 @@ class NoBrainer::Profiler::Logger
     msg_query = env[:query].inspect.gsub(/\n/, '').gsub(/ +/, ' ')
 
     msg_exception = "#{env[:exception].class} #{env[:exception].message.split("\n").first}" if env[:exception]
+    msg_exception ||= "perf: filtering without using an index" if not_indexed
 
     msg_last = nil
 

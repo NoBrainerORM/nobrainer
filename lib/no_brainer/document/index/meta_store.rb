@@ -2,6 +2,8 @@ class NoBrainer::Document::Index::MetaStore
   include NoBrainer::Document
   include NoBrainer::Document::Timestamps
 
+  disable_perf_warnings
+
   default_scope ->{ order_by(:created_at) }
 
   store_in :database => ->{ Thread.current[:nobrainer_meta_store_db] },
