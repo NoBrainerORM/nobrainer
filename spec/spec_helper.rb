@@ -25,15 +25,6 @@ if ENV['TEST_ENV_NUMBER']
       end
     end
   end
-
-  module NoBrainer::Document::StoreIn::ClassMethods
-    alias_method :db_name_orig, :db_name
-    def db_name
-      db_name = db_name_orig
-      db_name += DB_SUFFIX if db_name && db_name !~ /#{DB_SUFFIX}$/
-      db_name
-    end
-  end
 end
 
 I18n.enforce_available_locales = true rescue nil
@@ -41,7 +32,15 @@ I18n.enforce_available_locales = true rescue nil
 NoBrainer::Document::PrimaryKey.__send__(:remove_const, :DEFAULT_PK_NAME)
 NoBrainer::Document::PrimaryKey.__send__(:const_set,    :DEFAULT_PK_NAME, :_id_)
 
+nobrainer_conf = proc do |c|
+  c.reset!
+  c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
+  c.durability = :soft
+  c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
+end
+
 RSpec.configure do |config|
+  config.order = :random
   config.color = true
   config.expect_with :rspec do |c|
     c.syntax = [:should, :expect]
@@ -56,14 +55,13 @@ RSpec.configure do |config|
     end
   end
 
-  config.before(:each) do
-    NoBrainer.configure do |c|
-      c.reset!
-      c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
-      c.durability = :soft
-      c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
-    end
+  config.before(:all) do
+    NoBrainer.configure(&nobrainer_conf)
+    NoBrainer.drop!
+  end
 
+  config.before(:each) do
+    NoBrainer.configure(&nobrainer_conf)
     NoBrainer.purge!
     NoBrainer::Loader.cleanup
   end

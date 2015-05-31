@@ -25,6 +25,7 @@ describe 'NoBrainer ==' do
   end
 
   context 'when using custom primary keys' do
+    after { NoBrainer.drop! }
     it 'acts on the primary keys' do
       SimpleDocument.field :pk, :primary_key => true, :readonly => false
       doc1.pk = 1
@@ -37,6 +38,7 @@ describe 'NoBrainer ==' do
   end
 
   context 'when the primary keys are both nil' do
+    after { NoBrainer.drop! }
     it 'returns false' do
       SimpleDocument.field :pk, :primary_key => true, :readonly => false
       doc1.pk = doc2.pk = nil

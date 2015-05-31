@@ -5,6 +5,7 @@ require 'spec_helper'
 
 describe 'connection' do
   before { load_simple_document }
+  before { SimpleDocument.count } # ensure the table is created
 
   context 'with a single connection' do
     before { NoBrainer.configure { |c| c.per_thread_connection = false } }
@@ -14,7 +15,7 @@ describe 'connection' do
     end
   end
 
-  context 'with a many connections' do
+  context 'with many connections' do
     before { NoBrainer.configure { |c| c.per_thread_connection = true } }
 
     it 'works well' do

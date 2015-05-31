@@ -84,6 +84,8 @@ describe 'attributes' do
   end
 
   context 'when removing fields' do
+    after { NoBrainer.drop! }
+
     def methods(model)
       model.methods.grep(/methods/).map { |m| model.send(m) }.reduce(:+)
     end
