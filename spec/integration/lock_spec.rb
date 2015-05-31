@@ -11,8 +11,8 @@ describe NoBrainer::Lock do
     lock2.try_lock.should == true
   end
 
-  it 'locks with lock and a block' do
-    lock1.lock do
+  it 'locks with synchronize and a block' do
+    lock1.synchronize do
       lock2.try_lock.should == false
     end
     lock2.try_lock.should == true

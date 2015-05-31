@@ -30,12 +30,16 @@ class NoBrainer::Lock
     super(options.merge(:key => key))
   end
 
-  def lock(options={}, &block)
-    if block
-      lock(options)
-      return block.call.tap { unlock }
+  def synchronize(options={}, &block)
+    lock(options)
+    begin
+      block.call
+    ensure
+      unlock
     end
+  end
 
+  def lock(options={})
     options.assert_valid_keys(:expire, :timeout)
     timeout = NoBrainer::Config.lock_options.merge(options)[:timeout]
     sleep_amount = 0.1
