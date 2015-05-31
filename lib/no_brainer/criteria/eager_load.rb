@@ -15,7 +15,7 @@ module NoBrainer::Criteria::EagerLoad
   def merge!(criteria, options={})
     super.tap do
       # If we already have some cached documents, and we need to so some eager
-      # loading, then we it now. It's easier than doing it lazily.
+      # loading, then we do it now. It's easier than doing it lazily.
       if self.cached? && criteria.options[:eager_load].present?
         perform_eager_load(@cache)
       end

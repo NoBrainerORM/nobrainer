@@ -13,21 +13,25 @@ module NoBrainer::Criteria::Scope
 
   def method_missing(name, *args, &block)
     return super unless self.model.respond_to?(name)
+    apply_named_scope(name, args, block)
+  end
+
+  private
+
+  def apply_named_scope(name, args, block)
     criteria = self.model.method(name).call(*args, &block)
     raise "#{name} did not return a criteria" unless criteria.is_a?(NoBrainer::Criteria)
     merge(criteria)
   end
 
-  private
-
-  def _apply_default_scope
+  def apply_default_scope
     return self if @options[:use_default_scope] == false
     (model.default_scopes.map(&:call).compact + [self]).reduce(:merge)
   end
 
   module ClassMethods
     def _finalize_criteria(base)
-      super.__send__(:_apply_default_scope)
+      super.__send__(:apply_default_scope)
     end
   end
 end

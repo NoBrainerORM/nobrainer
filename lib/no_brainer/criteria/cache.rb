@@ -77,4 +77,12 @@ module NoBrainer::Criteria::Cache
 
   use_cache_for :first, :last, :count, :empty?, :any?
   reload_on :update_all, :destroy_all, :delete_all
+
+  private
+
+  def apply_named_scope(name, args, block)
+    return super unless with_cache?
+    @scope_cache ||= {}
+    @scope_cache[[name, args, block]] ||= super
+  end
 end

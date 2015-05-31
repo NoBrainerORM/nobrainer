@@ -112,4 +112,28 @@ describe 'cache' do
       criteria.count.should == 0
     end
   end
+
+  context 'when using a named scope' do
+    before do
+      SimpleDocument.class_eval do
+        scope :some_filter, ->(i) { where(:field1 => i) }
+      end
+    end
+
+    let(:criteria) { SimpleDocument.all }
+
+    it 'gets cached' do
+      criteria.some_filter(1).to_a
+      criteria.some_filter(1).count.should == 1
+
+      SimpleDocument.destroy_all
+
+      criteria.some_filter(1).count.should == 1
+      criteria.some_filter(0).count.should == 0
+      criteria.count.should == 0
+      criteria.some_filter(1).without_cache.count.should == 0
+      criteria.some_filter(1).count.should == 1
+      criteria.without_cache.some_filter(1).count.should == 0
+    end
+  end
 end
