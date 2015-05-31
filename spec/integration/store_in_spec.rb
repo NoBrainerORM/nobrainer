@@ -112,4 +112,12 @@ describe 'NoBrainer store_in' do
       end
     end
   end
+
+  context 'when leaking criteria with run_with' do
+    it 'raises' do
+      c = NoBrainer.run_with(:db => 'hello') { SimpleDocument.all }
+      expect { c.count }.to raise_error(/cannot be executed.*context/)
+      NoBrainer.run_with(:db => 'hello') { c.count.should == 0 }
+    end
+  end
 end

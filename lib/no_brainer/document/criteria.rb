@@ -34,7 +34,7 @@ module NoBrainer::Document::Criteria
              :to => :all
 
     def all
-      NoBrainer::Criteria.new(:model => self)
+      NoBrainer::Criteria.new(:model => self, :original_nobrainer_run_options => NoBrainer.current_run_options)
     end
 
     def scope(name, criteria=nil, &block)

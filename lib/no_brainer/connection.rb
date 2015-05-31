@@ -47,19 +47,18 @@ class NoBrainer::Connection
   end
 
   def current_db
-    # Thread.current[:nobrainer_options] is set by NoBrainer::QueryRunner::RunOptions
-    Thread.current[:nobrainer_options].try(:[], :db) || default_db
+    NoBrainer.current_run_options.try(:[], :db) || default_db
   end
 
   def drop!
     db_drop(current_db)['dropped'] == 1
   end
 
-  # Note that truncating each table (purge) is much faster than dropping the
-  # database (drop)
+  # Note that truncating each table (purge!) is much faster than dropping the database (drop!)
   def purge!
     table_list.each do |table_name|
-      next if table_name == 'nobrainer_index_meta' # keeping because indexes are not going away
+      # keeping the index meta store because indexes are not going away
+      next if table_name == NoBrainer::Document::Index::MetaStore.table_name
       NoBrainer.run { |r| r.table(table_name).delete }
     end
     true

@@ -25,10 +25,12 @@ module NoBrainer
              :table_create, :table_drop, :table_list,
              :drop!, :purge!, :default_db, :current_db, :to => :connection
 
-    delegate :configure, :logger,   :to => 'NoBrainer::Config'
-    delegate :run,                  :to => 'NoBrainer::QueryRunner'
-    delegate :sync_indexes,         :to => 'NoBrainer::Document::Index::Synchronizer'
-    delegate :with, :run_with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions'
+    delegate :configure, :logger,             :to => 'NoBrainer::Config'
+    delegate :run,                            :to => 'NoBrainer::QueryRunner'
+    delegate :sync_indexes,                   :to => 'NoBrainer::Document::Index::Synchronizer'
+    delegate :current_run_options, :run_with, :to => 'NoBrainer::QueryRunner::RunOptions'
+
+    delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions' # deprecated
 
     def jruby?
       RUBY_PLATFORM == 'java'

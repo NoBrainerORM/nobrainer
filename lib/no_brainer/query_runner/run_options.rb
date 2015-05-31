@@ -9,6 +9,10 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
     run_with(options, &block)
   end
 
+  def self.current_run_options
+    Thread.current[:nobrainer_run_with] || {}
+  end
+
   def self.run_with(options={}, &block)
     options = options.symbolize_keys
 
@@ -17,32 +21,29 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
       options[:db] = options.delete(:database)
     end
 
-    options[:db] = options[:db].to_s if options[:db].is_a?(Symbol)
-
-    old_options = Thread.current[:nobrainer_options]
-    # XXX NoBrainer::Connection#current_db() uses Thread.current[:nobrainer_options]
-    Thread.current[:nobrainer_options] = (old_options || {}).merge(options)
-    block.call.tap { |ret| raise "use `run_with()' directly in your query" if ret.is_a?(NoBrainer::Criteria) }
+    old_options = Thread.current[:nobrainer_run_with]
+    Thread.current[:nobrainer_run_with] = (old_options || {}).merge(options)
+    block.call
   ensure
-    Thread.current[:nobrainer_options] = old_options
+    Thread.current[:nobrainer_run_with] = old_options
   end
 
   def call(env)
-    env[:options] = env[:options].symbolize_keys
-    if Thread.current[:nobrainer_options]
-      env[:options] = Thread.current[:nobrainer_options].merge(env[:options])
-    end
+    options = env[:options].symbolize_keys
+    options = self.class.current_run_options.merge(options)
 
     if NoBrainer::Config.durability.to_s != 'hard'
-      env[:options] = { :durability => NoBrainer::Config.durability }.merge(env[:options])
+      options[:durability] ||= NoBrainer::Config.durability
     end
 
-    env[:criteria] = env[:options].delete(:criteria)
-
-    if env[:options][:db].nil? || env[:options][:db] == NoBrainer.default_db
-      env[:options].delete(:db)
+    options[:db] = options[:db].to_s if options[:db]
+    if options[:db].blank? || options[:db] == NoBrainer.default_db
+      options.delete(:db)
     end
 
+    env[:criteria] = options.delete(:criteria)
+
+    env[:options] = options
     @runner.call(env)
   end
 end
