@@ -3,10 +3,6 @@ module NoBrainer::Criteria::Scope
 
   included { criteria_option :use_default_scope, :merge_with => :set_scalar }
 
-  def scoped
-    chain(:use_default_scope => true)
-  end
-
   def unscoped
     chain(:use_default_scope => false)
   end

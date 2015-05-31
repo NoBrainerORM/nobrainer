@@ -90,21 +90,9 @@ describe 'scope' do
       end
     end
 
-    context 'when doing scoped queries' do
-      it 'applies the default scope' do
-        SimpleDocument.scoped.count.should == 1
-      end
-    end
-
     context 'when doing unscoped queries' do
       it 'does not apply the default scope' do
         SimpleDocument.unscoped.count.should == 2
-      end
-    end
-
-    context 'when forcing scoped queries' do
-      it 'applies the default scope' do
-        SimpleDocument.unscoped.scoped.count.should == 1
       end
     end
   end
