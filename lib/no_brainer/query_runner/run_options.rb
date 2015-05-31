@@ -43,6 +43,12 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
 
     env[:criteria] = options.delete(:criteria)
 
+    if options[:profile] && env[:criteria].try(:raw?) == false
+      STDERR.puts "[NoBrainer]"
+      STDERR.puts "[NoBrainer]\e[1;31m Please use `.raw' in your criteria when profiling\e[0m"
+      STDERR.puts "[NoBrainer]"
+    end
+
     env[:options] = options
     @runner.call(env)
   end
