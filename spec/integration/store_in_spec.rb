@@ -81,38 +81,6 @@ describe 'NoBrainer store_in' do
     end
   end
 
-  context 'when using multiple run_with' do
-    it 'switches databases' do
-      NoBrainer.run_with(:db => 'test_db1') do
-        SimpleDocument.create
-        SimpleDocument.count.should == 1
-      end
-
-      NoBrainer.run_with(:db => 'test_db2') do
-        2.times { SimpleDocument.create }
-        SimpleDocument.count.should == 2
-      end
-
-      SimpleDocument.count.should == 0
-
-      NoBrainer.run_with(:db => 'test_db2') do
-        SimpleDocument.count.should == 2
-      end
-
-      SimpleDocument.run_with(:db => 'test_db1').count.should == 1
-
-      NoBrainer.run_with(:db => 'test_db2') do
-        SimpleDocument.run_with(:db => 'test_db1').count.should == 1
-      end
-
-      NoBrainer.run_with(:db => 'test_db2') do
-        NoBrainer.run_with(:db => 'test_db1') do
-          SimpleDocument.count.should == 1
-        end
-      end
-    end
-  end
-
   context 'when leaking criteria with run_with' do
     it 'raises' do
       c = NoBrainer.run_with(:db => 'hello') { SimpleDocument.all }
