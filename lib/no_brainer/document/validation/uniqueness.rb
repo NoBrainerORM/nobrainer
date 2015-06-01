@@ -8,33 +8,23 @@ module NoBrainer::Document::Validation::Uniqueness
     unlock_unique_fields
   end
 
-  def _lock_key_from_field(field)
-    value = read_attribute(field).to_s
-    ['nobrainer', NoBrainer.current_db,
-     self.class.table_name, field, value.empty? ? 'nil' : value].join(':')
-  end
-
-  def lock_unique_fields
-    return unless NoBrainer::Config.distributed_lock_class && !self.class.unique_validators.empty?
-
-    self.class.unique_validators
-      .map { |validator| validator.attributes.map { |attr| [attr, validator] } }
-      .flatten(1)
-      .select { |f, validator| validator.should_validate_field?(self, f) }
-      .map { |f, options| _lock_key_from_field(f) }
-      .sort
-      .uniq
-      .each do |key|
-        lock = NoBrainer::Config.distributed_lock_class.new(key)
-        lock.lock
-        @locked_unique_fields ||= []
-        @locked_unique_fields << lock
-      end
+  def _lock_for_uniqueness_once(key)
+    @locked_keys_for_uniqueness ||= {}
+    @locked_keys_for_uniqueness[key] ||= NoBrainer::Config.distributed_lock_class.new(key).tap(&:lock)
   end
 
   def unlock_unique_fields
-    return unless @locked_unique_fields
-    @locked_unique_fields.pop.unlock until @locked_unique_fields.empty?
+    @locked_keys_for_uniqueness.to_h.values.each(&:unlock)
+    @locked_keys_for_uniqueness = {}
+  end
+
+  def lock_unique_fields
+    self.class.unique_validators
+      .flat_map { |validator| validator.attributes.map { |attr| [attr, validator] } }
+      .select { |f, validator| validator.should_validate_field?(self, f) }
+      .map { |f, validator| [f, *validator.scope].map { |k| [k, read_attribute(k)] } }
+      .map { |params| self.class._uniqueness_key_name_from_params(params) }
+      .sort.each { |key| _lock_for_uniqueness_once(key) }
   end
 
   included do
@@ -43,6 +33,12 @@ module NoBrainer::Document::Validation::Uniqueness
   end
 
   module ClassMethods
+    def _uniqueness_key_name_from_params(params)
+      ['uniq', NoBrainer.current_db, self.table_name,
+       *params.map { |k,v| [k.to_s, (v = v.to_s; v.empty? ? 'nil' : v)] }.sort
+      ].join(':')
+    end
+
     def validates_uniqueness_of(*attr_names)
       validates_with(UniquenessValidator, _merge_attributes(attr_names))
     end
@@ -54,14 +50,14 @@ module NoBrainer::Document::Validation::Uniqueness
   end
 
   class UniquenessValidator < ActiveModel::EachValidator
-    attr_accessor :scope
+    attr_accessor :scope, :model
 
     def initialize(options={})
       super
-      model = options[:class]
-      self.scope = [*options[:scope]]
-      ([model] + model.descendants).each do |_model|
-        _model.unique_validators << self
+      self.model = options[:class]
+      self.scope = [*options[:scope]].map(&:to_sym)
+      ([model] + model.descendants).each do |subclass|
+        subclass.unique_validators << self
       end
     end
 
@@ -70,7 +66,7 @@ module NoBrainer::Document::Validation::Uniqueness
     end
 
     def validate_each(doc, attr, value)
-      criteria = doc.root_class.unscoped.where(attr => value)
+      criteria = self.model.unscoped.where(attr => value)
       criteria = apply_scopes(criteria, doc)
       criteria = exclude_doc(criteria, doc) if doc.persisted?
       doc.errors.add(attr, :taken, options.except(:scope).merge(:value => value)) unless criteria.empty?

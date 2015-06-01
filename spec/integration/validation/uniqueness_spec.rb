@@ -140,14 +140,17 @@ describe 'uniqueness validator' do
       end
     end
 
-    context 'when applied on the child' do
-      before { Child.validates :parent_field, :uniqueness => true }
-      let!(:parent_doc) { Parent.create(:parent_field => 'ohai') }
+    context 'when applied on a child field' do
+      before { Child.validates :child_field, :uniqueness => true }
 
       it 'validates in the scope of the child' do
-        Parent.new(:parent_field => 'ohai').valid?.should == true
-        Child.new(:parent_field => 'ohai').valid?.should == false
-        GrandChild.new(:parent_field => 'ohai').valid?.should == false
+        Child.new(:child_field => 'ohai').valid?.should == true
+        GrandChild.new(:child_field => 'ohai').valid?.should == true
+
+        Child.create(:child_field => 'ohai')
+
+        Child.new(:child_field => 'ohai').valid?.should == false
+        GrandChild.new(:child_field => 'ohai').valid?.should == false
       end
     end
   end
@@ -194,17 +197,17 @@ describe 'uniqueness validator' do
       Lock.locked_keys = []
       Lock.unlocked_keys = []
       doc.save
-      Lock.locked_keys.should == ["nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:ohai",
-                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field2:blah",
-                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:nil"]
-      Lock.unlocked_keys.should == Lock.locked_keys.reverse
+      Lock.locked_keys.should == ["uniq:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:ohai",
+                                  "uniq:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field2:blah",
+                                  "uniq:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:nil"]
+      Lock.unlocked_keys.should =~ Lock.locked_keys
 
       Lock.locked_keys = []
       Lock.unlocked_keys = []
       doc.update(:field3 => 'hello', :field1 => nil)
-      Lock.locked_keys.should == ["nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:nil",
-                                  "nobrainer:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:hello"]
-      Lock.unlocked_keys.should == Lock.locked_keys.reverse
+      Lock.locked_keys.should == ["uniq:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field1:nil",
+                                  "uniq:#{NoBrainer.connection.parsed_uri[:db]}:simple_documents:field3:hello"]
+      Lock.unlocked_keys.should =~ Lock.locked_keys
     end
 
     it 'locks things around the before_save/update/create callbacks' do
