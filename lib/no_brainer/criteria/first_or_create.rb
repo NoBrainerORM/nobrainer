@@ -13,6 +13,7 @@ module NoBrainer::Criteria::FirstOrCreate
 
   def _first_or_create(create_params={}, options={}, &block)
     raise "Cannot use .raw() with .first_or_create()" if raw?
+    raise "Use first_or_create() on the root class `#{model.root_class}'" unless model.is_root_class?
 
     where_params = extract_where_params()
     keys = where_params.keys
@@ -33,13 +34,16 @@ module NoBrainer::Criteria::FirstOrCreate
           case keys.size
           when 1 then "  field :#{keys.first}, :uniq => true"
           when 2 then "  field :#{keys.first}, :uniq => {:scope => :#{keys.last}}"
-          else        "  field :#{keys.first}, :uniq => {:scope => #{keys[1..-1].inspect}"
+          else        "  field :#{keys.first}, :uniq => {:scope => #{keys[1..-1].inspect}}"
           end +
         "\nend"
     end
 
-    lock_key_name = model._uniqueness_key_name_from_params(where_params)
+    # We don't want to access create_params yet, because invoking the block
+    # might be costly (the user might be doing some API call or w/e), and
+    # so we want to invoke the block only if necessary.
     new_instance = model.new(where_params)
+    lock_key_name = model._uniqueness_key_name_from_params(where_params)
     new_instance._lock_for_uniqueness_once(lock_key_name)
 
     old_instance = self.first
@@ -53,6 +57,15 @@ module NoBrainer::Criteria::FirstOrCreate
     unless keys_in_conflict.empty?
       raise "where() and first_or_create() were given conflicting values " +
             "on the following keys: #{keys_in_conflict.inspect}"
+    end
+
+    if create_params[:_type]
+      # We have to recreate the instance because we are given a _type in
+      # create_params specifying a subclass. We'll have to transfert the lock
+      # ownership to that new instance.
+      new_instance = model.model_from_attrs(create_params).new(where_params).tap do |i|
+        i.locked_keys_for_uniqueness = new_instance.locked_keys_for_uniqueness
+      end
     end
 
     new_instance.assign_attributes(create_params)

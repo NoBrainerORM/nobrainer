@@ -30,6 +30,7 @@ module NoBrainer::Document::Validation::Uniqueness
   included do
     singleton_class.send(:attr_accessor, :unique_validators)
     self.unique_validators = []
+    attr_accessor :locked_keys_for_uniqueness
   end
 
   module ClassMethods
