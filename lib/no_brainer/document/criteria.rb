@@ -26,6 +26,7 @@ module NoBrainer::Document::Criteria
              :preload, :eager_load,          # EagerLoad
              :each, :to_a,                   # Enumerable
              :first, :last, :first!, :last!, :sample, # First
+             :first_or_create, :first_or_create!, # FirstOrCreate
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck

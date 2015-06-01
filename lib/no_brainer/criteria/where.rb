@@ -152,7 +152,7 @@ module NoBrainer::Criteria::Where
 
     def association
       return nil if key_path.size > 1
-      @association ||= [model.association_metadata[key_path.first.to_sym]]
+      @association ||= [model.association_metadata[key_path.first]]
       @association.first
     end
 
@@ -270,8 +270,8 @@ module NoBrainer::Criteria::Where
     when :not  then UnaryOperator.new(:not, parse_clause(value, options))
     when String, Symbol then
       case value
-      when Hash then parse_clause(value, options.merge(:nested_prefix => (options[:nested_prefix] || []) + [key]))
-      else instantiate_binary_op(key, :eq, value, options)
+      when Hash then parse_clause(value, options.merge(:nested_prefix => (options[:nested_prefix] || []) + [key.to_sym]))
+      else instantiate_binary_op(key.to_sym, :eq, value, options)
       end
     when Symbol::Decoration then
       case key.decorator
