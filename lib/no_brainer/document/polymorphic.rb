@@ -37,7 +37,11 @@ module NoBrainer::Document::Polymorphic
     end
 
     def model_from_attrs(attrs)
-      attrs['_type'].try(:constantize) || root_class
+      class_name = attrs['_type'] || attrs[:_type]
+      return root_class unless class_name
+      class_name.to_s.constantize.tap { |cls| raise NameError unless cls <= self }
+    rescue NameError
+      raise NoBrainer::Error::InvalidPolymorphicType, "Invalid polymorphic class: `#{class_name}' is not a `#{self}'"
     end
 
     def all

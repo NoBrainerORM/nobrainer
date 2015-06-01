@@ -12,6 +12,7 @@ module NoBrainer::Error
   class AtomicBlock             < RuntimeError; end
   class LostLock                < RuntimeError; end
   class LockUnavailable         < RuntimeError; end
+  class InvalidPolymorphicType  < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance
