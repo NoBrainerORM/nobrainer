@@ -29,6 +29,7 @@ module NoBrainer::Document::Criteria
              :first_or_create, :first_or_create!, # FirstOrCreate
              :min, :max, :sum, :avg,         # Aggregate
              :update_all, :replace_all,      # Update
+             :changes,                       # Changes
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
              :find_by?, :find_by, :find_by!, :find?, :find, :find!, # Find
              :to => :all
