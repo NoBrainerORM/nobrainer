@@ -6,6 +6,7 @@ require 'spec_helper'
 describe 'connection' do
   before { load_simple_document }
   before { SimpleDocument.count } # ensure the table is created
+  after { Nobrainer.disconnect }
 
   context 'with a single connection' do
     before { NoBrainer.configure { |c| c.per_thread_connection = false } }
