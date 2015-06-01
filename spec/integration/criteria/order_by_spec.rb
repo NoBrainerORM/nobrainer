@@ -284,10 +284,4 @@ describe 'order_by' do
       SimpleDocument.order_by(:field1 => :asc).first.field1.should == 1
     end
   end
-
-  context 'when using an empty clause' do
-    it 'ignores it' do
-      SimpleDocument.order_by().to_a.should == SimpleDocument.all.to_a
-    end
-  end
 end

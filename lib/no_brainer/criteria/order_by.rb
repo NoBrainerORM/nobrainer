@@ -2,7 +2,8 @@ module NoBrainer::Criteria::OrderBy
   extend ActiveSupport::Concern
 
   # The latest order_by() wins
-  included { criteria_option :order_by, :ordering_mode, :merge_with => :set_scalar }
+  included { criteria_option :order_by, :ordering_mode, :reversed_ordering,
+                             :merge_with => :set_scalar }
 
   def order_by(*rules, &block)
     # Note: We are relying on the fact that Hashes are ordered (since 1.9)
@@ -19,7 +20,8 @@ module NoBrainer::Criteria::OrderBy
 
     rules.keys.each { |k| model.ensure_valid_key!(k) unless k.is_a?(Proc) } if model
 
-    chain(:order_by => rules, :ordering_mode => :normal)
+    chain(:order_by => rules, :ordering_mode => :explicit,
+                              :reversed_ordering => false)
   end
 
   def without_ordering
@@ -27,12 +29,7 @@ module NoBrainer::Criteria::OrderBy
   end
 
   def reverse_order
-    chain(:ordering_mode => case @options[:ordering_mode]
-                            when nil       then :reversed
-                            when :normal   then :reversed
-                            when :reversed then :normal
-                            when :disabled then :disabled
-                            end)
+    chain(:reversed_ordering => !@options[:reversed_ordering])
   end
 
   def order_by_indexed?
@@ -45,16 +42,21 @@ module NoBrainer::Criteria::OrderBy
 
   private
 
-  def effective_order
-    @options[:order_by].presence || (model ? {model.pk_name => :asc} : {})
+  def ordering_mode
+    @options[:ordering_mode] || :implicit
   end
 
   def reverse_order?
-    @options[:ordering_mode] == :reversed
+    !!@options[:reversed_ordering]
   end
 
-  def should_order?
-    @options[:ordering_mode] != :disabled
+  def effective_order
+    # reversing the order happens later.
+    case ordering_mode
+    when :disabled then nil
+    when :explicit then @options[:order_by]
+    when :implicit then model && {model.pk_name => :asc}
+    end
   end
 
   class IndexFinder < Struct.new(:criteria, :index_name, :rql_proc)
@@ -63,7 +65,7 @@ module NoBrainer::Criteria::OrderBy
     end
 
     def first_key
-      @first_key ||= criteria.__send__(:effective_order).first.try(:[], 0)
+      @first_key ||= criteria.__send__(:effective_order).to_a.first.try(:[], 0)
     end
 
     def first_key_indexable?
@@ -96,9 +98,8 @@ module NoBrainer::Criteria::OrderBy
 
   def compile_rql_pass1
     rql = super
-    return rql unless should_order?
     _effective_order = effective_order
-    return rql if _effective_order.empty?
+    return rql unless _effective_order.present?
 
     rql_rules = _effective_order.map do |k,v|
       if order_by_index_finder.index_name == k
