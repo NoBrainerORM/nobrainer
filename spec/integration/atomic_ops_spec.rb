@@ -96,130 +96,152 @@ describe 'atomic ops' do
   context 'when using arrays' do
     before { SimpleDocument.field :field1, :type => Array, :default => [] }
 
-    it 'appends with <<' do
-      doc.queue_atomic do
-        doc.field1 << 'foo'
-        doc.field1 << 'bar'
-        doc.field1 << 'foo'
-      end
-      doc.save
+    shared_examples_for 'arrays' do
+      it 'appends with <<' do
+        doc.queue_atomic do
+          doc.field1 << 'foo'
+          doc.field1 << 'bar'
+          doc.field1 << 'foo'
+        end
+        doc.save
 
-      SimpleDocument.raw.first['field1'].should == %w(foo bar foo)
+        SimpleDocument.raw.first['field1'].should == %w(foo bar foo)
+      end
+
+      it 'appends with +' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 += %w(hello world foo)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo bar hello world foo)
+      end
+
+      it 'removes with -' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar hello world foo bar)
+          doc.field1 -= %w(bar hello)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo world foo)
+      end
+
+      it 'intersects with &' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 &= %w(bar world)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(bar)
+      end
+
+      it 'unions with |' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 |= %w(hello world foo)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+      end
+
+      it 'deletes with delete' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar hello world foo bar)
+          doc.field1.delete('foo')
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(bar hello world bar)
+      end
     end
 
-    it 'appends with +' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 += %w(hello world foo)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world foo)
+    context 'when working on the default value' do
+      it_behaves_like 'arrays'
     end
 
-    it 'removes with -' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar hello world foo bar)
-        doc.field1 -= %w(bar hello)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo world foo)
-    end
-
-    it 'intersects with &' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 &= %w(bar world)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(bar)
-    end
-
-    it 'unions with |' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 |= %w(hello world foo)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
-    end
-
-    it 'deletes with delete' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar hello world foo bar)
-        doc.field1.delete('foo')
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(bar hello world bar)
+    context 'when working on an already set value' do
+      before { doc.field1 = [] }
+      it_behaves_like 'arrays'
     end
   end
 
   context 'when using sets' do
     before { SimpleDocument.field :field1, :type => Set, :default => [] }
 
-    it 'appends with <<' do
-      doc.queue_atomic do
-        doc.field1 << 'foo'
-        doc.field1 << 'bar'
-        doc.field1 << 'foo'
-      end
-      doc.save
+    shared_examples_for 'sets' do
+      it 'appends with <<' do
+        doc.queue_atomic do
+          doc.field1 << 'foo'
+          doc.field1 << 'bar'
+          doc.field1 << 'foo'
+        end
+        doc.save
 
-      SimpleDocument.raw.first['field1'].should == %w(foo bar)
+        SimpleDocument.raw.first['field1'].should == %w(foo bar)
+      end
+
+      it 'appends with +' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 += %w(hello world foo)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+      end
+
+      it 'removes with -' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar hello world foo bar)
+          doc.field1 -= %w(bar hello)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo world)
+      end
+
+      it 'intersects with &' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 &= %w(bar world)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(bar)
+      end
+
+      it 'unions with |' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar)
+          doc.field1 |= %w(hello world foo)
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+      end
+
+      it 'deletes with delete' do
+        doc.queue_atomic do
+          doc.field1 += %w(foo bar hello world foo bar)
+          doc.field1.delete('foo')
+        end
+        doc.save
+
+        SimpleDocument.raw.first['field1'].should == %w(bar hello world)
+      end
     end
 
-    it 'appends with +' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 += %w(hello world foo)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
+    context 'when working on the default value' do
+      it_behaves_like 'sets'
     end
 
-    it 'removes with -' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar hello world foo bar)
-        doc.field1 -= %w(bar hello)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo world)
-    end
-
-    it 'intersects with &' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 &= %w(bar world)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(bar)
-    end
-
-    it 'unions with |' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar)
-        doc.field1 |= %w(hello world foo)
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(foo bar hello world)
-    end
-
-    it 'deletes with delete' do
-      doc.queue_atomic do
-        doc.field1 += %w(foo bar hello world foo bar)
-        doc.field1.delete('foo')
-      end
-      doc.save
-
-      SimpleDocument.raw.first['field1'].should == %w(bar hello world)
+    context 'when working on an already set value' do
+      before { doc.field1 = [] }
+      it_behaves_like 'sets'
     end
   end
 

@@ -56,14 +56,20 @@ module NoBrainer::Document::AtomicOps
 
     def compile_rql_value(rql_doc)
       field = @instance.class.lookup_field_alias(@field)
-      value = @is_user_value ? RethinkDB::RQL.new.expr(@value) : rql_doc[field]
+      if @is_user_value
+        casted_value = @instance.class.cast_model_to_db_for(@field, @value)
+        value = RethinkDB::RQL.new.expr(casted_value)
+      else
+        value = rql_doc[field]
+      end
       value = value.default(default_value) if default_value
       @ops.reduce(value) { |v, (method, a, b)| v.__send__(method, *a, &b) }
     end
 
     def modify_source!
-      unless @instance._is_attribute_touched?(@field)
-        @instance.write_attribute(@field, self)
+      if (@is_user_value && @instance.instance_eval { @_attributes[@field].equal?(@value) }) ||
+          !@instance._is_attribute_touched?(@field)
+        @instance._write_attribute(@field, self)
       end
     end
   end
