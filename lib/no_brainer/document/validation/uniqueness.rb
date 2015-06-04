@@ -1,6 +1,9 @@
 module NoBrainer::Document::Validation::Uniqueness
   extend ActiveSupport::Concern
 
+  # XXX we don't use read_attribute_for_validation, which goes through the user
+  # getters, but read internal attributes instead. It makes more sense.
+
   def save?(options={})
     lock_unique_fields
     super
@@ -22,7 +25,7 @@ module NoBrainer::Document::Validation::Uniqueness
     self.class.unique_validators
       .flat_map { |validator| validator.attributes.map { |attr| [attr, validator] } }
       .select { |f, validator| validator.should_validate_field?(self, f) }
-      .map { |f, validator| [f, *validator.scope].map { |k| [k, read_attribute(k)] } }
+      .map { |f, validator| [f, *validator.scope].map { |k| [k, _read_attribute(k)] } }
       .map { |params| self.class._uniqueness_key_name_from_params(params) }
       .sort.each { |key| _lock_for_uniqueness_once(key) }
   end
@@ -79,7 +82,7 @@ module NoBrainer::Document::Validation::Uniqueness
     end
 
     def apply_scopes(criteria, doc)
-      criteria.where(scope.map { |k| {k => doc.read_attribute(k)} })
+      criteria.where(scope.map { |k| {k => doc._read_attribute(k)} })
     end
 
     def exclude_doc(criteria, doc)
