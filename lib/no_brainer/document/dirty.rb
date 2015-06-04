@@ -1,10 +1,11 @@
 module NoBrainer::Document::Dirty
   extend ActiveSupport::Concern
-  # We need to save the changes as seen through read_attribute because
-  # the user sees attributes through the read_attribute getters.
-  # But we want to detect changes based on @_attributes to track
-  # things like undefined -> nil. Going through the getters will
-  # not give us that.
+  # 1) We should save the changes as seen through read_attribute, because the
+  # user sees attributes through the read_attribute getters, but it's near
+  # impossible because we would need to wrap the user defined getters, so we'll
+  # go through _read_attribute.
+  # 2) We want to detect changes based on @_attributes to track things like
+  # undefined -> nil. Going through the getters will not give us that.
 
   def _create(*args)
     super.tap { clear_dirtiness }
@@ -36,7 +37,7 @@ module NoBrainer::Document::Dirty
   def changes
     result = {}.with_indifferent_access
     @_old_attributes.each do |attr, old_value|
-      current_value = read_attribute(attr)
+      current_value = _read_attribute(attr)
       if current_value != old_value || !@_old_attributes_keys.include?(attr)
         result[attr] = [old_value, current_value]
       end
@@ -49,7 +50,7 @@ module NoBrainer::Document::Dirty
     if current_value == None
       current_value = begin
         assert_access_field(attr)
-        read_attribute(attr)
+        _read_attribute(attr)
       rescue NoBrainer::Error::MissingAttribute => e
         e
       end
@@ -81,7 +82,7 @@ module NoBrainer::Document::Dirty
       inject_in_layer :dirty_tracking do
         define_method("#{attr}_change") do
           if @_old_attributes.has_key?(attr)
-            result = [@_old_attributes[attr], read_attribute(attr)]
+            result = [@_old_attributes[attr], _read_attribute(attr)]
             result if result.first != result.last || !@_old_attributes_keys.include?(attr)
           end
         end
@@ -91,7 +92,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{attr}_was") do
-          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : read_attribute(attr)
+          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : _read_attribute(attr)
         end
       end
     end
