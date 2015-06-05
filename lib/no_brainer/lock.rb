@@ -35,7 +35,7 @@ class NoBrainer::Lock
     begin
       block.call
     ensure
-      unlock
+      unlock if @locked
     end
   end
 
