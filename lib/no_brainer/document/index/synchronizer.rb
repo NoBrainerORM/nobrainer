@@ -48,12 +48,22 @@ class NoBrainer::Document::Index::Synchronizer
   end
 
   def sync_indexes(options={})
-    plan = generate_plan
-    plan.each { |op| op.run(options) }
-    unless options[:wait] == false
-      models = plan.map(&:index).map(&:model).uniq
-      models.each { |model| NoBrainer.run(model.rql_table.index_wait()) }
+    lock = NoBrainer::Lock.new('nobrainer:sync_indexes')
+
+    lock.synchronize do
+      plan = generate_plan
+      plan.each { |op| lock.refresh; op.run(options) }
     end
+
+    unless options[:wait] == false
+      # Waiting on all models due to possible races when performing concurrent
+      # sync_indexes()
+      @models_indexes_map.each_key do |model|
+        NoBrainer.run(model.rql_table.index_wait())
+      end
+    end
+
+    true
   end
 
   class << self
