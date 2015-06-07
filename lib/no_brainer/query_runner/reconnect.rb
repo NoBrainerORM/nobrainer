@@ -36,9 +36,8 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
       Errno::ECONNRESET, Errno::ETIMEDOUT, IOError
       true
     when RethinkDB::RqlRuntimeError
-      e.message =~ /No master available/ ||
-      e.message =~ /Master .* not available/ ||
-      e.message =~ /Error: Connection Closed/
+      e.message =~ /Primary .* not available/ ||
+      e.message =~ /Connection.*closed/
     else
       false
     end
