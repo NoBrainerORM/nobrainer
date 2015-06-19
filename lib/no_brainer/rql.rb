@@ -13,19 +13,19 @@ module NoBrainer::RQL
         RethinkDB::RQL.new.new_func(&block)))
   end
 
-  def is_write_query?(rql_query)
-    type_of(rql_query) == :write
+  def is_write_query?(rql)
+    type_of(rql) == :write
   end
 
-  def type_of(rql_query)
-    case rql_query.body.first
+  def type_of(rql)
+    case rql.is_a?(RethinkDB::RQL) && rql.body.is_a?(Array) && rql.body.first
     when UPDATE, DELETE, REPLACE, INSERT
       :write
     when DB_CREATE, DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST, SYNC,
          INDEX_CREATE, INDEX_DROP, INDEX_LIST, INDEX_STATUS, INDEX_WAIT
       :management
     else
-      # XXX Not sure if that's correct, but we'll be happy for logging colors.
+      # XXX Not necessarily correct, but we'll be happy for logging colors.
       :read
     end
   end

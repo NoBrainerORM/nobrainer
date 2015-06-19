@@ -23,3 +23,10 @@ describe 'connection' do
     end
   end
 end
+
+describe 'NoBrainer.run' do
+  it 'works well' do
+    NoBrainer.run { |r| r.expr(3) }.should == 3
+    NoBrainer.run { |r| r.expr([1,2,3]) }.should == [1,2,3]
+  end
+end
