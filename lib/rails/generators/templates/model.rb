@@ -7,7 +7,7 @@ class <%= class_name %><%= " < #{options[:parent].classify}" if options[:parent]
 <% end -%>
 <% attributes.reject(&:reference?).each do |attribute| -%>
   field :<%= attribute.name -%>
-<%= puts attribute; ", :type => #{attribute.type.to_s.classify}" if attribute.type != :object -%>
+<%= ", :type => #{attribute.type.to_s.classify}" if attribute.type != :object -%>
 <%= ", :index => true" if attribute.has_index? %>
 <% end -%>
 <% attributes.select(&:reference?).each do |attribute| -%>
