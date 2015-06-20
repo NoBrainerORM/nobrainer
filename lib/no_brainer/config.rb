@@ -108,10 +108,10 @@ module NoBrainer::Config
     end
 
     def default_machine_id
+      return ENV['MACHINE_ID'] if ENV['MACHINE_ID']
+
       require 'socket'
       require 'digest/md5'
-
-      return ENV['MACHINE_ID'] if ENV['MACHINE_ID']
 
       host = Socket.gethostname
       if host.in? %w(127.0.0.1 localhost)
