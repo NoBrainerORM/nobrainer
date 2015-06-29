@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "NoBrainer cach_key" do
+describe "NoBrainer cache_key" do
   before { load_simple_document }
   let(:model_name) {doc.class.model_name.cache_key }
   let(:id) { doc.pk_value }
