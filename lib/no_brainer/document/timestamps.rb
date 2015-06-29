@@ -17,4 +17,8 @@ module NoBrainer::Document::Timestamps
     self.updated_at = Time.now unless updated_at_changed?
     super(attrs.merge('updated_at' => @_attributes['updated_at']))
   end
+
+  def cache_key
+    "#{super}#{updated_at.try(:strftime, "-%s%L")}"
+  end
 end

@@ -23,6 +23,10 @@ module NoBrainer::Document::PrimaryKey
 
   delegate :hash, :to => :pk_value
 
+  def cache_key
+    "#{self.class.table_name}/#{pk_value}"
+  end
+
   module ClassMethods
     def define_default_pk
       class_variable_set(:@@pk_name, nil)
