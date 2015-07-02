@@ -60,7 +60,8 @@ module NoBrainer::Document::Validation::Uniqueness
       super
       self.model = options[:class]
       self.scope = [*options[:scope]].map(&:to_sym)
-      ([model] + model.descendants).each do |subclass|
+
+      model.subclass_tree.each do |subclass|
         subclass.unique_validators << self
       end
     end

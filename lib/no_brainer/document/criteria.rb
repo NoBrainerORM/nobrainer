@@ -51,8 +51,8 @@ module NoBrainer::Document::Criteria
       criteria_proc = block || (criteria.is_a?(Proc) ? criteria : proc { criteria })
       raise "default_scope only accepts a criteria or a proc that returns criteria" unless criteria_proc.is_a?(Proc)
 
-      ([self] + self.descendants).each do |model|
-        model.default_scopes << criteria_proc
+      subclass_tree.each do |subclass|
+        subclass.default_scopes << criteria_proc
       end
     end
 

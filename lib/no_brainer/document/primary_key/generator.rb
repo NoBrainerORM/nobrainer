@@ -27,7 +27,7 @@ module NoBrainer::Document::PrimaryKey::Generator
   PID_BITS = 15
 
   # Total: 83 bits
-  # We need at most 14 digits in [A-Za-z0-9] to represent 83 bits:
+  # With 14 digits in [A-Za-z0-9], we can represent 83 bits:
   # Math.log(62**14)/Math.log(2) = 83.35
   ID_STR_LENGTH = 14
 
@@ -79,5 +79,9 @@ module NoBrainer::Document::PrimaryKey::Generator
   @lock = Mutex.new
   def self.generate
     convert_to_alphanum(@lock.synchronize { _generate })
+  end
+
+  def self.field_type
+    String
   end
 end

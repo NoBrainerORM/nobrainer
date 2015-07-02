@@ -34,9 +34,9 @@ module NoBrainer::Document::LazyFetch
       model = self
       inject_in_layer :lazy_fetch do
         if options[:lazy_fetch]
-          model.for_each_subclass { |_model| _model.fields_to_lazy_fetch << attr }
+          model.subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch << attr }
         else
-          model.for_each_subclass { |_model|  _model.fields_to_lazy_fetch.delete(attr) }
+          model.subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr) }
         end
 
         # Lazy loading can also specified through criteria.
@@ -57,7 +57,7 @@ module NoBrainer::Document::LazyFetch
 
     def _remove_field(attr, options={})
       super
-      for_each_subclass { |model| model.fields_to_lazy_fetch.delete(attr) }
+      subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr) }
       inject_in_layer :lazy_fetch do
         remove_method("#{attr}") if method_defined?("#{attr}")
       end

@@ -50,9 +50,13 @@ module NoBrainer::Document::PrimaryKey
         options = options.merge(:readonly => true) if options[:readonly].nil?
         options = options.merge(:index => true)
 
-        if options[:type].in?([String, nil]) && options[:default].nil?
-          options[:type] = String
-          options[:default] = ->{ NoBrainer::Document::PrimaryKey::Generator.generate }
+        if options[:default].nil?
+          # TODO Maybe we should let the user configure the pk generator
+          default_pk_generator = NoBrainer::Document::PrimaryKey::Generator
+          if options[:type].in?([default_pk_generator.field_type, nil])
+            options[:type] = default_pk_generator.field_type
+            options[:default] = ->{ default_pk_generator.generate }
+          end
         end
       end
       super

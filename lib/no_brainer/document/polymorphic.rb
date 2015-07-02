@@ -28,12 +28,12 @@ module NoBrainer::Document::Polymorphic
       self == root_class
     end
 
-    def for_each_subclass(&block)
-      ([self] + self.descendants).each(&block)
+    def subclass_tree
+      [self] + self.descendants
     end
 
     def descendants_type_values
-      for_each_subclass.map(&:type_value)
+      subclass_tree.map(&:type_value)
     end
 
     def model_from_attrs(attrs)

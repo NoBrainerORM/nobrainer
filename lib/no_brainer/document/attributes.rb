@@ -129,9 +129,9 @@ module NoBrainer::Document::Attributes
         raise "Cannot use a reserved field attr: #{attr}"
       end
 
-      ([self] + descendants).each do |model|
-        model.fields[attr] ||= {}
-        model.fields[attr].deep_merge!(options)
+      subclass_tree.each do |subclass|
+        subclass.fields[attr] ||= {}
+        subclass.fields[attr].deep_merge!(options)
       end
 
       _field(attr, self.fields[attr])
@@ -149,8 +149,8 @@ module NoBrainer::Document::Attributes
 
       _remove_field(attr, options)
 
-      ([self] + descendants).each do |model|
-        model.fields.delete(attr)
+      subclass_tree.each do |subclass|
+        subclass.fields.delete(attr)
       end
     end
 
