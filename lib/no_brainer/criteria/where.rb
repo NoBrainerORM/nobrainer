@@ -1,12 +1,4 @@
 module NoBrainer::Criteria::Where
-  NON_CHAINABLE_OPERATORS = %w(in eq gt ge gte lt le lte defined near intersects).map(&:to_sym)
-  CHAINABLE_OPERATORS = %w(not any all).map(&:to_sym)
-  OPERATORS = CHAINABLE_OPERATORS + NON_CHAINABLE_OPERATORS
-
-  require 'symbol_decoration'
-  Symbol::Decoration.register(*NON_CHAINABLE_OPERATORS)
-  Symbol::Decoration.register(*CHAINABLE_OPERATORS, :chainable => true)
-
   extend ActiveSupport::Concern
   include ActiveModel::ForbiddenAttributesProtection
 

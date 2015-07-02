@@ -14,7 +14,7 @@ module NoBrainer::Config
     :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
     :db_timezone            => { :default => ->{ :utc }, :valid_values => [:unchanged, :utc, :local] },
     :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
-    :distributed_lock_class => { :default => ->{ NoBrainer::Lock } },
+    :distributed_lock_class => { :default => ->{ "NoBrainer::Lock" } },
     :lock_options           => { :default => ->{ { :expire => 60, :timeout => 10 } } },
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
     :machine_id             => { :default => ->{ default_machine_id } },
@@ -58,7 +58,7 @@ module NoBrainer::Config
       assert_valid_options
       @configured = true
 
-      NoBrainer::ConnectionManager.disconnect_if_url_changed
+      NoBrainer::ConnectionManager.notify_url_change
     end
 
     def configured?
@@ -107,6 +107,11 @@ module NoBrainer::Config
       dev_mode? ? 1 : 15
     end
 
+    # XXX Not referencing NoBrainer::Document::PrimaryKey::Generator::MACHINE_ID_MASK
+    # because we don't want to load all the document code to speedup boot time.
+    MACHINE_ID_BITS = 24
+    MACHINE_ID_MASK = (1 << MACHINE_ID_BITS)-1
+
     def default_machine_id
       return ENV['MACHINE_ID'] if ENV['MACHINE_ID']
 
@@ -118,7 +123,7 @@ module NoBrainer::Config
         raise "Please configure NoBrainer::Config.machine_id due to lack of appropriate hostname (Socket.gethostname = #{host})"
       end
 
-      Digest::MD5.digest(host).unpack("N")[0] & NoBrainer::Document::PrimaryKey::Generator::MACHINE_ID_MASK
+      Digest::MD5.digest(host).unpack("N")[0] & MACHINE_ID_MASK
     end
 
     def machine_id=(machine_id)
@@ -127,9 +132,16 @@ module NoBrainer::Config
         when /^[0-9]+$/ then machine_id.to_i
         else raise "Invalid machine_id"
       end
-      max_id = NoBrainer::Document::PrimaryKey::Generator::MACHINE_ID_MASK
+      max_id = MACHINE_ID_MASK
       raise "Invalid machine_id (must be between 0 and #{max_id})" unless machine_id.in?(0..max_id)
       @machine_id = machine_id
+    end
+
+    def distributed_lock_class
+      if @distributed_lock_class.is_a?(String)
+        @distributed_lock_class = @distributed_lock_class.constantize
+      end
+      @distributed_lock_class
     end
   end
 end

@@ -65,7 +65,7 @@ NoBrainer.configure do |config|
 
   # Configures which mechanism to use in order to perform non-racy uniqueness
   # validations. More about this behavior in the Distributed Locks section.
-  # config.distributed_lock_class = NoBrainer::Lock
+  # config.distributed_lock_class = "NoBrainer::Lock"
 
   # Configures the default timing lock options.
   # config.lock_options = { :expire => 60, :timeout => 10 }

@@ -20,6 +20,7 @@ module NoBrainer::Document::PrimaryKey::Generator
   # 1% of chance to have a collision with ~580 servers.
   # When using more than 500 machines, it's therefore a good
   # idea to set the machine_id manually to avoid collisions.
+  # XXX This is referenced in nobrainer/config.rb#default_machine_id
   MACHINE_ID_BITS = 24
 
   # 15 bits for the current pid. We wouldn't need it if the sequence number was

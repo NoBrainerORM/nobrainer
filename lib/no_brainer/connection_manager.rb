@@ -71,7 +71,7 @@ module NoBrainer::ConnectionManager
     synchronize { _disconnect }
   end
 
-  def disconnect_if_url_changed
+  def notify_url_change
     synchronize do
       c = current_connection
       _disconnect if c && c.uri != NoBrainer::Config.rethinkdb_url

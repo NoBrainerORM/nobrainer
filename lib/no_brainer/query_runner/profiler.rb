@@ -9,6 +9,8 @@ class NoBrainer::QueryRunner::Profiler < NoBrainer::QueryRunner::Middleware
 
   private
 
+  require 'no_brainer/profiler/logger'
+
   def profiler_start(env)
     env[:start_time] = Time.now
   end
