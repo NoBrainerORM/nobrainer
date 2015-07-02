@@ -6,7 +6,7 @@ module NoBrainer::Generators
     extend NoBrainer::Generators::NamespaceFix
     source_root File.expand_path("../../templates", __FILE__)
 
-    desc "Disable ActiveRecord and generates ./config/initializer/nobrainer.rb"
+    desc "Disable ActiveRecord and generates ./config/initializers/nobrainer.rb"
 
     class RequireProxy
       attr_accessor :required_paths
@@ -42,7 +42,7 @@ module NoBrainer::Generators
 
 
     def copy_initializer
-      template('nobrainer.rb', 'config/initializer/nobrainer.rb')
+      template('nobrainer.rb', 'config/initializers/nobrainer.rb')
     end
   end
 end
