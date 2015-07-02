@@ -105,6 +105,24 @@ describe 'belongs_to' do
       picture.album.should == album
       picture.album_slug.should == 'slug'
     end
+
+    context 'when the custom pk_name is known and different' do
+      it 'should fails the belongs_to declaration' do
+        expect { define_class :Artist do
+          include NoBrainer::Document
+          belongs_to :album
+        end }.to raise_error(/specify the primary_key name.*belongs_to :album, :primary_key => :slug/m)
+      end
+    end
+
+    context 'when the custom pk_name is unknown' do
+      it 'does not fail the belongs_to declaration' do
+        expect { define_class :Artist do
+          include NoBrainer::Document
+          belongs_to :some_unknown_class
+        end }.to_not raise_error
+      end
+    end
   end
 
   context 'when using two belongs_to on the same class name' do

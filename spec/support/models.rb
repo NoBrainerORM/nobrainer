@@ -50,7 +50,7 @@ module ModelsHelper
     define_class :Picture do
       include NoBrainer::Document
 
-      belongs_to :album
+      belongs_to :album, :primary_key => :slug
     end
   end
 

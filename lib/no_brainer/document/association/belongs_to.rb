@@ -11,7 +11,22 @@ class NoBrainer::Document::Association::BelongsTo
     end
 
     def primary_key
-      options[:primary_key].try(:to_sym) || target_model.pk_name
+      # We default the primary_key to `:id' and not `target_model.pk_name',
+      # because we don't want to require the target_model to be already loaded.
+      # (We want the ability to load models in any order).
+      # Using target_model.pk_name and allowing lazy loading of models is
+      # difficult due to the inexistant API to remove validations if the
+      # foreign_key name was to be changed as the pk_name gets renamed.
+      return options[:primary_key].to_sym if options[:primary_key]
+
+      NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME.tap do |default_pk_name|
+        # We'll try to give a warning when we see a different target pk name (best effort).
+        real_pk_name = target_model.pk_name rescue nil
+        if real_pk_name && real_pk_name != default_pk_name
+          raise "Please specify the primary_key name on the following belongs_to association as such:\n" +
+                "  belongs_to :#{target_name}, :primary_key => :#{real_pk_name}"
+        end
+      end
     end
 
     def target_model
@@ -24,11 +39,6 @@ class NoBrainer::Document::Association::BelongsTo
 
     def hook
       super
-      # XXX We are loading the target_model unless the primary_key is specified.
-      # This may eager load a part of the application  Oh well.
-
-      # TODO if the primary key of the target_model changes, we need to revisit
-      # our default foreign_key/primary_key value
 
       # TODO set the type of the foreign key to be the same as the target's primary key
       if owner_model.association_metadata.values.any? { |assoc|
@@ -74,7 +84,7 @@ class NoBrainer::Document::Association::BelongsTo
     return target if loaded?
 
     if fk = owner.read_attribute(foreign_key)
-      preload(target_model.unscoped.where(primary_key => fk).first)
+      preload(base_criteria.where(primary_key => fk).first)
     end
   end
 
