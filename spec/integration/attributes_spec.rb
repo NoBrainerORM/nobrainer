@@ -77,9 +77,9 @@ describe 'attributes' do
 
   context 'when using reserved attribute names' do
     it 'raises' do
-      expect { SimpleDocument.field :in }.to raise_error
-      expect { SimpleDocument.field :or }.to raise_error
-      expect { SimpleDocument.field :and }.to raise_error
+      expect { SimpleDocument.field :in }.to raise_error(/in.*reserved/)
+      expect { SimpleDocument.field :or }.to raise_error(/or.*reserved/)
+      expect { SimpleDocument.field :and }.to raise_error(/and.*reserved/)
     end
   end
 

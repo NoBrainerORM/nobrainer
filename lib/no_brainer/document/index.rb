@@ -26,11 +26,11 @@ module NoBrainer::Document::Index
       end
 
       if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
-        raise "Cannot use a reserved field name: #{name}"
+        raise "The index name `:#{name}' is reserved. Please use another one."
       end
 
       if has_field?(name) && kind != :single
-        raise "Cannot reuse field name #{name}"
+        raise "The field `#{name}' is already declared. Please remove its definition first."
       end
 
       if kind == :compound && what.size < 2
@@ -56,7 +56,7 @@ module NoBrainer::Document::Index
 
     def _field(attr, options={})
       if has_index?(attr) && indexes[attr].kind != :single
-        raise "Cannot reuse index attr #{attr}"
+        raise "The index `#{attr}' is already declared. Please remove its definition first."
       end
 
       super

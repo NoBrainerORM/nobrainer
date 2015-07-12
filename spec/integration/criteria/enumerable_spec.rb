@@ -30,8 +30,8 @@ describe "each" do
 
       context 'when trying to modify the criteria array' do
         it 'raises' do
-          expect { SimpleDocument.all.map!(&:field1) }.to raise_error
-          expect { SimpleDocument.all << SimpleDocument.new }.to raise_error
+          expect { SimpleDocument.all.map!(&:field1) }.to raise_error(/frozen/)
+          expect { SimpleDocument.all << SimpleDocument.new }.to raise_error(/frozen/)
         end
       end
     end

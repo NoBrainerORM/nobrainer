@@ -127,7 +127,7 @@ module NoBrainer::Document::Attributes
 
       options.assert_valid_keys(*VALID_FIELD_OPTIONS)
       if attr.in?(RESERVED_FIELD_NAMES)
-        raise "Cannot use a reserved field attr: #{attr}"
+        raise "The field name `:#{attr}' is reserved. Please use another one."
       end
 
       subclass_tree.each do |subclass|

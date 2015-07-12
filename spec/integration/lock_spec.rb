@@ -73,9 +73,9 @@ describe NoBrainer::Lock do
   end
 
   it 'prevents save/update/delete/destroy' do
-    expect { lock1.save    }.to raise_error
-    expect { lock1.update  }.to raise_error
-    expect { lock1.delete  }.to raise_error
-    expect { lock1.destroy }.to raise_error
+    expect { lock1.save        }.to raise_error(NotImplementedError)
+    expect { lock1.update({})  }.to raise_error(NotImplementedError)
+    expect { lock1.delete      }.to raise_error(NotImplementedError)
+    expect { lock1.destroy     }.to raise_error(NotImplementedError)
   end
 end

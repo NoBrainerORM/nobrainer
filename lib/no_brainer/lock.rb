@@ -106,13 +106,13 @@ class NoBrainer::Lock
     end
   end
 
+  def save?(*);  raise NotImplementedError; end
+  def delete(*); raise NotImplementedError; end
+
   private
 
   def set_expiration(options)
     expire = NoBrainer::Config.lock_options.merge(options)[:expire]
     self.expires_at = RethinkDB::RQL.new.now + expire
   end
-
-  def save?; raise; end
-  def delete; raise; end
 end

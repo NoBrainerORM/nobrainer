@@ -17,7 +17,7 @@ module NoBrainer::Document::Validation::Uniqueness
   end
 
   def unlock_unique_fields
-    @locked_keys_for_uniqueness.to_h.values.each(&:unlock)
+    (@locked_keys_for_uniqueness || {}).values.each(&:unlock)
     @locked_keys_for_uniqueness = {}
   end
 

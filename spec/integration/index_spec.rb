@@ -300,12 +300,14 @@ describe 'NoBrainer index' do
 
     it 'does not allow to use a field with the same name as an index' do
       SimpleDocument.index :index_name, ->(doc){}
-      expect { SimpleDocument.field :index_name }.to raise_error
+      expect { SimpleDocument.field :index_name }
+        .to raise_error(/index_name.*already declared/)
     end
 
     it 'does not allow to use an index with the same name' do
       SimpleDocument.field :field_name
-      expect { SimpleDocument.index :field_name, ->(doc){} }.to raise_error
+      expect { SimpleDocument.index :field_name, ->(doc){} }
+        .to raise_error(/field_name.*is already declared/)
     end
   end
 
@@ -348,12 +350,14 @@ describe 'NoBrainer index' do
 
     it 'does not allow to use a field with the same name as an index' do
       SimpleDocument.index :index_name, [:field1, :field2]
-      expect { SimpleDocument.field :index_name }.to raise_error
+      expect { SimpleDocument.field :index_name }
+        .to raise_error(/index_name.*is already declared/)
     end
 
     it 'does not allow to use an index with the same name' do
       SimpleDocument.field :field_name
-      expect { SimpleDocument.index :field_name, [:field1, :field2] }.to raise_error
+      expect { SimpleDocument.index :field_name, [:field1, :field2] }
+        .to raise_error(/field_name.*is already declared/)
     end
   end
 
