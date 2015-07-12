@@ -35,6 +35,15 @@ describe 'NoBrainer id' do
     doc1.should_not == doc2
   end
 
+  context 'when changing the type of the primary key' do
+    it 'allows the redefinition' do
+      SimpleDocument.field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :type => Object
+      SimpleDocument.create(SimpleDocument.pk_name => 123)
+      SimpleDocument.create(SimpleDocument.pk_name => "123")
+      SimpleDocument.count.should == 2
+    end
+  end
+
   context 'when aliasing the primary key' do
     it 'allow aliasing the primary key' do
       SimpleDocument.field :some_id, :primary_key => true, :store_as => :aliased_id

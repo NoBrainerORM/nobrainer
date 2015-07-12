@@ -34,6 +34,7 @@ module NoBrainer::Document::PrimaryKey
     end
 
     def define_pk(attr)
+      return if pk_name == attr
       if fields[pk_name].try(:[], :primary_key) == :default
         remove_field(pk_name, :set_default_pk => false)
       end
