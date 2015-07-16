@@ -21,4 +21,8 @@ module NoBrainer::Document::Timestamps
   def cache_key
     "#{super}#{updated_at.try(:strftime, "-%s%L")}"
   end
+
+  def touch
+    update!(:updated_at => Time.now)
+  end
 end
