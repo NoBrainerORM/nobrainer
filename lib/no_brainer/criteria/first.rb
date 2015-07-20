@@ -10,11 +10,11 @@ module NoBrainer::Criteria::First
   end
 
   def first!
-    first.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+    first || (raise NoBrainer::Error::DocumentNotFound)
   end
 
   def last!
-    last.tap { |doc| raise NoBrainer::Error::DocumentNotFound unless doc }
+    last || (raise NoBrainer::Error::DocumentNotFound)
   end
 
   def sample(n=nil)

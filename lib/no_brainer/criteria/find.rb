@@ -12,7 +12,7 @@ module NoBrainer::Criteria::Find
   end
 
   def find(pk)
-    find?(pk).tap { |doc| raise_not_found(pk) unless doc }
+    find?(pk) || raise_not_found(pk)
   end
   alias_method :find!, :find
 
