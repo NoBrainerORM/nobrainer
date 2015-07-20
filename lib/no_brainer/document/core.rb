@@ -1,30 +1,30 @@
 module NoBrainer::Document::Core
   extend ActiveSupport::Concern
 
-  singleton_class.class_eval do
-    attr_accessor :_all, :_all_nobrainer
-
-    def all
-      Rails.application.eager_load! if defined?(Rails.application.eager_load!)
-      @_all
-    end
-  end
+  singleton_class.class_eval { attr_accessor :_all }
   self._all = []
-  self._all_nobrainer = []
-
-  include ActiveModel::Conversion
-
-  def to_key
-     # ActiveModel::Conversion stuff
-    [pk_value]
-  end
 
   included do
     # TODO test these includes
     extend ActiveModel::Naming
     extend ActiveModel::Translation
 
-    list_name = self.name =~ /^NoBrainer::/ ? :_all_nobrainer : :_all
-    NoBrainer::Document::Core.__send__(list_name) << self
+    NoBrainer::Document::Core._all << self unless name =~ /^NoBrainer::/
+  end
+
+  def self.all(options={})
+    (options[:types] || [:user]).map do |type|
+      case type
+      when :user
+        Rails.application.eager_load! if defined?(Rails.application.eager_load!)
+        _all
+      when :nobrainer
+        [NoBrainer::Document::Index::MetaStore, NoBrainer::Lock]
+      when :system
+        NoBrainer::System.constants
+          .map { |c| NoBrainer::System.const_get(c) }
+          .select { |m| m < NoBrainer::Document }
+      end
+    end.reduce([], &:+)
   end
 end

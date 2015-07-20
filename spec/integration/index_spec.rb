@@ -44,7 +44,7 @@ describe 'NoBrainer index' do
     end
 
     def synchronizer
-      NoBrainer::Document::Index::Synchronizer.instance
+      NoBrainer::Document::Index::Synchronizer.new(NoBrainer::Document.all)
     end
 
     def migration_plan
@@ -75,7 +75,7 @@ describe 'NoBrainer index' do
 
     context 'when switching tables and dbs' do
       before do
-        SimpleDocument.store_in :table => 'some_table'
+        SimpleDocument.table_config :name => 'some_table'
         NoBrainer.run_with(:db => 'some_test_db') { NoBrainer.drop! }
       end
 

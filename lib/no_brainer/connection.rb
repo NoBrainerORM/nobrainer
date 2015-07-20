@@ -34,14 +34,6 @@ class NoBrainer::Connection
   alias_method :connect, :raw
   alias_method :disconnect, :close
 
-  [:db_create, :db_drop, :db_list, :table_create, :table_drop, :table_list].each do |cmd|
-    class_eval <<-RUBY, __FILE__, __LINE__ + 1
-      def #{cmd}(*args)
-        NoBrainer.run { |r| r.#{cmd}(*args) }
-      end
-    RUBY
-  end
-
   def default_db
     parsed_uri[:db]
   end
@@ -51,13 +43,13 @@ class NoBrainer::Connection
   end
 
   def drop!
-    db_drop(current_db)['dropped'] == 1
+    NoBrainer.run { |r| r.db_drop(current_db) }
   end
 
   # Note that truncating each table (purge!) is much faster than dropping the database (drop!)
   def purge!
-    table_list.each do |table_name|
-      # keeping the index meta store because indexes are not going away
+    NoBrainer.run { |r| r.table_list }.each do |table_name|
+      # keeping the index meta store because indexes are not going away when purging
       next if table_name == NoBrainer::Document::Index::MetaStore.table_name
       NoBrainer.run { |r| r.table(table_name).delete }
     end

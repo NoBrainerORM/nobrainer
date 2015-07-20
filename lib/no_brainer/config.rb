@@ -10,12 +10,14 @@ module NoBrainer::Config
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
     :max_retries_on_connection_failure => { :default => ->{ default_max_retries_on_connection_failure } },
     :durability             => { :default => ->{ default_durability }, :valid_values => [:hard, :soft] },
-    :max_string_length      => { :default => -> { 255 } },
+    :table_options          => { :default => ->{ {:shards => 1, :replicas => 1, :write_acks => :majority} },
+                                 :valid_keys => [:shards, :replicas, :primary_replica_tag, :write_acks, :durability] },
+    :max_string_length      => { :default => ->{ 255 } },
     :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
     :db_timezone            => { :default => ->{ :utc }, :valid_values => [:unchanged, :utc, :local] },
     :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
     :distributed_lock_class => { :default => ->{ "NoBrainer::Lock" } },
-    :lock_options           => { :default => ->{ { :expire => 60, :timeout => 10 } } },
+    :lock_options           => { :default => ->{ { :expire => 60, :timeout => 10 } }, :valid_keys => [:expire, :timeout] },
     :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
     :machine_id             => { :default => ->{ default_machine_id } },
     :criteria_cache_max_entries => { :default => -> { 10_000 } },
@@ -44,7 +46,10 @@ module NoBrainer::Config
     end
 
     def assert_valid_options
-      SETTINGS.each { |k,v| assert_array_in(k, v[:valid_values]) if v[:valid_values] }
+      SETTINGS.each do |k,v|
+        assert_value_in(k, v[:valid_values]) if v[:valid_values]
+        assert_hash_keys_in(k, v[:valid_keys]) if v[:valid_keys]
+      end
     end
 
     def reset!
@@ -65,9 +70,16 @@ module NoBrainer::Config
       !!@configured
     end
 
-    def assert_array_in(name, values)
-      unless __send__(name).in?(values)
-        raise ArgumentError.new("Unknown configuration for #{name}: #{__send__(name)}. Valid values are: #{values.inspect}")
+    def assert_value_in(name, valid_values)
+      unless __send__(name).in?(valid_values)
+        raise ArgumentError.new("Invalid configuration for #{name}: #{__send__(name)}. Valid values are: #{valid_values.inspect}")
+      end
+    end
+
+    def assert_hash_keys_in(name, valid_keys)
+      extra_keys = __send__(name).keys - valid_keys
+      unless extra_keys.empty?
+        raise ArgumentError.new("Invalid configuration for  #{name}: #{__send__(name)}. Valid keys are: #{valid_keys.inspect}")
       end
     end
 

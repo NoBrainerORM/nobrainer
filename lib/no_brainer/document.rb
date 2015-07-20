@@ -4,7 +4,7 @@ module NoBrainer::Document
   extend ActiveSupport::Concern
   extend NoBrainer::Autoload
 
-  autoload_and_include :Core, :StoreIn, :InjectionLayer, :Attributes, :Readonly,
+  autoload_and_include :Core, :TableConfig, :InjectionLayer, :Attributes, :Readonly,
                        :Persistance, :Callbacks, :Validation, :Types, :Dirty, :PrimaryKey,
                        :Association, :Serialization, :Criteria, :Polymorphic, :Index, :Aliases,
                        :MissingAttributes, :LazyFetch, :AtomicOps

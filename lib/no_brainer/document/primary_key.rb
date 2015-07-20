@@ -3,6 +3,7 @@ module NoBrainer::Document::PrimaryKey
   autoload :Generator
 
   extend ActiveSupport::Concern
+  include ActiveModel::Conversion
 
   DEFAULT_PK_NAME = :id
 
@@ -25,6 +26,11 @@ module NoBrainer::Document::PrimaryKey
 
   def cache_key
     "#{self.class.table_name}/#{pk_value}"
+  end
+
+  def to_key
+    # ActiveModel::Conversion
+    [pk_value]
   end
 
   module ClassMethods
@@ -51,19 +57,19 @@ module NoBrainer::Document::PrimaryKey
     end
 
     def field(attr, options={})
-      if options[:primary_key]
+      if attr.to_sym == pk_name || options[:primary_key]
         options = options.merge(:readonly => true) if options[:readonly].nil?
         options = options.merge(:index => true)
 
-        if options[:default].nil?
-          # TODO Maybe we should let the user configure the pk generator
-          default_pk_generator = NoBrainer::Document::PrimaryKey::Generator
-          if options[:type].in?([default_pk_generator.field_type, nil])
-            options[:type] = default_pk_generator.field_type
-            options[:default] = ->{ default_pk_generator.generate }
-          end
+        # TODO Maybe we should let the user configure the pk generator
+        pk_generator = NoBrainer::Document::PrimaryKey::Generator
+
+        if options[:type].in?([pk_generator.field_type, nil]) && !options.key?(:default)
+          options[:type] = pk_generator.field_type
+          options[:default] = ->{ pk_generator.generate }
         end
       end
+
       super
     end
 

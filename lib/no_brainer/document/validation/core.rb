@@ -32,7 +32,7 @@ module NoBrainer::Document::Validation::Core
 
       shorthands = SHORTHANDS
       shorthands = shorthands.merge(:required => :not_null) if options[:type] == NoBrainer::Boolean
-      shorthands.each { |k,v| validates(attr, v => options[k]) if options.has_key?(k) }
+      shorthands.each { |k,v| validates(attr, v => options[k]) if options.key?(k) }
 
       validates(attr, options[:validates]) if options[:validates]
       validates(attr, :length => { :minimum => options[:min_length] }) if options[:min_length]

@@ -21,8 +21,9 @@ module NoBrainer::RQL
     case rql.is_a?(RethinkDB::RQL) && rql.body.is_a?(Array) && rql.body.first
     when UPDATE, DELETE, REPLACE, INSERT
       :write
-    when DB_CREATE, DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST, SYNC,
-         INDEX_CREATE, INDEX_DROP, INDEX_LIST, INDEX_STATUS, INDEX_WAIT
+    when DB_CREATE, DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST,
+         INDEX_CREATE, INDEX_DROP, INDEX_LIST, INDEX_STATUS, INDEX_WAIT, INDEX_RENAME,
+         CONFIG, STATUS, WAIT, RECONFIGURE, REBALANCE, SYNC
       :management
     else
       # XXX Not necessarily correct, but we'll be happy for logging colors.

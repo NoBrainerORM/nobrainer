@@ -1,7 +1,4 @@
 class NoBrainer::Document::Index::Synchronizer
-  Index = NoBrainer::Document::Index::Index
-  MetaStore = NoBrainer::Document::Index::MetaStore
-
   def initialize(models)
     @models_indexes_map = Hash[models.map do |model|
       [model, model.indexes.values.reject { |index| index.name == model.pk_name }]
@@ -9,7 +6,7 @@ class NoBrainer::Document::Index::Synchronizer
   end
 
   def meta_store
-    @meta_store ||= MetaStore.to_a
+    @meta_store ||= NoBrainer::Document::Index::MetaStore.to_a
   end
 
   class Op < Struct.new(:index, :op, :args)
@@ -21,7 +18,8 @@ class NoBrainer::Document::Index::Synchronizer
   def _generate_plan_for(model, wanted_indexes)
     current_indexes = NoBrainer.run(model.rql_table.index_status).map do |s|
       meta = meta_store.select { |i| i.table_name == model.table_name && i.index_name == s['index'] }.last
-      Index.new(model, s['index'], s['index'], nil, nil, nil, s['geo'], s['multi'], meta)
+      NoBrainer::Document::Index::Index.new(
+        model, s['index'], s['index'], nil, nil, nil, s['geo'], s['multi'], meta)
     end
 
     all_aliased_names = (wanted_indexes + current_indexes).map(&:aliased_name).uniq
@@ -51,26 +49,16 @@ class NoBrainer::Document::Index::Synchronizer
     lock = NoBrainer::Lock.new('nobrainer:sync_indexes')
 
     lock.synchronize do
-      plan = generate_plan
-      plan.each { |op| lock.refresh; op.run(options) }
+      generate_plan.each { |op| op.run(options) }
     end
 
     unless options[:wait] == false
-      # Waiting on all models due to possible races when performing concurrent
-      # sync_indexes()
+      # Waiting on all models due to possible races
       @models_indexes_map.each_key do |model|
         NoBrainer.run(model.rql_table.index_wait())
       end
     end
 
     true
-  end
-
-  class << self
-    def instance
-      new(NoBrainer::Document.all)
-    end
-
-    delegate :sync_indexes, :to => :instance
   end
 end

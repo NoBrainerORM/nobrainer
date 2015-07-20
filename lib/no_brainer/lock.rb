@@ -3,7 +3,7 @@ require 'digest/sha1'
 class NoBrainer::Lock
   include NoBrainer::Document
 
-  store_in :table => 'nobrainer_locks'
+  table_config :name => 'nobrainer_locks'
 
   # Since PKs are limited to 127 characters, we can't use the user's key as a PK
   # as it could be arbitrarily long.

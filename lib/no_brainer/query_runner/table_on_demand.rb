@@ -16,9 +16,8 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   private
 
   def auto_create_table(env, db_name, table_name)
-    model ||= NoBrainer::Document::Core._all.select { |m| m.table_name == table_name }.first
-    model ||= NoBrainer::Document::Core._all_nobrainer.select { |m| m.table_name == table_name }.first
-
+    model = NoBrainer::Document.all(:types => [:user, :nobrainer])
+                               .detect { |m| m.table_name == table_name }
     if model.nil?
       raise "Auto table creation is not working for `#{db_name}.#{table_name}` -- Can't find the corresponding model."
     end
@@ -28,8 +27,16 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
     end
     env[:last_auto_create_table] = [db_name, table_name]
 
-    NoBrainer.run_with(:db => db_name) do
-      NoBrainer.table_create(table_name, :primary_key => model.lookup_field_alias(model.pk_name))
+    create_options = model.table_create_options
+
+    NoBrainer.run(:db => db_name) do |r|
+      r.table_create(table_name, create_options.reject { |k,_| k.in? [:name, :write_acks] })
+    end
+
+    if create_options[:write_acks] && create_options[:write_acks] != 'single'
+      NoBrainer.run(:db => db_name) do |r|
+        r.table(table_name).config().update(:write_acks => create_options[:write_acks])
+      end
     end
   rescue RuntimeError => e
     # We might have raced with another table create

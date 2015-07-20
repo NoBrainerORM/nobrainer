@@ -36,6 +36,7 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
       Errno::ECONNRESET, Errno::ETIMEDOUT, IOError
       true
     when RethinkDB::RqlRuntimeError
+      e.message =~ /lost contact/ ||
       e.message =~ /Primary .* not available/ ||
       e.message =~ /Connection.*closed/
     else

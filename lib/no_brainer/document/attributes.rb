@@ -49,8 +49,10 @@ module NoBrainer::Document::Attributes
 
   def assign_defaults(options)
     self.class.fields.each do |name, field_options|
-      next unless field_options.has_key?(:default) &&
-                  !@_attributes.has_key?(name)
+      # :default => nil will not set the value to nil, but :default => ->{ nil } will.
+      # This is useful to unset a default value.
+
+      next if field_options[:default].nil? || @_attributes.key?(name)
 
       if opt = options[:missing_attributes]
         if (opt[:pluck] && !opt[:pluck][name]) ||
@@ -113,8 +115,14 @@ module NoBrainer::Document::Attributes
       super
     end
 
+    # The different between _field and field is that field can set other options
+    # (c.f. primary key module). _field always receive an immutable options list.
     def _field(attr, options={})
-      # Using a layer so the user can use super when overriding these methods
+      options.assert_valid_keys(*VALID_FIELD_OPTIONS)
+      if attr.in?(RESERVED_FIELD_NAMES)
+        raise "The field name `:#{attr}' is reserved. Please use another one."
+      end
+
       attr = attr.to_s
       inject_in_layer :attributes do
         define_method("#{attr}=") { |value| _write_attribute(attr, value) }
@@ -124,11 +132,6 @@ module NoBrainer::Document::Attributes
 
     def field(attr, options={})
       attr = attr.to_sym
-
-      options.assert_valid_keys(*VALID_FIELD_OPTIONS)
-      if attr.in?(RESERVED_FIELD_NAMES)
-        raise "The field name `:#{attr}' is reserved. Please use another one."
-      end
 
       subclass_tree.each do |subclass|
         subclass.fields[attr] ||= {}

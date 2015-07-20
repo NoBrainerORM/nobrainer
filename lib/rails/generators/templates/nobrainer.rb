@@ -46,6 +46,10 @@ NoBrainer.configure do |config|
   # The default is :soft for development or test environment, otherwise :hard.
   # config.durability = config.default_durability
 
+  # Configures the default table configuration options. These values are
+  # reflected to the database when running `rake nobrainer:sync_schema'.
+  # config.table_options = { :shards => 1, :replicas => 1, :write_acks => :majority }
+
   # Persisted Strings have a configurable maximum length. To get rid of the
   # length validation, you may use the Text type instead.
   # config.max_string_length = 255

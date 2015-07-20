@@ -56,7 +56,7 @@ module NoBrainer::Document::Dirty
       end
     end
 
-    unless @_old_attributes.has_key?(attr)
+    unless @_old_attributes.key?(attr)
       @_old_attributes[attr] = current_value.deep_dup
     end
   end
@@ -81,7 +81,7 @@ module NoBrainer::Document::Dirty
 
       inject_in_layer :dirty_tracking do
         define_method("#{attr}_change") do
-          if @_old_attributes.has_key?(attr)
+          if @_old_attributes.key?(attr)
             result = [@_old_attributes[attr], _read_attribute(attr)]
             result if result.first != result.last || !@_old_attributes_keys.include?(attr)
           end
@@ -92,7 +92,7 @@ module NoBrainer::Document::Dirty
         end
 
         define_method("#{attr}_was") do
-          @_old_attributes.has_key?(attr) ? @_old_attributes[attr] : _read_attribute(attr)
+          @_old_attributes.key?(attr) ? @_old_attributes[attr] : _read_attribute(attr)
         end
       end
     end
