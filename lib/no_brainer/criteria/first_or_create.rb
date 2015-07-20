@@ -53,7 +53,7 @@ module NoBrainer::Criteria::FirstOrCreate
     create_params = create_params.symbolize_keys
 
     keys_in_conflict = create_params.keys & where_params.keys
-    keys_in_conflict = keys_in_conflict.select { |k| create_params[k] == where_params[k] }
+    keys_in_conflict = keys_in_conflict.reject { |k| create_params[k] == where_params[k] }
     unless keys_in_conflict.empty?
       raise "where() and first_or_create() were given conflicting values " +
             "on the following keys: #{keys_in_conflict.inspect}"

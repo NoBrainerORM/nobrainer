@@ -4,9 +4,9 @@ describe 'first_or_create' do
   before { load_simple_document }
 
   before { SimpleDocument.field :field1, :unique => true }
-  let!(:existing_doc) { SimpleDocument.create(:field1 => 1) }
 
   context 'when the arguments are targeting an existing document' do
+    let!(:existing_doc) { SimpleDocument.create(:field1 => 1) }
     it 'returns the document' do
       SimpleDocument.where(:field1 => 1).first_or_create.should == existing_doc
       SimpleDocument.count.should == 1
@@ -17,12 +17,11 @@ describe 'first_or_create' do
     end
   end
 
-    shared_examples_for 'failed first_or_create' do
-      it 'fails' do
-        expect { query }.to raise_error(err_msg)
-      end
+  shared_examples_for 'failed first_or_create' do
+    it 'fails' do
+      expect { query }.to raise_error(err_msg)
     end
-
+  end
 
   context 'when the where() clause is invalid' do
     let(:err_msg) { /Please use a query of the form/ }
@@ -59,6 +58,22 @@ describe 'first_or_create' do
     end
   end
 
+  context 'when matching params between the where clause and the create params' do
+    context 'when some keys are equal' do
+      it 'works' do
+        SimpleDocument.where(:field1 => 123).first_or_create(:field1 => 123)
+        SimpleDocument.count.should == 1
+      end
+    end
+
+    context 'when failing due to a conflict' do
+      let(:query) { SimpleDocument.where(:field1 => 123).first_or_create(:field1 => 456) }
+      let(:err_msg) { /conflicting values on the following keys: \[:field1\]/ }
+      it_behaves_like 'failed first_or_create'
+    end
+  end
+
+
   context 'when matching a uniqueness validator' do
     before { SimpleDocument.field :field2, :uniq => {:scope => :field3} }
     before { SimpleDocument.field :field3, :uniq => {:scope => [:field1, :field2]} }
@@ -89,7 +104,7 @@ describe 'first_or_create' do
         SimpleDocument.where(:field3 => 123, :field2 => 123).first_or_create
         SimpleDocument.where(:field3 => 123, :field2 => 123, :field1 => 123).first_or_create
         SimpleDocument.where(SimpleDocument.pk_name => '123').first_or_create
-        SimpleDocument.count.should == 3
+        SimpleDocument.count.should == 2
       end
     end
   end
