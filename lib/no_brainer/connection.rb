@@ -1,17 +1,16 @@
 require 'rethinkdb'
+require 'uri'
 
 class NoBrainer::Connection
-  attr_accessor :uri, :parsed_uri
+  attr_accessor :parsed_uri
 
   def initialize(uri)
-    self.uri = uri
-    parsed_uri # just to raise an exception if there is a problem.
+    parse_uri(uri)
   end
 
-  def parsed_uri
-    @parsed_uri ||= begin
-      require 'uri'
-      uri = URI.parse(self.uri)
+  def parse_uri(uri)
+    @parsed_uri = begin
+      uri = URI.parse(uri)
 
       if uri.scheme != 'rethinkdb'
         raise NoBrainer::Error::Connection,
@@ -26,8 +25,12 @@ class NoBrainer::Connection
     end
   end
 
+  def uri
+    "rethinkdb://#{'****@' if parsed_uri[:auth_key]}#{parsed_uri[:host]}:#{parsed_uri[:port]}/#{parsed_uri[:db]}"
+  end
+
   def raw
-    @raw ||= RethinkDB::Connection.new(parsed_uri)
+    @raw ||= RethinkDB::Connection.new(parsed_uri).tap { NoBrainer.logger.info("Connected to #{uri}") }
   end
 
   delegate :reconnect, :close, :run, :to => :raw

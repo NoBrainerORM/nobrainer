@@ -6,7 +6,7 @@ class NoBrainer::Profiler::Logger
 
     level = env[:exception] ? Logger::ERROR :
              not_indexed ? Logger::INFO : Logger::DEBUG
-    return if NoBrainer.logger.nil? || NoBrainer.logger.level > level
+    return if NoBrainer.logger.level > level
 
     msg_duration = (env[:duration] * 1000.0).round(1).to_s
     msg_duration = " " * [0, 6 - msg_duration.size].max + msg_duration

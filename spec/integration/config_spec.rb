@@ -29,29 +29,29 @@ describe 'config' do
     end
 
     it 'picks a default url' do
-      ENV['RETHINKDB_URL'] = 'rethink_url'
+      ENV['RETHINKDB_URL'] = 'rethinkdb://l/db'
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethink_url'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://l/db'
 
       ENV['RETHINKDB_URL'] = nil
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://localhost/some_app_env'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://localhost/some_app_env'
 
       ENV['RETHINKDB_HOST'] = 'host'
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://host/some_app_env'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://host/some_app_env'
 
       ENV['RETHINKDB_PORT'] = '12345'
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://host:12345/some_app_env'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://host:12345/some_app_env'
 
       ENV['RETHINKDB_AUTH'] = 'auth'
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://:auth@host:12345/some_app_env'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://:auth@host:12345/some_app_env'
 
       ENV['RETHINKDB_DB'] = 'hello'
       NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://:auth@host:12345/hello'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://:auth@host:12345/hello'
     end
   end
 
@@ -62,7 +62,7 @@ describe 'config' do
         c.app_name = :app
         c.environment = :test
       end
-      NoBrainer::Config.rethinkdb_url.should == 'rethinkdb://localhost/app_test'
+      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://localhost/app_test'
     end
   end
 
@@ -70,6 +70,7 @@ describe 'config' do
     it 'sets the the durability to soft' do
       NoBrainer.configure do |c|
         c.reset!
+        c.app_name = :app
         c.environment = :development
       end
       NoBrainer::Config.durability.should == :soft
@@ -97,6 +98,7 @@ describe 'config' do
 
       NoBrainer.configure do |c|
         c.reset!
+        c.app_name = :app
         c.environment = :test
       end
       NoBrainer::Config.durability.should == :soft

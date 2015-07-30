@@ -4,11 +4,7 @@ module NoBrainer::ConnectionManager
   @lock = Mutex.new
 
   def synchronize(&block)
-    if NoBrainer::Config.per_thread_connection
-      block.call
-    else
-      @lock.synchronize { block.call }
-    end
+    @lock.synchronize { block.call }
   end
 
   def warn_for_other_orms
@@ -26,15 +22,12 @@ module NoBrainer::ConnectionManager
   end
 
   def get_new_connection
-    url = NoBrainer::Config.rethinkdb_url
-    raise "Please specify a database connection to RethinkDB" unless url
-
     # We don't want to warn on "rails g nobrainer:install", but because it's
     # hard to check when the generator is running because of spring as it wipes
     # ARGV. So we check for other ORMs during the connection instantiation.
     warn_for_other_orms
 
-    NoBrainer::Connection.new(url)
+    NoBrainer::Connection.new(get_next_url)
   end
 
   def current_connection
@@ -51,6 +44,12 @@ module NoBrainer::ConnectionManager
     else
       @connection = value
     end
+  end
+
+  def get_next_url
+    @urls ||= NoBrainer::Config.rethinkdb_urls.shuffle
+    @cycle_index = (@cycle_index || 0) + 1
+    @urls[@cycle_index % @urls.size] # not using .cycle due to threading issues
   end
 
   def connection
@@ -73,8 +72,9 @@ module NoBrainer::ConnectionManager
 
   def notify_url_change
     synchronize do
+      @urls = nil
       c = current_connection
-      _disconnect if c && c.uri != NoBrainer::Config.rethinkdb_url
+      _disconnect if c && !NoBrainer::Config.rethinkdb_urls.include?(c.uri)
     end
   end
 end

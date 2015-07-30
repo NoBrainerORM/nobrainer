@@ -2,28 +2,44 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
   rescue StandardError => e
-    context ||= { :retries => NoBrainer::Config.max_retries_on_connection_failure }
     if is_connection_error_exception?(e)
-      if NoBrainer::Config.max_retries_on_connection_failure == 0
-        NoBrainer.disconnect
-      else
-        # XXX Possibly dangerous, as we could reexecute a non idempotent operation
-        # Check the semantics of the db
-        retry if reconnect(e, context)
-      end
+      context ||= {}
+      # XXX Possibly dangerous, as we could reexecute a non idempotent operation
+      retry if reconnect(e, context)
     end
     raise
   end
 
   private
 
-  def reconnect(e, context)
-    return false if context[:retries].zero?
-    context[:retries] -= 1
+  def max_tries
+    NoBrainer::Config.max_retries_on_connection_failure
+  end
 
-    warn_reconnect(e)
+  def reconnect(e, context)
+    context[:connection_retries] ||= max_tries
+    context[:previous_connection] ||= NoBrainer.connection
+    NoBrainer.disconnect
+
+    unless context[:lost_connection_logged]
+      context[:lost_connection_logged] = true
+
+      msg = server_not_ready?(e) ? "Server %s not ready: %s" : "Connection issue with %s: %s"
+      NoBrainer.logger.warn(msg % [context[:previous_connection].try(:uri), exception_msg(e)])
+    end
+
+    if context[:connection_retries].zero?
+      NoBrainer.logger.info("Retry limit exceeded (#{max_tries}). Giving up.")
+      return false
+    end
+    context[:connection_retries] -= 1
+
     sleep 1
-    NoBrainer.connection.reconnect(:noreply_wait => false)
+
+    c = NoBrainer.connection
+    NoBrainer.logger.info("Connecting to #{c.uri}... (last error: #{exception_msg(e)})")
+    c.connect
+
     true
   rescue StandardError => e
     retry if is_connection_error_exception?(e)
@@ -37,20 +53,18 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
       true
     when RethinkDB::RqlRuntimeError
       e.message =~ /lost contact/ ||
-      e.message =~ /Primary .* not available/ ||
+      e.message =~ /Primary .* not available/||
       e.message =~ /Connection.*closed/
     else
       false
     end
   end
 
-  def warn_reconnect(e)
-    if e.is_a?(RethinkDB::RqlRuntimeError)
-      e_msg = e.message.split("\n").first
-      msg = "Server #{NoBrainer::Config.rethinkdb_url} not ready - #{e_msg}, retrying..."
-    else
-      msg = "Connection issue with #{NoBrainer::Config.rethinkdb_url} - #{e}, retrying..."
-    end
-    NoBrainer.logger.try(:warn, msg)
+  def exception_msg(e)
+    e.is_a?(RethinkDB::RqlRuntimeError) ? e.message.split("\n").first : e.to_s
+  end
+
+  def server_not_ready?(e)
+    e.message =~ /lost contact/ || e.message =~ /Primary .* not available/
   end
 end

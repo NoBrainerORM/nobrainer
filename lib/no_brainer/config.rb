@@ -4,7 +4,7 @@ module NoBrainer::Config
   SETTINGS = {
     :app_name               => { :default => ->{ default_app_name } },
     :environment            => { :default => ->{ default_environment } },
-    :rethinkdb_url          => { :default => ->{ default_rethinkdb_url } },
+    :rethinkdb_urls         => { :default => ->{ [default_rethinkdb_url] } },
     :logger                 => { :default => ->{ default_logger } },
     :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
@@ -50,6 +50,8 @@ module NoBrainer::Config
         assert_value_in(k, v[:valid_values]) if v[:valid_values]
         assert_hash_keys_in(k, v[:valid_keys]) if v[:valid_keys]
       end
+
+      validate_urls
     end
 
     def reset!
@@ -57,7 +59,9 @@ module NoBrainer::Config
     end
 
     def configure(&block)
-      @applied_defaults_for.to_a.each { |k| remove_instance_variable("@#{k}") }
+      @applied_defaults_for.to_a.each do |k|
+        remove_instance_variable("@#{k}") if instance_variable_defined?("@#{k}")
+      end
       block.call(self) if block
       apply_defaults
       assert_valid_options
@@ -96,6 +100,10 @@ module NoBrainer::Config
       ENV['RUBY_ENV'] || ENV['RAILS_ENV'] || ENV['RACK_ENV'] || :production
     end
 
+    def rethinkdb_url=(value)
+      self.rethinkdb_urls = [*value]
+    end
+
     def default_rethinkdb_url
       db = ENV['RETHINKDB_DB'] || ENV['RDB_DB']
       db ||= "#{self.app_name}_#{self.environment}" if self.app_name && self.environment
@@ -105,6 +113,13 @@ module NoBrainer::Config
       url = ENV['RETHINKDB_URL'] || ENV['RDB_URL']
       url ||= "rethinkdb://#{":#{auth}@" if auth}#{host}#{":#{port}" if port}/#{db}" if db
       url
+    end
+
+    def validate_urls
+      # This is not connecting, just validating the format.
+      dbs = rethinkdb_urls.compact.map { |url| NoBrainer::Connection.new(url).parsed_uri[:db] }.uniq
+      raise "Please specify at least one rethinkdb_url" if dbs.size == 0
+      raise "All the rethinkdb_urls must specify the same db name (instead of #{dbs.inspect})" if dbs.size != 1
     end
 
     def default_logger
