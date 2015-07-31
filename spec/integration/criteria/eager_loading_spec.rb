@@ -119,4 +119,16 @@ describe 'eager_loading' do
       end
     end
   end
+
+  context 'when eager loading an array of docs with NoBrainer.eager_load' do
+    it 'eager loads' do
+      expect(NoBrainer).to receive(:run).and_call_original.exactly(2).times
+      comments = Comment.all.to_a
+      comments = comments + comments
+      NoBrainer.eager_load(comments, :post)
+      comments.each do |comment|
+        comment.post.should == comments.select { |c| c == comment }.first.post
+      end
+    end
+  end
 end

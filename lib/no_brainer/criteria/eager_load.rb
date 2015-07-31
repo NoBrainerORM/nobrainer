@@ -45,7 +45,7 @@ module NoBrainer::Criteria::EagerLoad
 
   def perform_eager_load(docs)
     if should_eager_load? && docs.present?
-      NoBrainer::Document::Association::EagerLoader.new.eager_load(docs, @options[:eager_load])
+      NoBrainer::Document::Association::EagerLoader.eager_load(docs, @options[:eager_load])
     end
   end
 end

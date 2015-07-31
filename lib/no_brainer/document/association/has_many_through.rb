@@ -17,7 +17,7 @@ class NoBrainer::Document::Association::HasManyThrough
     def eager_load(docs, additional_criteria=nil)
       criteria = target_model.instance_exec(&options[:scope]) if options[:scope]
       criteria = criteria ? criteria.merge(additional_criteria) : additional_criteria if additional_criteria
-      NoBrainer::Document::Association::EagerLoader.new
+      NoBrainer::Document::Association::EagerLoader
         .eager_load_association(through_association.eager_load(docs), target_name, criteria)
     end
 

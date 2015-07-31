@@ -1,4 +1,6 @@
-class NoBrainer::Document::Association::EagerLoader
+module NoBrainer::Document::Association::EagerLoader
+  extend self
+
   module Generic
     # Used in associations to declare generic eager loading capabilities
     # The association should implement loaded? and preload.

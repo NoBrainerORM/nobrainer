@@ -31,6 +31,8 @@ module NoBrainer
 
     delegate :sync_indexes, :sync_table_config, :sync_schema, :rebalance, :to => 'NoBrainer::Document::TableConfig'
 
+    delegate :eager_load, :to => 'NoBrainer::Document::Association::EagerLoader'
+
     def jruby?
       RUBY_PLATFORM == 'java'
     end

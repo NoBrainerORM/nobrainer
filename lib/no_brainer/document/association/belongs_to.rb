@@ -34,7 +34,7 @@ class NoBrainer::Document::Association::BelongsTo
     end
 
     def base_criteria
-      target_model.unscoped
+      target_model.without_ordering.unscoped
     end
 
     def hook

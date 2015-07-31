@@ -3,6 +3,10 @@ class NoBrainer::Document::Association::HasOne < NoBrainer::Document::Associatio
     def target_model
       get_model_by_name(options[:class_name] || target_name.to_s.camelize)
     end
+
+    def base_criteria
+      super.without_ordering
+    end
   end
 
   def read
