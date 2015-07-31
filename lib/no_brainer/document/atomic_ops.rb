@@ -172,9 +172,13 @@ module NoBrainer::Document::AtomicOps
   end
 
   def _read_attribute(name)
+    return super if name == self.class.pk_name
+
     ensure_exclusive_atomic!
-    value = super
-    return value unless in_atomic?
+    return super unless in_atomic?
+
+    # If we are missing fields, it's okay, we'll assume nil.
+    value = missing_field?(name) ? nil : super
 
     case value
     when PendingAtomicContainer then value
@@ -210,6 +214,11 @@ module NoBrainer::Document::AtomicOps
         end
       end
     end
+  end
+
+  def reload(*)
+    raise NoBrainer::Error::AtomicBlock.new('You may not reload fields within an atomic block') if in_atomic?
+    super
   end
 
   module ClassMethods

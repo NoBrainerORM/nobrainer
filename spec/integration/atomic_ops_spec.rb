@@ -459,5 +459,60 @@ describe 'atomic ops' do
         expect { doc.queue_atomic { doc.field2 << 1 }; doc.save }.to raise_error(/No attribute.*in object/)
       end
     end
+
+    context 'when the source field is missing' do
+      context 'with lazy fetching' do
+        context 'with integers' do
+          before { SimpleDocument.field :field2, :type => Integer, :lazy_fetch => true }
+          it 'writes atomically' do
+            doc.update(:field2 => 2)
+            doc.reload
+            doc.queue_atomic { doc.field2 += 1 }
+            doc.save
+            doc.reload
+            doc.field2.should == 3
+          end
+        end
+
+        context 'with arrays' do
+          before { SimpleDocument.field :field2, :type => Array, :lazy_fetch => true }
+          it 'writes atomically' do
+            doc.update(:field2 => [1])
+            doc.queue_atomic { doc.field2 += [2] }
+            doc.save
+            doc.reload
+            doc.field2.should == [1,2]
+          end
+
+          it 'defaults to a sane value, when using <<' do
+            doc.update(:field2 => [1])
+            doc.queue_atomic { doc.field2 << 2 }
+            doc.save
+            doc.reload
+            doc.field2.should == [1,2]
+          end
+        end
+      end
+
+      context 'when using without' do
+        context 'with integers' do
+          before { SimpleDocument.field :field2, :type => Integer }
+          it 'defaults to a sane value' do
+            doc.reload(:without => :field2)
+            doc.queue_atomic { doc.field2 += 1 }
+            doc.save
+            doc.reload
+            doc.field2.should == 1
+          end
+        end
+
+      end
+    end
+
+    context 'when trying to reload within an atomic block' do
+      it 'fails' do
+        expect { doc.queue_atomic { doc.reload } }.to raise_error(NoBrainer::Error::AtomicBlock, /reload/)
+      end
+    end
   end
 end
