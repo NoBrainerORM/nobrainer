@@ -11,6 +11,10 @@ module NoBrainer::Criteria::Where
     chain(:where_ast => parse_clause([*args, block].compact))
   end
 
+  def _where(*args, &block)
+    chain(:where_ast => parse_clause([*args, block].compact, :unsafe => true))
+  end
+
   def self.merge_where_ast(a, b)
     (a ? MultiOperator.new(:and, [a, b]) : b).simplify
   end
@@ -311,14 +315,17 @@ module NoBrainer::Criteria::Where
                 end if op == :eq
 
     nested_prefix = options[:nested_prefix] || []
+
+    tail_args = [op, value, self.model, !!options[:unsafe]]
+
     case key
     when Symbol::Decoration
       raise "Use only one .not, .all or .any modifiers in the query" if key.symbol.is_a?(Symbol::Decoration)
       case key.decorator
-        when :any, :all then BinaryOperator.new(nested_prefix + [key.symbol], key.decorator, op, value, self.model)
-        when :not       then UnaryOperator.new(:not, BinaryOperator.new(nested_prefix + [key.symbol], :scalar, op, value, self.model))
+        when :any, :all then BinaryOperator.new(nested_prefix + [key.symbol], key.decorator, *tail_args)
+        when :not       then UnaryOperator.new(:not, BinaryOperator.new(nested_prefix + [key.symbol], :scalar, *tail_args))
       end
-    else BinaryOperator.new(nested_prefix + [key], :scalar, op, value, self.model)
+    else BinaryOperator.new(nested_prefix + [key], :scalar, *tail_args)
     end
   end
 

@@ -65,6 +65,15 @@ describe 'where' do
       end
     end
 
+    context 'when using _where' do
+      before { SimpleDocument.insert_all([{:field1 => 123}, {:blahblah => 123}]) }
+      before { SimpleDocument.field :field1, :type => String }
+      it 'does not raise' do
+        SimpleDocument._where(:blahblah => 123).count.should == 1
+        SimpleDocument._where(:field1 => 123).count.should == 1
+      end
+    end
+
     context 'when using an index' do
       before { SimpleDocument.index :field_new }
       before { NoBrainer.sync_indexes }

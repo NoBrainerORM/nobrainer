@@ -18,7 +18,7 @@ module NoBrainer::Document::Criteria
              :limit, :offset, :skip,         # Limit
              :order_by, :reverse_order, :without_ordering, :order_by_indexed?, :order_by_index_name, # OrderBy
              :unscoped,                      # Scope
-             :where, :where_indexed?, :where_index_name, :where_index_type, # Where
+             :_where, :where, :where_indexed?, :where_index_name, :where_index_type, # Where
              :with_index, :without_index, :used_index, # Index
              :with_cache, :without_cache,    # Cache
              :count, :empty?, :any?,         # Count
