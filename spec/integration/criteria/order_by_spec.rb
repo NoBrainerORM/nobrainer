@@ -36,7 +36,7 @@ describe 'order_by' do
     context 'when using undefined fields' do
       it 'raises' do
         expect { SimpleDocument.all.order_by(:what) }
-          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a declared attribute of SimpleDocument")
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a valid attribute of SimpleDocument")
       end
     end
   end
@@ -66,7 +66,7 @@ describe 'order_by' do
     context 'when using undefined fields' do
       it 'raises' do
         expect { SimpleDocument.all.order_by('what') }
-          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a declared attribute of SimpleDocument")
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`what' is not a valid attribute of SimpleDocument")
       end
     end
   end

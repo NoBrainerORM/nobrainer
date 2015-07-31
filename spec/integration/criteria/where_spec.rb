@@ -54,10 +54,10 @@ describe 'where' do
     context 'when not using dynamic attributes' do
       it 'raises' do
         expect { SimpleDocument.where(:field_new => 'hi').count } \
-          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a declared attribute of SimpleDocument")
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a valid attribute of SimpleDocument")
 
         expect { SimpleDocument.where(:field_new.not => []).count } \
-          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a declared attribute of SimpleDocument")
+          .to raise_error(NoBrainer::Error::UnknownAttribute, "`field_new' is not a valid attribute of SimpleDocument")
 
         SimpleDocument.field :field_new
         SimpleDocument.first.update(:field_new => 'hi')

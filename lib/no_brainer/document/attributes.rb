@@ -164,7 +164,7 @@ module NoBrainer::Document::Attributes
 
     def ensure_valid_key!(key)
       return if has_field?(key) || has_index?(key)
-      raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a declared attribute of #{self}"
+      raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a valid attribute of #{self}"
     end
   end
 end
