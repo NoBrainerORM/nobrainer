@@ -64,4 +64,13 @@ describe 'lazy fetch' do
       doc.save
     end
   end
+
+  context 'when having incomplete set of fields' do
+    let!(:_doc) { SimpleDocument.create(:field2 => 2) }
+    it 'leaves other fields accessible when lazy fetching' do
+      doc = SimpleDocument.last
+      doc.field2.should == 2
+      doc.field3.should == nil
+    end
+  end
 end

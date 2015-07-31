@@ -6,9 +6,14 @@ module NoBrainer::Document::MissingAttributes
   end
 
   def assign_attributes(attrs, options={})
+    # there is one and only one key :pluck or :without to missing_attributes
     if options[:missing_attributes]
-      # there is one and only one key :pluck or :without to missing_attributes
-      @missing_attributes = options[:missing_attributes]
+      # TODO XXX this whole thing is gross.
+      # if @missing_attributes is already there, it's because we are doing a
+      # incremental reload. clear_missing_field will do the work of recognizing
+      # which fields are here or not.
+      @missing_attributes ||= options[:missing_attributes]
+
       assert_access_field(self.class.pk_name, "The primary key is not accessible. Use .raw or")
       assert_access_field(:_type, "The subclass type is not accessible. Use .raw or") if self.class.is_polymorphic
     end
