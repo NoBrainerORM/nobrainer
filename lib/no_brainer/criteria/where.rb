@@ -90,20 +90,19 @@ module NoBrainer::Criteria::Where
 
     def simplify
       new_key_path = cast_key_path(key_path)
-      new_op, new_value = case op
+      new_key_modifier, new_op, new_value = case op
         when :in then
           case value
-          when Range then [:between, (cast_value(value.min)..cast_value(value.max))]
-          when Array then [:in, value.map(&method(:cast_value)).uniq]
+          when Range then [key_modifier, :between, (cast_value(value.min)..cast_value(value.max))]
+          when Array then [key_modifier, :in, value.map(&method(:cast_value)).uniq]
           else raise ArgumentError.new "`in' takes an array/range, not #{value}"
           end
-        when :between then [op, (cast_value(value.min)..cast_value(value.max))]
-        when :defined
-          raise "Incorrect use of `#{op}' and `#{key_modifier}'" if key_modifier != :scalar
-          [op, cast_value(value)]
-        else [op, cast_value(value)]
+        when :between then [key_modifier, op, (cast_value(value.min)..cast_value(value.max))]
+        when :include then ensure_scalar_for(op); [:any, :eq, cast_value(value)]
+        when :defined then ensure_scalar_for(op); [key_modifier, op, cast_value(value)]
+        else [key_modifier, op, cast_value(value)]
       end
-      BinaryOperator.new(new_key_path, key_modifier, new_op, new_value, model, true)
+      BinaryOperator.new(new_key_path, new_key_modifier, new_op, new_value, model, true)
     end
 
     def to_rql(doc)
@@ -141,6 +140,10 @@ module NoBrainer::Criteria::Where
     end
 
     private
+
+    def ensure_scalar_for(op)
+      raise "Incorrect use of `#{op}' and `#{key_modifier}'" if key_modifier != :scalar
+    end
 
     def association
       return nil if key_path.size > 1

@@ -1,5 +1,5 @@
 module NoBrainer::SymbolDecoration
-  NON_CHAINABLE_OPERATORS = %w(in eq gt ge gte lt le lte defined near intersects).map(&:to_sym)
+  NON_CHAINABLE_OPERATORS = %w(in eq gt ge gte lt le lte defined near intersects include).map(&:to_sym)
   CHAINABLE_OPERATORS = %w(not any all).map(&:to_sym)
   OPERATORS = CHAINABLE_OPERATORS + NON_CHAINABLE_OPERATORS
 

@@ -411,6 +411,13 @@ describe 'complex where queries' do
       it_should_behave_like "queries using any"
     end
 
+    context 'when using include' do
+      it 'aliases to any.eq' do
+        SimpleDocument.where(:field1.any.eq => 6).count.should == 2
+        SimpleDocument.where(:field1.include => 6).count.should == 2
+      end
+    end
+
     context 'when using an index' do
       before { SimpleDocument.index :field1, index_options }
       before { NoBrainer.sync_indexes }
