@@ -103,7 +103,7 @@ module NoBrainer::Criteria::Where
           end
         when :between then [key_modifier, op, (cast_value(value.min)..cast_value(value.max))]
         when :include then ensure_scalar_for(op); [:any, :eq, cast_value(value)]
-        when :defined then ensure_scalar_for(op); [key_modifier, op, cast_value(value)]
+        when :defined, :undefined then ensure_scalar_for(op); [key_modifier, op, cast_value(value)]
         else [key_modifier, op, cast_value(value)]
       end
       BinaryOperator.new(new_key_path, new_key_modifier, new_op, new_value, model, true)
@@ -118,7 +118,8 @@ module NoBrainer::Criteria::Where
       case key_modifier
       when :scalar then
         case op
-        when :defined then value ? doc.has_fields(key) : doc.has_fields(key).not
+        when :defined   then  value ? doc.has_fields(key) : doc.has_fields(key).not
+        when :undefined then !value ? doc.has_fields(key) : doc.has_fields(key).not
         else to_rql_scalar(doc[key])
         end
       when :any then doc[key].map { |lvalue| to_rql_scalar(lvalue) }.contains(true)
@@ -168,7 +169,7 @@ module NoBrainer::Criteria::Where
         value.pk_value
       else
         case op
-        when :defined then NoBrainer::Boolean.nobrainer_cast_user_to_model(value)
+        when :defined, :undefined then NoBrainer::Boolean.nobrainer_cast_user_to_model(value)
         when :intersects
           raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
           value

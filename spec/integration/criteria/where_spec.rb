@@ -254,6 +254,38 @@ describe 'complex where queries' do
         end
       end
     end
+
+    context 'when using undefined' do
+      before { SimpleDocument.delete_all }
+      let!(:doc1) { SimpleDocument.create(:field1 => 'hey') }
+      let!(:doc2) { SimpleDocument.create(:field2 => 'hey') }
+      let!(:doc3) { SimpleDocument.create(:field1 => 'hey', :field2 => 'hey') }
+
+      it 'filters documents' do
+        SimpleDocument.where(:field1.undefined => true).count.should == 1
+        SimpleDocument.where(:field1.undefined => false).count.should == 2
+        SimpleDocument.where(:field2.undefined => true).count.should == 1
+        SimpleDocument.where(:field2.undefined => false).count.should == 2
+
+        SimpleDocument.where(:field1.undefined => false,
+                             :field2.undefined => true).first.should == doc1
+        SimpleDocument.where(:field1.undefined => true,
+                             :field2.undefined => false).first.should == doc2
+        SimpleDocument.where(:field1.undefined => false,
+                             :field2.undefined => false).first.should == doc3
+      end
+
+      context 'when using types' do
+        before { SimpleDocument.field :field1, :type => String }
+
+        it 'filters documents' do
+          expect { SimpleDocument.where(:field1.undefined => nil).count }.to raise_error(NoBrainer::Error::InvalidType)
+          SimpleDocument.where(:field1.undefined => false).count.should == 2
+          SimpleDocument.where(:field1.undefined => 'f').count.should == 2
+          SimpleDocument.where(:field2.undefined => 'TrUe').count.should == 1
+        end
+      end
+    end
   end
 
   context 'when using dates' do
