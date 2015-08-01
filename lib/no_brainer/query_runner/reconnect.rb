@@ -53,7 +53,7 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
       true
     when RethinkDB::RqlRuntimeError
       e.message =~ /lost contact/ ||
-      e.message =~ /Primary .* not available/||
+      e.message =~ /(P|p)rimary .* not available/||
       e.message =~ /Connection.*closed/
     else
       false
@@ -65,6 +65,7 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   end
 
   def server_not_ready?(e)
-    e.message =~ /lost contact/ || e.message =~ /Primary .* not available/
+    e.message =~ /lost contact/ ||
+    e.message =~ /(P|p)rimary .* not available/
   end
 end
