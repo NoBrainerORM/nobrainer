@@ -32,6 +32,7 @@ module NoBrainer::Document::Criteria
              :changes,                       # Changes
              :pluck, :without, :lazy_fetch, :without_plucking, # Pluck
              :find_by?, :find_by, :find_by!, :find?, :find, :find!, # Find
+             :join,                          #Join
              :to => :all
 
     def all
