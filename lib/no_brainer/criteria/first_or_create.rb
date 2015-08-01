@@ -1,31 +1,42 @@
 module NoBrainer::Criteria::FirstOrCreate
   extend ActiveSupport::Concern
 
-  def first_or_create(create_params={}, &block)
-    _first_or_create(create_params, :save_method => :save?, &block)
+  def first_or_create(create_params={}, save_options={}, &block)
+    _first_or_create(create_params, save_options.merge(:save_method => :save?), &block)
   end
 
-  def first_or_create!(create_params={}, &block)
-    _first_or_create(create_params, :save_method => :save!, &block)
+  def first_or_create!(create_params={}, save_options={}, &block)
+    _first_or_create(create_params, save_options.merge(:save_method => :save!), &block)
+  end
+
+  def upsert(attrs, save_options={})
+    _upsert(attrs, save_options.merge(:save_method => :save?))
+  end
+
+  def upsert!(attrs, save_options={})
+    _upsert(attrs, save_options.merge(:save_method => :save!))
   end
 
   private
 
-  def _first_or_create(create_params={}, options={}, &block)
+  def _upsert(attrs, save_options)
+    attrs = attrs.symbolize_keys
+    unique_keys = get_model_unique_fields.detect { |keys| keys & attrs.keys == keys }
+    raise "Could not find a uniqueness validator within `#{attrs.keys.inspect}'.\n" +
+           "Please add a corresponding uniqueness validator" unless unique_keys
+    where(attrs.slice(*unique_keys)).__send__(:_first_or_create, attrs, save_options)
+  end
+
+  def _first_or_create(create_params, save_options, &block)
     raise "Cannot use .raw() with .first_or_create()" if raw?
     raise "Use first_or_create() on the root class `#{model.root_class}'" unless model.is_root_class?
 
     where_params = extract_where_params()
-    keys = where_params.keys
 
-    # When matching on the primary key, we'll just pretend that we have a
-    # uniqueness validator on it. We will be racy against other create(),
-    # but not on first_or_create().
-    # And if we get caught in a race with another create(), we'll just have a
-    # duplicate primary key exception.
-    matched_validator = true if keys == [model.pk_name]
-    matched_validator ||= !!get_uniqueness_validators_map[keys.sort]
-    unless matched_validator
+    # Note that we are not matching a subset of the keys on the uniqueness
+    # validators; we need an exact match on the keys.
+    keys = where_params.keys
+    unless get_model_unique_fields.include?(keys.sort)
       # We could do without a uniqueness validator, but it's much preferable to
       # have it, so that we don't conflict with others create(), not just others
       # first_or_create().
@@ -69,7 +80,8 @@ module NoBrainer::Criteria::FirstOrCreate
     end
 
     new_instance.assign_attributes(create_params)
-    new_instance.__send__(options[:save_method])
+    save_method = save_options.delete(:save_method)
+    new_instance.__send__(save_method, save_options)
     return new_instance
   ensure
     new_instance.try(:unlock_unique_fields)
@@ -93,9 +105,10 @@ module NoBrainer::Criteria::FirstOrCreate
     end]
   end
 
-  def get_uniqueness_validators_map
-    Hash[model.unique_validators
+  def get_model_unique_fields
+    [[model.pk_name]] +
+      model.unique_validators
      .flat_map { |validator| validator.attributes.map { |attr| [attr, validator] } }
-     .map { |f, validator| [[f, *validator.scope].map(&:to_sym).sort, validator] }]
+     .map { |f, validator| [f, *validator.scope].map(&:to_sym).sort }
   end
 end

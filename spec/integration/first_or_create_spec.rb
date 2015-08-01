@@ -152,4 +152,53 @@ describe 'first_or_create' do
       end
     end
   end
+
+  context 'when using upsert' do
+    context 'when matching a uniqueness validator' do
+      before { SimpleDocument.field :field2, :uniq => {:scope => :field3} }
+      before { SimpleDocument.field :field3, :uniq => {:scope => [:field1, :field2]} }
+      before { SimpleDocument.field :field4 }
+
+      it 'upserts' do
+        SimpleDocument.upsert(:field3 => 123, :field2 => 123)
+        SimpleDocument.upsert(:field3 => 123, :field2 => 123)
+        SimpleDocument.count.should == 1
+
+        SimpleDocument.upsert(:field3 => 456, :field2 => 456, :field1 => 456)
+        SimpleDocument.upsert(:field3 => 456, :field2 => 456, :field1 => 456)
+        SimpleDocument.count.should == 2
+
+        SimpleDocument.upsert(SimpleDocument.pk_name => '123', :field4 => 123)
+        SimpleDocument.upsert(SimpleDocument.pk_name => '123', :field4 => 123)
+        SimpleDocument.count.should == 3
+        SimpleDocument.find('123').field4.should == 123
+      end
+    end
+
+    context 'when not matching a uniqueness validator' do
+      it 'errors' do
+        expect { SimpleDocument.upsert(:field4 => 123) }
+          .to raise_error(/Could not find a uniqueness validator.*field4/)
+        expect { SimpleDocument.upsert(:field3 => 123, :field4 => 123) }
+          .to raise_error(/Could not find a uniqueness validator.*field3.*field4/)
+      end
+    end
+
+    context 'when validations fail' do
+      before { SimpleDocument.field :field2, :required => true }
+
+      context 'when using upsert' do
+        it 'returns a failing document' do
+          SimpleDocument.upsert(:field1 => 123).persisted?.should == false
+        end
+      end
+
+      context 'when using upsert!' do
+        it 'raises' do
+          expect { SimpleDocument.upsert!(:field1 => 123) }
+            .to raise_error(NoBrainer::Error::DocumentInvalid)
+        end
+      end
+    end
+  end
 end
