@@ -515,4 +515,15 @@ describe 'atomic ops' do
       end
     end
   end
+
+  context 'when using unset' do
+    it 'removes fields' do
+      SimpleDocument.create(:field1 => 123)
+      SimpleDocument.pluck(:field1).raw.first.keys.should == ['field1']
+      doc = SimpleDocument.first
+      doc.unset(:field1)
+      doc.save!
+      SimpleDocument.pluck(:field1).raw.first.keys.should == []
+    end
+  end
 end

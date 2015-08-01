@@ -42,7 +42,7 @@ module NoBrainer::Document::AtomicOps
     def to_s
       "<`#{@field}' with #{@ops.size} pending atomic operations>"
     end
-    alias_method :inspect, :to_s
+    def inspect; to_s; end
 
     def method_missing(method, *a, &b)
       if method == :<<
@@ -131,6 +131,18 @@ module NoBrainer::Document::AtomicOps
     end
   end
 
+  class PendingAtomicUnset < PendingAtomic
+    def to_s
+      "<unset `#{@field}'>"
+    end
+
+    undef_method(:method_missing)
+
+    def compile_rql_value(rql_doc)
+      RethinkDB::RQL.new.literal()
+    end
+  end
+
   def clear_dirtiness(options={})
     super
     @_touched_attributes = Set.new
@@ -182,7 +194,8 @@ module NoBrainer::Document::AtomicOps
 
     case value
     when PendingAtomicContainer then value
-    when PendingAtomic then value.dup
+    when PendingAtomicUnset     then raise "Attribute `#{name}' is unset"
+    when PendingAtomic          then value.dup
     else PendingAtomic._new(self, name, value, _is_attribute_touched?(name))
     end
   end
@@ -201,6 +214,11 @@ module NoBrainer::Document::AtomicOps
   def assign_attributes(attrs, options={})
     ensure_exclusive_atomic!
     super
+  end
+
+  def unset(attr)
+    return queue_atomic { unset(attr) } unless in_atomic?
+    _write_attribute(attr, PendingAtomicUnset.new(self, attr, nil, true, nil))
   end
 
   def save?(options={})
