@@ -83,8 +83,10 @@ module NoBrainer::Document::Types
           end
           super(value)
         end
+      end
 
-        define_method("#{attr}?") { !!read_attribute(attr) } if options[:type] == Boolean
+      if options[:type].respond_to?(:nobrainer_field_defined)
+        options[:type].nobrainer_field_defined(self, attr, options)
       end
     end
 
@@ -93,7 +95,10 @@ module NoBrainer::Document::Types
 
       inject_in_layer :types do
         remove_method("#{attr}=")
-        remove_method("#{attr}?") if method_defined?("#{attr}?")
+      end
+
+      if options[:type].respond_to?(:nobrainer_field_undefined)
+        options[:type].nobrainer_field_undefined(self, attr, options)
       end
     end
   end

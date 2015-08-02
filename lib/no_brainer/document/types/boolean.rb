@@ -19,6 +19,18 @@ class NoBrainer::Boolean
       else raise InvalidType
       end
     end
+
+    def nobrainer_field_defined(model, attr, options={})
+      model.inject_in_layer :types do
+        define_method("#{attr}?") { !!read_attribute(attr) }
+      end
+    end
+
+    def nobrainer_field_undefined(model, attr, options={})
+      model.inject_in_layer :types do
+        remove_method("#{attr}?")
+      end
+    end
   end
   extend NoBrainerExtensions
 end
