@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe 'types' do
   before { load_simple_document }
-  before { SimpleDocument.field :field1, :type => type }
+  before { SimpleDocument.field :field1, field_options }
+  let(:field_options) { { :type => type } }
   let(:doc) { SimpleDocument.new }
 
   context 'when using String type' do
@@ -653,6 +654,96 @@ describe 'types' do
       doc.save
       doc.reload
       doc.field1.should == type.new(1,2)
+    end
+  end
+
+  context 'when using Enum type' do
+    let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b] } }
+
+    it 'type checks' do
+      doc.field1 = :invalid
+      doc.valid?.should == false
+
+      doc.field1 = 'a'
+      doc.valid?.should == true
+
+      doc.field1 = :a
+      doc.valid?.should == true
+    end
+
+    it 'provides additional methods' do
+      doc.field1 = :a
+      doc.a?.should == true
+      doc.b?.should == false
+      doc.save
+      SimpleDocument.a.count.should == 1
+      SimpleDocument.b.count.should == 0
+
+      doc.field1 = :b
+      doc.a?.should == false
+      doc.b?.should == true
+      doc.save
+      SimpleDocument.a.count.should == 0
+      SimpleDocument.b.count.should == 1
+    end
+
+    context 'when using a prefix/suffix' do
+      context 'with custom names' do
+        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :prefix => :p, :suffix => :s } }
+
+        it 'names the methods properly' do
+          doc.field1 = :a
+          doc.p_a_s?.should == true
+          doc.p_b_s?.should == false
+          doc.save
+          SimpleDocument.p_a_s.count.should == 1
+          SimpleDocument.p_b_s.count.should == 0
+        end
+      end
+
+      context 'with default prefix' do
+        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :prefix => true } }
+
+        it 'names the methods properly' do
+          doc.field1 = :a
+          doc.field1_a?.should == true
+          doc.field1_b?.should == false
+          doc.save
+          SimpleDocument.field1_a.count.should == 1
+          SimpleDocument.field1_b.count.should == 0
+        end
+      end
+
+      context 'with default suffix' do
+        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :suffix => true } }
+
+        it 'names the methods properly' do
+          doc.field1 = :a
+          doc.a_field1?.should == true
+          doc.b_field1?.should == false
+          doc.save
+          SimpleDocument.a_field1.count.should == 1
+          SimpleDocument.b_field1.count.should == 0
+        end
+      end
+    end
+
+    context 'when not specifying :in properly' do
+      it 'fails' do
+        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum }
+          .to raise_error(/provide.*:in/)
+        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [] }
+          .to raise_error(/provide.*:in/)
+        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [123] }
+          .to raise_error(/symbol values/)
+      end
+    end
+
+    context 'when specifying overlapping values' do
+      it 'fails' do
+        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [:a] }
+          .to raise_error(/already taken/)
+      end
     end
   end
 end

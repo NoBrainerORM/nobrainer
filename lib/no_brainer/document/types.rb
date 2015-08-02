@@ -105,7 +105,7 @@ module NoBrainer::Document::Types
     end
   end
 
-  %w(binary boolean text geo).each do |type|
+  %w(binary boolean text geo enum).each do |type|
     require File.join(File.dirname(__FILE__), 'types', type)
     const_set(type.camelize, NoBrainer.const_get(type.camelize))
   end

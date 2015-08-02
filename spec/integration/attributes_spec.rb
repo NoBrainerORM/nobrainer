@@ -97,11 +97,12 @@ describe 'attributes' do
       # original_fields = SimpleDocument.fields.dup
 
       # Logic overriding 'def _field' should be triggered here.
-      SimpleDocument.field :attr, :type        => SimpleDocument::Boolean,
+      SimpleDocument.field :attr, :type        => SimpleDocument::Enum,
                                   :unique      => true,
                                   :index       => true,
                                   :readonly    => true,
-                                  :primary_key => true
+                                  :primary_key => true,
+                                  :in          => [:xx]
       SimpleDocument.remove_field :attr
 
       methods(SimpleDocument).should =~ original_methods
