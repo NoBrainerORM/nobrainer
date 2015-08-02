@@ -115,12 +115,18 @@ module NoBrainer::Document::Attributes
       super
     end
 
-    # The different between _field and field is that field can set other options
-    # (c.f. primary key module). _field always receive an immutable options list.
-    def _field(attr, options={})
+    def field(attr, options={})
       options.assert_valid_keys(*VALID_FIELD_OPTIONS)
+      unless attr.is_a?(Symbol)
+        raise "The field `#{attr}' must be declared with a Symbol" # we're just being lazy here...
+      end
       if attr.in?(RESERVED_FIELD_NAMES)
         raise "The field name `:#{attr}' is reserved. Please use another one."
+      end
+
+      subclass_tree.each do |subclass|
+        subclass.fields[attr] ||= {}
+        subclass.fields[attr].deep_merge!(options)
       end
 
       attr = attr.to_s
@@ -130,28 +136,11 @@ module NoBrainer::Document::Attributes
       end
     end
 
-    def field(attr, options={})
-      attr = attr.to_sym
-
-      subclass_tree.each do |subclass|
-        subclass.fields[attr] ||= {}
-        subclass.fields[attr].deep_merge!(options)
-      end
-
-      _field(attr, self.fields[attr])
-    end
-
-    def _remove_field(attr, options={})
+    def remove_field(attr, options={})
       inject_in_layer :attributes do
         remove_method("#{attr}=")
         remove_method("#{attr}")
       end
-    end
-
-    def remove_field(attr, options={})
-      attr = attr.to_sym
-
-      _remove_field(attr, options)
 
       subclass_tree.each do |subclass|
         subclass.fields.delete(attr)

@@ -11,7 +11,7 @@ module NoBrainer::Document::Aliases
   end
 
   module ClassMethods
-    def _field(attr, options={})
+    def field(attr, options={})
       if options[:store_as]
         self.alias_map[attr.to_s] = options[:store_as].to_s
         self.alias_reverse_map[options[:store_as].to_s] = attr.to_s
@@ -19,7 +19,7 @@ module NoBrainer::Document::Aliases
       super
     end
 
-    def _remove_field(attr, options={})
+    def remove_field(attr, options={})
       super
 
       self.alias_map.delete(attr.to_s)

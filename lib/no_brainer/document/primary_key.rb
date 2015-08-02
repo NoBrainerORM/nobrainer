@@ -34,50 +34,44 @@ module NoBrainer::Document::PrimaryKey
   end
 
   module ClassMethods
-    def define_default_pk
-      class_variable_set(:@@pk_name, nil)
-      field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :primary_key => :default
-    end
-
-    def define_pk(attr)
-      return if pk_name == attr
-      if fields[pk_name].try(:[], :primary_key) == :default
-        remove_field(pk_name, :set_default_pk => false)
-      end
-      class_variable_set(:@@pk_name, attr)
-    end
-
     def pk_name
       class_variable_get(:@@pk_name)
     end
 
-    def _field(attr, options={})
-      super
-      define_pk(attr) if options[:primary_key]
+    def define_default_pk
+      class_variable_set(:@@pk_name, nil)
+      field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :primary_key => true
     end
 
     def field(attr, options={})
-      if attr.to_sym == pk_name || options[:primary_key]
-        options = options.merge(:readonly => true) if options[:readonly].nil?
-        options = options.merge(:index => true)
+      super
 
-        # TODO Maybe we should let the user configure the pk generator
-        pk_generator = NoBrainer::Document::PrimaryKey::Generator
+      return unless options[:primary_key]
 
-        if options[:type].in?([pk_generator.field_type, nil]) && !options.key?(:default)
-          options[:type] = pk_generator.field_type
-          options[:default] = ->{ pk_generator.generate }
-        end
+      if attr != pk_name
+        remove_field(pk_name, :set_default_pk => false) if pk_name
+        class_variable_set(:@@pk_name, attr)
       end
 
-      super
+      new_options = {:index => true}
+      new_options[:readonly] = true if fields[attr][:readonly].nil?
+
+      # TODO Maybe we should let the user configure the pk generator
+      pk_generator = NoBrainer::Document::PrimaryKey::Generator
+
+      if fields[attr][:type].in?([pk_generator.field_type, nil]) && !fields[attr].key?(:default)
+        new_options[:type] = pk_generator.field_type
+        new_options[:default] = ->{ pk_generator.generate }
+      end
+
+      field(attr, new_options)
     end
 
-    def _remove_field(attr, options={})
-      super
+    def remove_field(attr, options={})
       if fields[attr][:primary_key] && options[:set_default_pk] != false
         define_default_pk
       end
+      super
     end
   end
 end

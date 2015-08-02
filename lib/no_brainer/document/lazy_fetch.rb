@@ -28,18 +28,18 @@ module NoBrainer::Document::LazyFetch
       super
     end
 
-    def _field(attr, options={})
+    def field(attr, options={})
       super
       attr = attr.to_s
-      model = self
-      inject_in_layer :lazy_fetch do
-        if options[:lazy_fetch]
-          model.subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch << attr }
-        else
-          model.subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr) }
-        end
 
-        # Lazy loading can also specified through criteria.
+      case options[:lazy_fetch]
+      when true  then subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch << attr }
+      when false then subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr) }
+      end
+
+      inject_in_layer :lazy_fetch do
+        # Lazy loading can also specified through criteria, we have to define
+        # this method regardless of the provided options.
         define_method("#{attr}") do
           return super() unless @lazy_fetch
 
@@ -55,12 +55,12 @@ module NoBrainer::Document::LazyFetch
       end
     end
 
-    def _remove_field(attr, options={})
-      super
-      subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr) }
+    def remove_field(attr, options={})
+      subclass_tree.each { |subclass| subclass.fields_to_lazy_fetch.delete(attr.to_s) }
       inject_in_layer :lazy_fetch do
-        remove_method("#{attr}") if method_defined?("#{attr}")
+        remove_method("#{attr}")
       end
+      super
     end
 
     def all

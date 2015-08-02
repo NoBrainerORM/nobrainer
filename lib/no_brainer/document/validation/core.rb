@@ -27,7 +27,7 @@ module NoBrainer::Document::Validation::Core
                  :uniq => :uniqueness, :unique => :uniqueness, :in => :inclusion }
 
   module ClassMethods
-    def _field(attr, options={})
+    def field(attr, options={})
       super
 
       shorthands = SHORTHANDS

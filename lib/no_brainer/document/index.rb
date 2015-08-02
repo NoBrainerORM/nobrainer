@@ -54,14 +54,14 @@ module NoBrainer::Document::Index
       !!indexes[name.to_sym]
     end
 
-    def _field(attr, options={})
+    def field(attr, options={})
       if has_index?(attr) && indexes[attr].kind != :single
         raise "The index `#{attr}' is already declared. Please remove its definition first."
       end
 
       super
 
-      store_as = {:store_as => options[:store_as]}
+      store_as = {:store_as => fields[attr][:store_as]}
       case options[:index]
       when nil    then
       when Hash   then index(attr, store_as.merge(options[:index]))
@@ -71,7 +71,7 @@ module NoBrainer::Document::Index
       end
     end
 
-    def _remove_field(attr, options={})
+    def remove_field(attr, options={})
       remove_index(attr) if fields[attr][:index]
       super
     end

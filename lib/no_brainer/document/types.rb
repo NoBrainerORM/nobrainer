@@ -58,19 +58,20 @@ module NoBrainer::Document::Types
       cast_model_to_db_for(k, super)
     end
 
-    def _field(attr, options={})
+    def field(attr, options={})
       super
 
-      return unless options[:type]
+      type = options[:type]
+      return unless type
 
-      raise "Please use a class for the type option" unless options[:type].is_a?(Class)
-      case options[:type].to_s
+      raise "Please use a class for the type option" unless type.is_a?(Class)
+      case type.to_s
       when "NoBrainer::Geo::Circle" then raise "Cannot store circles :("
       when "NoBrainer::Geo::Polygon", "NoBrainer::Geo::LineString"
         raise "Make a request on github if you'd like to store polygons/linestrings"
       end
 
-      NoBrainer::Document::Types.load_type_extensions(options[:type]) if options[:type]
+      NoBrainer::Document::Types.load_type_extensions(type) if type
 
       inject_in_layer :types do
         define_method("#{attr}=") do |value|
@@ -85,21 +86,22 @@ module NoBrainer::Document::Types
         end
       end
 
-      if options[:type].respond_to?(:nobrainer_field_defined)
-        options[:type].nobrainer_field_defined(self, attr, options)
+      if type.respond_to?(:nobrainer_field_defined)
+        type.nobrainer_field_defined(self, attr, options)
       end
     end
 
-    def _remove_field(attr, options={})
+    def remove_field(attr, options={})
+      if type = fields[attr][:type]
+        inject_in_layer :types do
+          remove_method("#{attr}=")
+        end
+
+        if type.respond_to?(:nobrainer_field_undefined)
+          type.nobrainer_field_undefined(self, attr, options)
+        end
+      end
       super
-
-      inject_in_layer :types do
-        remove_method("#{attr}=")
-      end
-
-      if options[:type].respond_to?(:nobrainer_field_undefined)
-        options[:type].nobrainer_field_undefined(self, attr, options)
-      end
     end
   end
 

@@ -75,7 +75,7 @@ module NoBrainer::Document::Dirty
   end
 
   module ClassMethods
-    def _field(attr, options={})
+    def field(attr, options={})
       super
       attr = attr.to_s
 
@@ -97,7 +97,7 @@ module NoBrainer::Document::Dirty
       end
     end
 
-    def _remove_field(attr, options={})
+    def remove_field(attr, options={})
       super
       inject_in_layer :dirty_tracking do
         remove_method("#{attr}_change")
