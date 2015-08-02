@@ -4,7 +4,7 @@ class NoBrainer::Document::Association::BelongsTo
   class Metadata
     VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_store_as, :index, :validates, :required]
     include NoBrainer::Document::Association::Core::Metadata
-    extend NoBrainer::Document::Association::EagerLoader::Generic
+    include NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       options[:foreign_key].try(:to_sym) || :"#{target_name}_#{primary_key}"
@@ -68,7 +68,8 @@ class NoBrainer::Document::Association::BelongsTo
       add_callback_for(:after_validation)
     end
 
-    eager_load_with :owner_key => ->{ foreign_key }, :target_key => ->{ primary_key }
+    def eager_load_owner_key;  foreign_key; end
+    def eager_load_target_key; primary_key; end
   end
 
   # Note:

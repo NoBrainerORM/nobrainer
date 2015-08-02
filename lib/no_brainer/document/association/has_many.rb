@@ -4,7 +4,7 @@ class NoBrainer::Document::Association::HasMany
   class Metadata
     VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :dependent, :scope]
     include NoBrainer::Document::Association::Core::Metadata
-    extend NoBrainer::Document::Association::EagerLoader::Generic
+    include NoBrainer::Document::Association::EagerLoader::Generic
 
     def foreign_key
       options[:foreign_key].try(:to_sym) || :"#{owner_model.name.split('::').last.underscore}_#{primary_key}"
@@ -53,7 +53,8 @@ class NoBrainer::Document::Association::HasMany
       end
     end
 
-    eager_load_with :owner_key => ->{ primary_key }, :target_key => ->{ foreign_key }
+    def eager_load_owner_key;  primary_key; end
+    def eager_load_target_key; foreign_key; end
   end
 
   def target_criteria

@@ -29,7 +29,6 @@ class NoBrainer::Document::Association::HasManyThrough
   end
 
   def read
-    # TODO implement joins
     @targets ||= metadata.eager_load([owner]).freeze
   end
 

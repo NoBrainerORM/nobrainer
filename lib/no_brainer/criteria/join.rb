@@ -1,49 +1,62 @@
 module NoBrainer::Criteria::Join
   extend ActiveSupport::Concern
 
-  included { criteria_option :join_on, :merge_with => :set_scalar }
+  included { criteria_option :join, :merge_with => :append_array }
 
-  def join(association_name)
-    chain(:join_on => association_name.to_sym)
-  end
-
-  def merge!(criteria, options={})
-    if @options[:join_on] && criteria.options[:join_on]
-      raise "You can only do a single join in your query at the moment"
-    end
-    super
+  def join(*values)
+    chain(:join => values)
   end
 
   private
 
-  def _instantiate_model(attrs, options={})
-    return super if !@options[:join_on] || raw?
+  def _compile_join_ast(value)
+    case value
+    when Hash then
+      value.reduce({}) do |h, (k,v)|
+        association = model.association_metadata[k.to_sym]
+        raise "`#{k}' must be an association on `#{model}'" unless association
+        raise "join() does not support through associations" if association.options[:through]
 
-    bt = belongs_to_association
-
-    left = super(attrs['left'], options)
-    right = bt.target_model.new_from_db(attrs['right'], {})
-
-    left.associations[bt].preload([right])
-
-    left
+        criteria = association.base_criteria
+        criteria = case v
+          when NoBrainer::Criteria then criteria.merge(v)
+          when true then criteria
+          else criteria.join(v)
+        end
+        h.merge(association => criteria)
+      end
+    when Array then value.map { |v| _compile_join_ast(v) }.reduce({}, :merge)
+    else _compile_join_ast(value => true)
+    end
   end
 
-  def belongs_to_association
-    @belongs_to_association ||= begin
-      association_name = @options[:join_on]
-      association = model.association_metadata[association_name]
-      unless association.is_a?(NoBrainer::Document::Association::BelongsTo::Metadata)
-        raise "`#{association_name}' must be a belongs_to association on `#{model}'"
+  def join_ast
+    @join_ast ||= _compile_join_ast(@options[:join])
+  end
+
+  def _instantiate_model(attrs, options={})
+    return super unless @options[:join] && !raw?
+
+    associated_instances = join_ast.map do |association, criteria|
+      [association, criteria.send(:_instantiate_model, attrs.delete(association.target_name.to_s))]
+    end
+    super(attrs, options).tap do |instance|
+      associated_instances.each do |association, assoc_instance|
+        instance.associations[association].preload([assoc_instance])
       end
-      association
     end
   end
 
   def compile_rql_pass2
-    return super unless @options[:join_on]
+    return super unless @options[:join]
 
-    bt = belongs_to_association
-    super.eq_join(bt.foreign_key, bt.target_model.rql_table, :index => bt.primary_key)
+    join_ast.reduce(super) do |rql, (association, criteria)|
+      rql.concat_map do |doc|
+        key = doc[association.eager_load_owner_key]
+        criteria.where(association.eager_load_target_key => key).to_rql.map do |assoc_doc|
+          doc.merge(association.target_name => assoc_doc)
+        end
+      end
+    end
   end
 end

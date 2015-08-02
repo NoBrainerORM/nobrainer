@@ -3,31 +3,30 @@ module NoBrainer::Document::Association::EagerLoader
 
   module Generic
     # Used in associations to declare generic eager loading capabilities
-    # The association should implement loaded? and preload.
-    def eager_load_with(options={})
-      define_method(:eager_load) do |docs, additional_criteria=nil|
-        owner_key  = instance_exec(&options[:owner_key])
-        target_key = instance_exec(&options[:target_key])
+    # The association should implement loaded?, preload,
+    # eager_load_owner_key and eager_load_target_key.
+    def eager_load(docs, additional_criteria=nil)
+      owner_key  = eager_load_owner_key
+      target_key = eager_load_target_key
 
-        criteria = base_criteria
-        criteria = criteria.merge(additional_criteria) if additional_criteria
+      criteria = base_criteria
+      criteria = criteria.merge(additional_criteria) if additional_criteria
 
-        unloaded_docs = docs.reject { |doc| doc.associations[self].loaded? }
+      unloaded_docs = docs.reject { |doc| doc.associations[self].loaded? }
 
-        owner_keys = unloaded_docs.map(&owner_key).compact.uniq
-        if owner_keys.present?
-          targets = criteria.where(target_key.in => owner_keys)
-                            .map { |target| [target.read_attribute(target_key), target] }
-                            .each_with_object(Hash.new { |k,v| k[v] = [] }) { |(k,v),h| h[k] << v }
+      owner_keys = unloaded_docs.map(&owner_key).compact.uniq
+      if owner_keys.present?
+        targets = criteria.where(target_key.in => owner_keys)
+        .map { |target| [target.read_attribute(target_key), target] }
+        .each_with_object(Hash.new { |k,v| k[v] = [] }) { |(k,v),h| h[k] << v }
 
-          unloaded_docs.each do |doc|
-            doc_targets = targets[doc.read_attribute(owner_key)]
-            doc.associations[self].preload(doc_targets)
-          end
+        unloaded_docs.each do |doc|
+          doc_targets = targets[doc.read_attribute(owner_key)]
+          doc.associations[self].preload(doc_targets)
         end
-
-        docs.map { |doc| doc.associations[self].read }.flatten.compact.uniq
       end
+
+      docs.map { |doc| doc.associations[self].read }.flatten.compact.uniq
     end
   end
 
@@ -42,7 +41,7 @@ module NoBrainer::Document::Association::EagerLoader
 
   def eager_load(docs, what)
     case what
-    when Hash  then what.each do |k,v|
+    when Hash then what.each do |k,v|
       if v.is_a?(NoBrainer::Criteria)
         v = v.dup
         nested_preloads, v.options[:eager_load] = v.options[:eager_load], []
