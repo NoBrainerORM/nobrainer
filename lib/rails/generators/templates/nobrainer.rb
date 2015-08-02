@@ -18,6 +18,10 @@ NoBrainer.configure do |config|
   # * RDB_HOST, RDB_PORT, RDB_DB, RDB_AUTH
   # config.rethinkdb_urls = [config.default_rethinkdb_url]
 
+  # ssl_options may be set to {:ca_certs => '/path/to/ca.crt'} to establish
+  # an SSL connection to the RethinkDB servers.
+  # config.ssl_options = nil
+
   # NoBrainer uses logger to emit debugging information.
   # The default logger is the Rails logger if run with Rails,
   # otherwise Logger.new(STDERR) with a WARN level.

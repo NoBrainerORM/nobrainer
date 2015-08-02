@@ -5,6 +5,7 @@ module NoBrainer::Config
     :app_name               => { :default => ->{ default_app_name } },
     :environment            => { :default => ->{ default_environment } },
     :rethinkdb_urls         => { :default => ->{ [default_rethinkdb_url] } },
+    :ssl_options            => { :default => ->{ nil } },
     :logger                 => { :default => ->{ default_logger } },
     :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },

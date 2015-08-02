@@ -30,7 +30,9 @@ class NoBrainer::Connection
   end
 
   def raw
-    @raw ||= RethinkDB::Connection.new(parsed_uri).tap { NoBrainer.logger.info("Connected to #{uri}") }
+    options = parsed_uri
+    options = options.merge(:ssl => NoBrainer::Config.ssl_options) if NoBrainer::Config.ssl_options
+    @raw ||= RethinkDB::Connection.new(options).tap { NoBrainer.logger.info("Connected to #{uri}") }
   end
 
   delegate :reconnect, :close, :run, :to => :raw
