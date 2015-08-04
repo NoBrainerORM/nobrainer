@@ -17,8 +17,16 @@ module NoBrainer::RQL
     type_of(rql) == :write
   end
 
+  def get_rql_statement(rql)
+    rql.is_a?(RethinkDB::RQL) && rql.body.is_a?(Array) && rql.body.first
+  end
+
+  def db_drop?(rql)
+    get_rql_statement(rql) == DB_DROP
+  end
+
   def type_of(rql)
-    case rql.is_a?(RethinkDB::RQL) && rql.body.is_a?(Array) && rql.body.first
+    case get_rql_statement(rql)
     when UPDATE, DELETE, REPLACE, INSERT
       :write
     when DB_CREATE, DB_DROP, DB_LIST, TABLE_CREATE, TABLE_DROP, TABLE_LIST,

@@ -3,6 +3,9 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
     @runner.call(env)
   rescue RuntimeError => e
     if db_name = handle_database_on_demand_exception?(env, e)
+      # Don't auto create on db_drop.
+      return {} if NoBrainer::RQL.db_drop?(env[:query])
+
       auto_create_database(env, db_name)
       retry
     end
