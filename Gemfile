@@ -3,7 +3,7 @@ gemspec
 
 gem 'rspec', '~> 3.0'
 gem 'timecop'
-gem 'em-synchrony' if ENV['EM']
+gem 'eventmachine' if ENV['EM']
 
 group :development do
   gem 'pry'

@@ -41,14 +41,17 @@ nobrainer_conf = proc do |c|
 end
 
 if ENV['EM']
+  require 'fiber'
   class RSpec::Core:: Runner
     alias_method :orig_run_specs, :run_specs
 
     def run_specs(*args)
       ret = nil
-      EventMachine.synchrony do
-        ret = orig_run_specs(*args)
-        EventMachine.stop
+      EventMachine.run do
+        Fiber.new do
+          ret = orig_run_specs(*args)
+          EventMachine.stop
+        end.resume
       end
       ret
     end

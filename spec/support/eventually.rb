@@ -13,7 +13,9 @@ module EventuallyHelper
       return if error.nil?
       raise error if Time.now >= time_limit
       if ENV['EM']
-        EM::Synchrony.sleep interval.to_f
+        f = Fiber.current
+        EM::Timer.new(interval) { f.resume }
+        Fiber.yield
       else
         sleep interval.to_f
       end

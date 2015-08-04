@@ -1,5 +1,5 @@
 require 'eventmachine'
-require 'em-synchrony'
+require 'fiber'
 
 class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
   def call(env)
@@ -11,13 +11,31 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
     handler.sync
   end
 
+  def self.sync(&block)
+    # Similar to em-synchrony's sync.
+    f = Fiber.current
+    block.call(proc do |val|
+      if f == Fiber.current
+        return val
+      else
+        f.resume(val)
+      end
+    end)
+    Fiber.yield
+  end
+
   class ResponseHandler < RethinkDB::Handler
     def initialize
       @ready = EventMachine::DefaultDeferrable.new
     end
 
+    def on_open(caller)
+      @has_data = true
+    end
+
     def on_close(caller)
       return if @has_atom
+      return on_error(RethinkDB::RqlRuntimeError.new("NoBrainer EM driver: No data received"), caller) unless @has_data
       @queue ? push(:close) : set_atom([])
     end
 
@@ -61,7 +79,7 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
     end
 
     def wait_for_response
-      EventMachine::Synchrony.sync(@ready) if @ready
+      NoBrainer::QueryRunner::EMDriver.sync { |w| @ready.callback(&w) } if @ready
       @ready = nil
     end
 
@@ -77,23 +95,11 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
         @queue = queue
       end
 
-      def _pop
-        f = Fiber.current
-        @queue.pop do |r|
-          if f == Fiber.current
-            return r
-          else
-            f.resume(r)
-          end
-        end
-        Fiber.yield
-      end
-
       def each(&block)
         enum_for(:next) unless block
 
         loop do
-          case result = _pop
+          case result = NoBrainer::QueryRunner::EMDriver.sync { |w| @queue.pop(&w) }
           when :close then break
           when Exception then raise result
           else result.each { |v| block.call(v) }
