@@ -12,7 +12,11 @@ module EventuallyHelper
       end
       return if error.nil?
       raise error if Time.now >= time_limit
-      sleep interval.to_f
+      if ENV['EM']
+        EM::Synchrony.sleep interval.to_f
+      else
+        sleep interval.to_f
+      end
     end
   end
 end

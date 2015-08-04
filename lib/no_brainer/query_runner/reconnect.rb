@@ -1,24 +1,43 @@
 class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
   def call(env)
+    current_connection = NoBrainer.connection
     @runner.call(env)
   rescue StandardError => e
     if is_connection_error_exception?(e)
-      context ||= {}
+      context ||= {:connection_retries => max_tries,
+                   :previous_connection => current_connection}
       # XXX Possibly dangerous, as we could reexecute a non idempotent operation
-      retry if reconnect(e, context)
+
+      should_retry = synchronize do
+        current_connection != NoBrainer.connection || # someone else got to reconnect
+          reconnect(e, context)
+      end
+      retry if should_retry
     end
     raise
   end
 
   private
 
+  # XXX Having a connection pool would make everything much better!!
+  # TODO Refactor
+
   def max_tries
     NoBrainer::Config.max_retries_on_connection_failure
   end
 
+  def synchronize(&block)
+    case NoBrainer::Config.driver
+      when :regular then block.call # we already have a lock from the connection_lock middleware
+      when :em      then self.class.em_mutex.synchronize(&block)
+    end
+  end
+
+  def self.em_mutex
+    @lock ||= EM::Synchrony::Thread::Mutex.new
+  end
+
   def reconnect(e, context)
-    context[:connection_retries] ||= max_tries
-    context[:previous_connection] ||= NoBrainer.connection
     NoBrainer.disconnect
 
     unless context[:lost_connection_logged]
@@ -34,7 +53,10 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
     end
     context[:connection_retries] -= 1
 
-    sleep 1
+    case NoBrainer::Config.driver
+    when :regular then sleep 1
+    when :em      then EM::Synchrony.sleep 1
+    end
 
     c = NoBrainer.connection
     NoBrainer.logger.info("Connecting to #{c.uri}... (last error: #{exception_msg(e)})")

@@ -37,6 +37,22 @@ nobrainer_conf = proc do |c|
   c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
   c.durability = :soft
   c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
+  c.driver = :em if ENV['EM']
+end
+
+if ENV['EM']
+  class RSpec::Core:: Runner
+    alias_method :orig_run_specs, :run_specs
+
+    def run_specs(*args)
+      ret = nil
+      EventMachine.synchrony do
+        ret = orig_run_specs(*args)
+        EventMachine.stop
+      end
+      ret
+    end
+  end
 end
 
 RSpec.configure do |config|

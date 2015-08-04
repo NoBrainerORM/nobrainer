@@ -3,12 +3,14 @@ require 'spec_helper'
 describe 'changes' do
   before { load_simple_document }
   before { SimpleDocument.count } # ensure the table is created
-  before { NoBrainer.configure { |c| c.per_thread_connection = true } }
+  before { NoBrainer.configure { |c| c.per_thread_connection = true } } unless ENV['EM']
 
   let!(:recorded_changes) { [] }
   after { @thread.try(:kill) } # FIXME leaking connections :)
 
   def record_changes
+    return em_record_changes if ENV['EM']
+
     @thread = Thread.new do
       begin
         query.changes(:squash => false, :include_states => true).each do |data|
@@ -21,6 +23,23 @@ describe 'changes' do
     eventually do
       raise @exception if @exception
       recorded_changes.size.should_not == 0 # state => ready
+    end
+  end
+
+  def em_record_changes
+    Fiber.new do
+      begin
+        query.changes(:squash => false, :include_states => true).each do |data|
+          recorded_changes << data
+        end
+      rescue Exception => e
+        @exception = e
+      end
+    end.resume
+
+    eventually do
+      raise @exception if @exception
+      recorded_changes.size.should_not == 0
     end
   end
 

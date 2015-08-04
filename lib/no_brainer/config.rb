@@ -6,6 +6,7 @@ module NoBrainer::Config
     :environment            => { :default => ->{ default_environment } },
     :rethinkdb_urls         => { :default => ->{ [default_rethinkdb_url] } },
     :ssl_options            => { :default => ->{ nil } },
+    :driver                 => { :default => ->{ :regular }, :valid_values => [:regular, :em] },
     :logger                 => { :default => ->{ default_logger } },
     :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
@@ -53,6 +54,10 @@ module NoBrainer::Config
       end
 
       validate_urls
+
+      if driver == :em && per_thread_connection
+        raise "To use EventMachine, disable per_thread_connection"
+      end
     end
 
     def reset!

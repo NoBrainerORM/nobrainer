@@ -22,6 +22,10 @@ NoBrainer.configure do |config|
   # an SSL connection to the RethinkDB servers.
   # config.ssl_options = nil
 
+  # driver specifies which driver to use. You may use :regular or :em.
+  # Use :em if you use EventMachine with em-synchrony.
+  # config.driver = :regular
+
   # NoBrainer uses logger to emit debugging information.
   # The default logger is the Rails logger if run with Rails,
   # otherwise Logger.new(STDERR) with a WARN level.

@@ -10,31 +10,50 @@ module NoBrainer::QueryRunner
     end
   end
 
-  autoload :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
+  autoload :EMDriver, :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
            :Reconnect, :Selection, :RunOptions, :Profiler, :MissingIndex,
            :ConnectionLock
 
   class << self
-    attr_accessor :stack
-
     def run(*args, &block)
       options = args.extract_options!
       raise ArgumentError unless args.size == 1 || block
       query = args.first || block.call(RethinkDB::RQL.new)
       stack.call(:query => query, :options => options)
     end
-  end
 
-  # thread-safe, since require() is ran with a mutex.
-  self.stack = ::Middleware::Builder.new do
-    use RunOptions
-    use MissingIndex
-    use DatabaseOnDemand
-    use TableOnDemand
-    use Profiler
-    use WriteError
-    use ConnectionLock
-    use Reconnect
-    use Driver
+    def stack
+      case NoBrainer::Config.driver
+      when :regular then normal_stack
+      when :em      then em_stack
+      end
+    end
+
+    def normal_stack
+      @normal_stack ||= ::Middleware::Builder.new do
+        use RunOptions
+        use MissingIndex
+        use DatabaseOnDemand
+        use TableOnDemand
+        use Profiler
+        use WriteError
+        use ConnectionLock
+        use Reconnect
+        use Driver
+      end
+    end
+
+    def em_stack
+      @em_stack ||= ::Middleware::Builder.new do
+        use RunOptions
+        use MissingIndex
+        use DatabaseOnDemand
+        use TableOnDemand
+        use Profiler
+        use WriteError
+        use Reconnect
+        use EMDriver
+      end
+    end
   end
 end
