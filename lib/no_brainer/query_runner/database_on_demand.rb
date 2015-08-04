@@ -22,7 +22,7 @@ class NoBrainer::QueryRunner::DatabaseOnDemand < NoBrainer::QueryRunner::Middlew
     env[:last_auto_create_database] = db_name
 
     NoBrainer.run { |r| r.db_create(db_name) }
-  rescue RuntimeError => e
+  rescue RethinkDB::RqlRuntimeError => e
     # We might have raced with another db_create
     raise unless e.message =~ /Database `#{db_name}` already exists/
   end

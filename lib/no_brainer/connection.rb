@@ -2,9 +2,10 @@ require 'rethinkdb'
 require 'uri'
 
 class NoBrainer::Connection
-  attr_accessor :parsed_uri
+  attr_accessor :parsed_uri, :orig_uri
 
   def initialize(uri)
+    @orig_uri = uri
     parse_uri(uri)
   end
 

@@ -38,7 +38,7 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
         r.table(table_name).config().update(:write_acks => create_options[:write_acks])
       end
     end
-  rescue RuntimeError => e
+  rescue RethinkDB::RqlRuntimeError => e
     # We might have raced with another table create
     raise unless e.message =~ /Table `#{db_name}\.#{table_name}` already exists/
   end

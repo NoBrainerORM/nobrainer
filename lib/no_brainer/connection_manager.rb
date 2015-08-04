@@ -62,11 +62,12 @@ module NoBrainer::ConnectionManager
   end
 
   def _disconnect
-    self.current_connection.try(:close, :noreply_wait => false) rescue nil
-    self.current_connection = nil
+    c, self.current_connection = self.current_connection, nil
+    c.try(:close, :noreply_wait => false) rescue nil
   end
 
   def disconnect
+    return unless self.current_connection
     synchronize { _disconnect }
   end
 
@@ -74,7 +75,7 @@ module NoBrainer::ConnectionManager
     synchronize do
       @urls = nil
       c = current_connection
-      _disconnect if c && !NoBrainer::Config.rethinkdb_urls.include?(c.uri)
+      _disconnect if c && !NoBrainer::Config.rethinkdb_urls.include?(c.orig_uri)
     end
   end
 end

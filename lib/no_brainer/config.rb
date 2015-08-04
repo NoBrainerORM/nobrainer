@@ -119,7 +119,7 @@ module NoBrainer::Config
     def validate_urls
       # This is not connecting, just validating the format.
       dbs = rethinkdb_urls.compact.map { |url| NoBrainer::Connection.new(url).parsed_uri[:db] }.uniq
-      raise "Please specify at least one rethinkdb_url" if dbs.size == 0
+      raise "Please specify the app_name and the environment, or a rethinkdb_url" if dbs.size == 0
       raise "All the rethinkdb_urls must specify the same db name (instead of #{dbs.inspect})" if dbs.size != 1
     end
 
