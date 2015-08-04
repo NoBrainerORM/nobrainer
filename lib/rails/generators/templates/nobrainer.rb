@@ -43,14 +43,6 @@ NoBrainer.configure do |config|
   # You can turn off the warning if you want to use both.
   # config.warn_on_active_record = true
 
-  # When the network connection is lost, NoBrainer can retry running a given
-  # query a few times before giving up. Note that this can be a problem with
-  # non idempotent write queries such as increments.
-  # Setting it to 0 disable retries during reconnections.
-  # The default is 1 for development or test environment, otherwise 15.
-  # config.max_retries_on_connection_failure = \
-  #   config.default_max_retries_on_connection_failure
-
   # Configures the durability for database writes.
   # The default is :soft for development or test environment, otherwise :hard.
   # config.durability = config.default_durability

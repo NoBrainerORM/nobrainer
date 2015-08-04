@@ -10,7 +10,6 @@ module NoBrainer::Config
     :logger                 => { :default => ->{ default_logger } },
     :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
-    :max_retries_on_connection_failure => { :default => ->{ default_max_retries_on_connection_failure } },
     :durability             => { :default => ->{ default_durability }, :valid_values => [:hard, :soft] },
     :table_options          => { :default => ->{ {:shards => 1, :replicas => 1, :write_acks => :majority} },
                                  :valid_keys => [:shards, :replicas, :primary_replica_tag, :write_acks, :durability] },
@@ -36,6 +35,11 @@ module NoBrainer::Config
     def auto_create_tables=(value)
       STDERR.puts "[NoBrainer] config.auto_create_tables is no longer active."
       STDERR.puts "[NoBrainer] The current behavior is now to always auto create tables"
+    end
+
+    def max_retries_on_connection_failure=(value)
+      STDERR.puts "[NoBrainer] config.max_retries_on_connection_failure has been removed."
+      STDERR.puts "[NoBrainer] Queries are no longer retried upon failures"
     end
 
     def apply_defaults
@@ -137,6 +141,7 @@ module NoBrainer::Config
     end
 
     def default_max_retries_on_connection_failure
+      # TODO remove
       dev_mode? ? 1 : 15
     end
 
