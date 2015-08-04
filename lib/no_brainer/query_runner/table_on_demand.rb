@@ -1,6 +1,7 @@
 class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
+  # Not matching in RqlRuntimeError because we can get a DocumentNotPersisted
   rescue RuntimeError => e
     if table_info = handle_table_on_demand_exception?(env, e)
       auto_create_table(env, *table_info)
@@ -10,7 +11,7 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
   end
 
   def handle_table_on_demand_exception?(env, e)
-    e.message =~ /^Table `(.+)\.(.+)` does not exist\.$/ && [$1, $2]
+    /^Table `(.+)\.(.+)` does not exist\.$/.match(e.message).try(:[], 1..2)
   end
 
   private
@@ -38,7 +39,7 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
         r.table(table_name).config().update(:write_acks => create_options[:write_acks])
       end
     end
-  rescue RethinkDB::RqlRuntimeError => e
+  rescue RuntimeError => e
     # We might have raced with another table create
     raise unless e.message =~ /Table `#{db_name}\.#{table_name}` already exists/
   end

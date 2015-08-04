@@ -8,7 +8,8 @@ class Time
       case value
       when Time then time = value
       when String
-        value = value.strip.sub(/Z$/, '+00:00')
+        value = value.strip
+        value = value.sub(/Z$/, '+00:00') unless NoBrainer.jruby?
         # Using DateTime to preserve the timezone offset
         dt = DateTime.parse(value) rescue (raise InvalidType)
         time = Time.new(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.zone)

@@ -1,11 +1,9 @@
 class NoBrainer::QueryRunner::MissingIndex < NoBrainer::QueryRunner::Middleware
   def call(env)
     @runner.call(env)
-  rescue RethinkDB::RqlRuntimeError => e
-    if e.message =~ /^Index `(.+)` was not found on table `(.+)\.(.+)`\.$/
-      index_name = $1
-      db_name = $2
-      table_name = $3
+  rescue RuntimeError => e
+    if match_data = /^Index `(.+)` was not found on table `(.+)\.(.+)`\.$/.match(e.message)
+      _, index_name, db_name, table_name = *match_data
 
       model = NoBrainer::Document.all.select { |m| m.table_name == table_name }.first
       index = model.indexes.values.select { |i| i.aliased_name == index_name.to_sym }.first if model
