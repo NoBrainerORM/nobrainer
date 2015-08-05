@@ -29,7 +29,12 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
       @ready = EventMachine::DefaultDeferrable.new
     end
 
+    def close_query_handle
+      @query_handle.close
+    end
+
     def on_open(caller)
+      @query_handle = caller
       @has_data = true
     end
 
@@ -86,13 +91,18 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
     def sync
       wait_for_response
       raise @error if @error
-      @has_atom ? @value : Cursor.new(@queue)
+      @has_atom ? @value : Cursor.new(self, @queue)
     end
 
     class Cursor
       include Enumerable
-      def initialize(queue)
+      def initialize(handler, queue)
+        @handler = handler
         @queue = queue
+      end
+
+      def close
+        @handler.close_query_handle
       end
 
       def each(&block)
