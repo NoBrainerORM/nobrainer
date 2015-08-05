@@ -7,7 +7,8 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
     options = options.merge(:db => RethinkDB::RQL.new.db(options[:db])) if options[:db]
 
     handler = ResponseHandler.new
-    env[:query].em_run(NoBrainer.connection.raw, handler, options)
+    query_handler = env[:query].em_run(NoBrainer.connection.raw, handler, options)
+    handler.on_dispatch(query_handler)
     handler.sync
   end
 
@@ -33,8 +34,11 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
       @query_handle.close
     end
 
-    def on_open(caller)
+    def on_dispatch(caller)
       @query_handle = caller
+    end
+
+    def on_open(caller)
       @has_data = true
     end
 
