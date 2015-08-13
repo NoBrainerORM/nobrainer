@@ -12,7 +12,12 @@ module NoBrainer::Document::Index
 
   module ClassMethods
     def index(name, *args)
-      name = name.to_sym
+      name = case name
+        when String then name.to_sym
+        when Symbol then name
+        else raise ArgumentError, "Incorrect index specification"
+      end
+
       options = args.extract_options!
       options.assert_valid_keys(*VALID_INDEX_OPTIONS)
 
