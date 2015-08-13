@@ -47,18 +47,4 @@ class NoBrainer::Connection
   def current_db
     NoBrainer.current_run_options.try(:[], :db) || default_db
   end
-
-  def drop!
-    NoBrainer.run { |r| r.db_drop(current_db) }
-  end
-
-  # Note that truncating each table (purge!) is much faster than dropping the database (drop!)
-  def purge!
-    NoBrainer.run { |r| r.table_list }.each do |table_name|
-      # keeping the index meta store because indexes are not going away when purging
-      next if table_name == NoBrainer::Document::Index::MetaStore.table_name
-      NoBrainer.run { |r| r.table(table_name).delete }
-    end
-    true
-  end
 end

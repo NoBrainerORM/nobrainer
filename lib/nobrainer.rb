@@ -20,8 +20,7 @@ module NoBrainer
 
   class << self
     delegate :connection, :disconnect, :to => 'NoBrainer::ConnectionManager'
-
-    delegate :drop!, :purge!, :default_db, :current_db, :to => :connection
+    delegate :default_db, :current_db, :to => :connection
 
     delegate :configure, :logger,             :to => 'NoBrainer::Config'
     delegate :run,                            :to => 'NoBrainer::QueryRunner'
@@ -29,7 +28,8 @@ module NoBrainer
 
     delegate :with, :with_database, :to => 'NoBrainer::QueryRunner::RunOptions' # deprecated
 
-    delegate :sync_indexes, :sync_table_config, :sync_schema, :rebalance, :to => 'NoBrainer::Document::TableConfig'
+    delegate :sync_indexes, :sync_table_config, :sync_schema, :rebalance,
+             :drop!, :purge!, :to => 'NoBrainer::Document::TableConfig'
 
     delegate :eager_load, :to => 'NoBrainer::Document::Association::EagerLoader'
 

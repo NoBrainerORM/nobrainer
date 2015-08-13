@@ -99,7 +99,7 @@ module NoBrainer::Document::TableConfig
     end
 
     def sync_indexes(options={})
-      # nobrainer models don't have indexes
+      # NoBrainer internal models don't have indexes.
       models = NoBrainer::Document.all(:types => [:user])
       NoBrainer::Document::Index::Synchronizer.new(models).sync_indexes(options)
     end
@@ -110,8 +110,22 @@ module NoBrainer::Document::TableConfig
     end
 
     def rebalance(options={})
-      models = NoBrainer::Document.all(:types => [:user])
-      models.each(&:rebalance)
+      NoBrainer.run { |r| r.table_list }.each do |table_name|
+        NoBrainer.run { |r| r.table(table_name).rebalance }
+      end
+      true
+    end
+
+    def drop!
+      NoBrainer.run { |r| r.db_drop(NoBrainer.current_db) }
+    end
+
+    def purge!
+      NoBrainer.run { |r| r.table_list }.each do |table_name|
+        # keeping the index meta store because indexes are not going away when purging
+        next if table_name == NoBrainer::Document::Index::MetaStore.table_name
+        NoBrainer.run { |r| r.table(table_name).delete }
+      end
       true
     end
   end
