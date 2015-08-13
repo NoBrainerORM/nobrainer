@@ -4,17 +4,20 @@ namespace :nobrainer do
     NoBrainer.drop!
   end
 
-  desc 'Synchronize index definitions'
+  desc 'Rebalance all tables'
+  task :rebalance => :environment do
+    NoBrainer.rebalance(:verbose => true)
+  end
+
   task :sync_indexes => :environment do
     NoBrainer.sync_indexes(:verbose => true)
   end
 
-  desc 'Synchronize table configuration'
   task :sync_table_config => :environment do
     NoBrainer.sync_table_config(:verbose => true)
   end
 
-  desc 'Synchronize indexes and table configuration'
+  desc 'Synchronize schema (indexes and table configuration)'
   task :sync_schema => :environment do
     NoBrainer.sync_schema(:verbose => true)
   end
@@ -28,17 +31,11 @@ namespace :nobrainer do
     Rails.application.load_seed
   end
 
-  desc 'Equivalent to :sync_schema_quiet + :seed'
   task :setup => [:sync_schema_quiet, :seed]
 
-  desc 'Equivalent to :drop + :setup'
-  task :reset => [:drop, :setup]
+  desc 'Equivalent to :drop + :sync_schema + :seed'
+  task :reset => [:drop, :sync_schema_quiet, :seed]
 
-  task :create => :environment do
-    # noop
-  end
-
-  task :migrate => :environment do
-    # noop
-  end
+  task :create => [:sync_schema]
+  task :migrate => [:sync_schema]
 end
