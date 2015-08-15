@@ -9,7 +9,7 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
     handler = ResponseHandler.new
     query_handler = env[:query].em_run(NoBrainer.connection.raw, handler, options)
     handler.on_dispatch(query_handler)
-    handler.sync
+    handler.value
   end
 
   def self.sync(&block)
@@ -92,7 +92,7 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
       @ready = nil
     end
 
-    def sync
+    def value
       wait_for_response
       raise @error if @error
       @has_atom ? @value : Cursor.new(self, @queue)

@@ -17,7 +17,7 @@ namespace :nobrainer do
     NoBrainer.sync_table_config(:verbose => true)
   end
 
-  desc 'Synchronize schema (indexes and table configuration)'
+  desc 'Synchronize schema'
   task :sync_schema => :environment do
     NoBrainer.sync_schema(:verbose => true)
   end
