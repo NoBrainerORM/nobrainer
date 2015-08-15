@@ -24,6 +24,8 @@ module NoBrainer::Document::Association
       define_method(association) do |target, options={}|
         target = target.to_sym
 
+        options[:class_name] = options.delete(:class) if options[:class]
+
         if r = self.association_metadata[target]
           raise "Cannot change the :through option" unless r.options[:through] == options[:through]
           r.options.merge!(options)

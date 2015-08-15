@@ -134,4 +134,16 @@ describe 'belongs_to' do
       end }.to raise_error(/Cannot declare `author' in SomePost: the foreign_key `author_#{Author.pk_name}' is already used/)
     end
   end
+
+  context 'when specifying the class name' do
+    it 'specifies the target class' do
+      define_class('SomePost') do
+        include NoBrainer::Document
+        belongs_to :some_author, :class => :Author
+      end
+      author = Author.create
+      SomePost.create(:some_author => author)
+      SomePost.first.some_author.should == author
+    end
+  end
 end
