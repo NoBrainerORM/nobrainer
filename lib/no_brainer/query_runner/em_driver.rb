@@ -114,7 +114,7 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
 
         loop do
           case result = NoBrainer::QueryRunner::EMDriver.sync { |w| @queue.pop(&w) }
-          when :close then break
+          when :close then return self
           when Exception then raise result
           else result.each { |v| block.call(v) }
           end
