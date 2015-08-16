@@ -40,31 +40,25 @@ module NoBrainer::Document::PrimaryKey
 
     def define_default_pk
       class_variable_set(:@@pk_name, nil)
-      field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :primary_key => true
+
+      # TODO Maybe we should let the user configure the pk generator
+      pk_generator = NoBrainer::Document::PrimaryKey::Generator
+
+      field NoBrainer::Document::PrimaryKey::DEFAULT_PK_NAME, :primary_key => true,
+        :type => pk_generator.field_type, :default => ->{ pk_generator.generate }
     end
 
     def field(attr, options={})
-      super
-
-      return unless options[:primary_key]
+      return super unless options[:primary_key]
 
       if attr != pk_name
         remove_field(pk_name, :set_default_pk => false) if pk_name
         class_variable_set(:@@pk_name, attr)
       end
 
-      new_options = {:index => true}
-      new_options[:readonly] = true if fields[attr][:readonly].nil?
-
-      # TODO Maybe we should let the user configure the pk generator
-      pk_generator = NoBrainer::Document::PrimaryKey::Generator
-
-      if fields[attr][:type].in?([pk_generator.field_type, nil]) && !fields[attr].key?(:default)
-        new_options[:type] = pk_generator.field_type
-        new_options[:default] = ->{ pk_generator.generate }
-      end
-
-      field(attr, new_options)
+      options[:index] = true
+      options[:readonly] = true
+      super
     end
 
     def remove_field(attr, options={})

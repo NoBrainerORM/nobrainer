@@ -8,7 +8,11 @@ module NoBrainer::Document::Readonly
         case options[:readonly]
         when true
           define_method("#{attr}=") do |value|
-            raise NoBrainer::Error::ReadonlyField.new("#{attr} is readonly") unless new_record?
+            unless new_record?
+              if read_attribute(attr) != value
+                raise NoBrainer::Error::ReadonlyField.new("#{attr} is readonly")
+              end
+            end
             super(value)
           end
         when false then remove_method("#{attr}=") if method_defined?("#{attr}=")

@@ -27,22 +27,17 @@ describe 'NoBrainer ==' do
   context 'when using custom primary keys' do
     after { NoBrainer.drop! }
     it 'acts on the primary keys' do
-      SimpleDocument.field :pk, :primary_key => true, :readonly => false
-      doc1.pk = 1
-      doc2.pk = 2
-      doc1.should_not == doc2
-      doc1.pk = 1
-      doc2.pk = 1
-      doc2.should == doc2
+      SimpleDocument.field :pk, :primary_key => true
+      SimpleDocument.new(:pk => 1).should_not == SimpleDocument.new(:pk => 2)
+      SimpleDocument.new(:pk => 1).should     == SimpleDocument.new(:pk => 1)
     end
   end
 
   context 'when the primary keys are both nil' do
     after { NoBrainer.drop! }
     it 'returns false' do
-      SimpleDocument.field :pk, :primary_key => true, :readonly => false
-      doc1.pk = doc2.pk = nil
-      doc1.should_not == doc2
+      SimpleDocument.field :pk, :primary_key => true
+      SimpleDocument.new(:pk => nil).should_not == SimpleDocument.new(:pk => nil)
     end
   end
 
