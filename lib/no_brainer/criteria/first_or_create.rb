@@ -10,11 +10,11 @@ module NoBrainer::Criteria::FirstOrCreate
   end
 
   def upsert(attrs, save_options={})
-    _upsert(attrs, save_options.merge(:save_method => :save?))
+    _upsert(attrs, save_options.merge(:save_method => :save?, :update => true))
   end
 
   def upsert!(attrs, save_options={})
-    _upsert(attrs, save_options.merge(:save_method => :save!))
+    _upsert(attrs, save_options.merge(:save_method => :save!, :update => true))
   end
 
   private
@@ -30,6 +30,9 @@ module NoBrainer::Criteria::FirstOrCreate
   def _first_or_create(create_params, save_options, &block)
     raise "Cannot use .raw() with .first_or_create()" if raw?
     raise "Use first_or_create() on the root class `#{model.root_class}'" unless model.is_root_class?
+
+    save_method = save_options.delete(:save_method)
+    should_update = save_options.delete(:update)
 
     where_params = extract_where_params()
 
@@ -58,7 +61,13 @@ module NoBrainer::Criteria::FirstOrCreate
     new_instance._lock_for_uniqueness_once(lock_key_name)
 
     old_instance = self.first
-    return old_instance if old_instance
+    if old_instance
+      if should_update
+        old_instance.assign_attributes(create_params)
+        old_instance.__send__(save_method, save_options)
+      end
+      return old_instance
+    end
 
     create_params = block.call if block
     create_params = create_params.symbolize_keys
@@ -80,7 +89,6 @@ module NoBrainer::Criteria::FirstOrCreate
     end
 
     new_instance.assign_attributes(create_params)
-    save_method = save_options.delete(:save_method)
     new_instance.__send__(save_method, save_options)
     return new_instance
   ensure

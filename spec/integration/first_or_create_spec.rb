@@ -159,7 +159,7 @@ describe 'first_or_create' do
       before { SimpleDocument.field :field3, :uniq => {:scope => [:field1, :field2]} }
       before { SimpleDocument.field :field4 }
 
-      it 'upserts' do
+      it 'creates documents' do
         SimpleDocument.upsert(:field3 => 123, :field2 => 123)
         SimpleDocument.upsert(:field3 => 123, :field2 => 123)
         SimpleDocument.count.should == 1
@@ -172,6 +172,18 @@ describe 'first_or_create' do
         SimpleDocument.upsert(SimpleDocument.pk_name => '123', :field4 => 123)
         SimpleDocument.count.should == 3
         SimpleDocument.find('123').field4.should == 123
+      end
+
+      it 'updates documents' do
+        attrs = { :field1 => 123, :field2 => 123 }
+        SimpleDocument.upsert(attrs)
+        SimpleDocument.count.should == 1
+        SimpleDocument.first.attributes.symbolize_keys.slice(*attrs.keys).should == attrs
+
+        attrs = { :field1 => 123, :field2 => 456 }
+        SimpleDocument.upsert(attrs)
+        SimpleDocument.count.should == 1
+        SimpleDocument.first.attributes.symbolize_keys.slice(*attrs.keys).should == attrs
       end
     end
 
