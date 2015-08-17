@@ -189,26 +189,45 @@ describe 'first_or_create' do
 
     context 'when not matching a uniqueness validator' do
       it 'errors' do
-        expect { SimpleDocument.upsert(:field4 => 123) }
-          .to raise_error(/Could not find a uniqueness validator.*field4/)
-        expect { SimpleDocument.upsert(:field3 => 123, :field4 => 123) }
-          .to raise_error(/Could not find a uniqueness validator.*field3.*field4/)
+        expect { SimpleDocument.upsert(:field2 => 123) }
+          .to raise_error(/Could not find a uniqueness validator.*field2/)
+        expect { SimpleDocument.upsert(:field2 => 123, :field3 => 123) }
+          .to raise_error(/Could not find a uniqueness validator.*field2.*field3/)
+      end
+
+      context 'when validations fail' do
+        before { SimpleDocument.field :field2, :required => true }
+
+        context 'when using upsert' do
+          it 'returns a failing document' do
+            SimpleDocument.upsert({}).persisted?.should == false
+          end
+        end
+
+        context 'when using upsert!' do
+          it 'raises' do
+            expect { SimpleDocument.upsert!({}) }
+              .to raise_error(NoBrainer::Error::DocumentInvalid)
+          end
+        end
       end
     end
 
-    context 'when validations fail' do
-      before { SimpleDocument.field :field2, :required => true }
+    context 'when matching a uniqueness validator' do
+      context 'when validations fail' do
+        before { SimpleDocument.field :field2, :required => true }
 
-      context 'when using upsert' do
-        it 'returns a failing document' do
-          SimpleDocument.upsert(:field1 => 123).persisted?.should == false
+        context 'when using upsert' do
+          it 'returns a failing document' do
+            SimpleDocument.upsert(:field1 => 123).persisted?.should == false
+          end
         end
-      end
 
-      context 'when using upsert!' do
-        it 'raises' do
-          expect { SimpleDocument.upsert!(:field1 => 123) }
-            .to raise_error(NoBrainer::Error::DocumentInvalid)
+        context 'when using upsert!' do
+          it 'raises' do
+            expect { SimpleDocument.upsert!(:field1 => 123) }
+              .to raise_error(NoBrainer::Error::DocumentInvalid)
+          end
         end
       end
     end

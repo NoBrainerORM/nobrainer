@@ -22,9 +22,18 @@ module NoBrainer::Criteria::FirstOrCreate
   def _upsert(attrs, save_options)
     attrs = attrs.symbolize_keys
     unique_keys = get_model_unique_fields.detect { |keys| keys & attrs.keys == keys }
-    raise "Could not find a uniqueness validator within `#{attrs.keys.inspect}'.\n" +
-           "Please add a corresponding uniqueness validator" unless unique_keys
-    where(attrs.slice(*unique_keys)).__send__(:_first_or_create, attrs, save_options)
+    return where(attrs.slice(*unique_keys)).__send__(:_first_or_create, attrs, save_options) if unique_keys
+
+    # We can't do an upsert :( Let see if we can fail on a validator first...
+    instance = model.new(attrs)
+    unless instance.valid?
+      case save_options[:save_method]
+      when :save! then raise NoBrainer::Error::DocumentInvalid, instance
+      when :save? then return instance
+      end
+    end
+
+    raise "Could not find a uniqueness validator for the following keys: `#{attrs.keys.inspect}'."
   end
 
   def _first_or_create(create_params, save_options, &block)
