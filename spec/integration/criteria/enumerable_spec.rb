@@ -93,4 +93,37 @@ describe "each" do
       JSON.parse(SimpleDocument.all.to_json).count.should == 5
     end
   end
+
+  context 'when closing a stream' do
+    before { SimpleDocument.insert_all(1000.times.map { {} }) }
+
+    shared_examples_for 'streams' do
+      it 'stops the stream' do
+        iterations = 0
+        iterator = criteria
+        iterator.each do |x|
+          iterations += 1
+          iterator.close
+        end
+        iterations.should == 1
+      end
+    end
+
+    context 'when using regular criteria' do
+      let(:criteria) { SimpleDocument.all }
+      it_behaves_like 'streams'
+    end
+
+    context 'when using raw criteria' do
+      let(:criteria) { SimpleDocument.raw }
+      it_behaves_like 'streams'
+    end
+
+    if ENV['EM']
+      context 'when using raw changes' do
+        let(:criteria) { SimpleDocument.raw.changes(:include_states => true) }
+        it_behaves_like 'streams'
+      end
+    end
+  end
 end

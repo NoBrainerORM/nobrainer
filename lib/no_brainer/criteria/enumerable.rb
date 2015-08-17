@@ -3,7 +3,16 @@ module NoBrainer::Criteria::Enumerable
 
   def each(options={}, &block)
     return enum_for(:each, options) unless block
-    run.each { |attrs| block.call(instantiate_doc(attrs)) }
+    run.tap { |cursor| @cursor = cursor }.each do |attrs|
+      return close if @close_cursor
+      block.call(instantiate_doc(attrs))
+    end
+    self
+  end
+
+  def close
+    @close_cursor = true
+    @cursor.close if NoBrainer::Config.driver == :em
     self
   end
 

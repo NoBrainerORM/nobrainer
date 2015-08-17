@@ -110,7 +110,10 @@ class NoBrainer::QueryRunner::EMDriver < NoBrainer::QueryRunner::Middleware
       end
 
       def each(&block)
-        enum_for(:next) unless block
+        return enum_for(:each) unless block
+
+        raise "Can only iterate over a cursor once." if @iterated
+        @iterated = true
 
         loop do
           case result = NoBrainer::QueryRunner::EMDriver.sync { |w| @queue.pop(&w) }
