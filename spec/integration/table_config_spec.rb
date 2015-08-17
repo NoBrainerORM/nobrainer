@@ -83,7 +83,6 @@ describe 'NoBrainer table_config' do
 
   context 'when specifying durability, replicas, shards, replicas_tags' do
     # XXX We can't test the replicas setting due to single server setup.
-    # TODO The write_acks / durability settings are not working on < RethinkDB 2.1
     before { NoBrainer.configure { |c| c.table_options = { :shards => 2, :replicas => 1, :write_acks => :majority } } }
     before { define_class(:OtherModel) { include NoBrainer::Document } }
 
@@ -91,19 +90,19 @@ describe 'NoBrainer table_config' do
       NoBrainer.sync_schema
 
       SimpleDocument.table_config.shards.count.should == 2
-      # SimpleDocument.table_config.write_acks.should == 'majority'
-      # SimpleDocument.table_config.durability.should == 'hard'
+      SimpleDocument.table_config.write_acks.should == 'majority'
+      SimpleDocument.table_config.durability.should == 'hard'
 
       SimpleDocument.table_config :durability => :soft, :shards => 3, :write_acks => :single
       NoBrainer.sync_schema
 
       SimpleDocument.table_config.shards.count.should == 3
-      # SimpleDocument.table_config.write_acks.should == 'single'
-      # SimpleDocument.table_config.durability.should == 'soft'
+      SimpleDocument.table_config.write_acks.should == 'single'
+      SimpleDocument.table_config.durability.should == 'soft'
 
       OtherModel.table_config.shards.count.should == 2
-      # OtherModel.table_config.write_acks.should == 'majority'
-      # OtherModel.table_config.durability.should == 'hard'
+      OtherModel.table_config.write_acks.should == 'majority'
+      OtherModel.table_config.durability.should == 'hard'
     end
   end
 end
