@@ -36,6 +36,14 @@ module NoBrainer
     def jruby?
       RUBY_PLATFORM == 'java'
     end
+
+    def eager_load!
+      # XXX This forces all the NoBrainer code to be loaded in memory.
+      # Not to be confused with eager_load() that operates on documents.
+      # We assume that NoBrainer is already configured at this point.
+      super
+      NoBrainer::QueryRunner.stack # load the code for the current stack
+    end
   end
 
   Fork.hook unless jruby?

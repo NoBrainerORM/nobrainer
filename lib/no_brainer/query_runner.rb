@@ -11,8 +11,7 @@ module NoBrainer::QueryRunner
   end
 
   autoload :EMDriver, :Driver, :DatabaseOnDemand, :TableOnDemand, :WriteError,
-           :Reconnect, :Selection, :RunOptions, :Profiler, :MissingIndex,
-           :ConnectionLock
+           :Reconnect, :RunOptions, :Profiler, :MissingIndex, :ConnectionLock
 
   class << self
     def run(*args, &block)

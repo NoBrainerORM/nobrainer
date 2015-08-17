@@ -13,8 +13,14 @@ module NoBrainer::Autoload
     super() { autoload(*constants) }
   end
 
+  def eager_load!
+    super
+    @_autoloads.keys.map  { |c| const_get(c) }
+                    .each { |c| c.eager_load! if c.respond_to?(:eager_load!) }
+  end
+
   def autoload_and_include(*constants)
-    autoload(*constants)
+    eager_autoload(*constants)
     constants.each { |constant| include const_get(constant) }
   end
 end

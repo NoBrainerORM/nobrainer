@@ -1,6 +1,7 @@
 module NoBrainer::Document::Association
   extend NoBrainer::Autoload
   autoload :Core, :BelongsTo, :HasMany, :HasManyThrough, :HasOne, :HasOneThrough, :EagerLoader
+  eager_autoload :EagerLoader
   METHODS = [:belongs_to, :has_many, :has_one]
 
   extend ActiveSupport::Concern

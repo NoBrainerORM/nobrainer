@@ -1,6 +1,6 @@
 module NoBrainer::Document::PrimaryKey
   extend NoBrainer::Autoload
-  autoload :Generator
+  eager_autoload :Generator
 
   extend ActiveSupport::Concern
   include ActiveModel::Conversion
