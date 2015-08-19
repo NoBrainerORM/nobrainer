@@ -3,7 +3,7 @@ $:.unshift File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "nobrainer"
-  s.version     = '0.28.0'
+  s.version     = '0.29.0'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Nicolas Viennot"]
   s.email       = ["nicolas@viennot.biz"]
@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = "ORM for RethinkDB"
   s.license     = "LGPLv3"
 
-  s.add_dependency "rethinkdb",         ">= 2.0.0.0"
+  s.add_dependency "rethinkdb",         ">= 2.1.0"
   s.add_dependency "activesupport",     ">= 4.1.0"
   s.add_dependency "activemodel",       ">= 4.1.0"
   s.add_dependency "middleware",        "~> 0.1.0"
