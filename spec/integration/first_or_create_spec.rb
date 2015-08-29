@@ -33,6 +33,7 @@ describe 'first_or_create' do
 
     context 'due to an empty where()' do
       let(:query) { SimpleDocument.where({}).first_or_create }
+      let(:err_msg) { /Missing.*clauses/ }
       it_behaves_like 'failed first_or_create'
     end
 
@@ -43,11 +44,13 @@ describe 'first_or_create' do
 
     context 'due to a non scalar query' do
       let(:query) { SimpleDocument.where(:field1.any => 'xx').first_or_create }
+      let(:err_msg) { /only use equal/ }
       it_behaves_like 'failed first_or_create'
     end
 
     context 'due to a non eq query' do
       let(:query) { SimpleDocument.where(:field1.lt => 'xx').first_or_create }
+      let(:err_msg) { /only use equal/ }
       it_behaves_like 'failed first_or_create'
     end
 
@@ -145,10 +148,19 @@ describe 'first_or_create' do
       end
     end
 
-    context 'when querying on a subclass' do
+    context 'when querying on a subclass with a field that belongs to the parent' do
       it 'raises' do
         expect { Child.where(:parent_field => '123').first_or_create }
-          .to raise_error(/root class/)
+          .to raise_error(/defined on `Parent'.*Parent.where.*:_type => "Child"/m)
+      end
+    end
+
+    context 'when querying on a subclass with a field that belongs to the subclass' do
+      before { Child.field :child_field, :uniq => true }
+      it 'creates the child subtype' do
+        doc = Child.where(:child_field => 123).first_or_create
+        doc.should be_a(Child)
+        doc.child_field.should == 123
       end
     end
   end

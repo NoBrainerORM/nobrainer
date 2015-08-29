@@ -38,7 +38,6 @@ module NoBrainer::Criteria::FirstOrCreate
 
   def _first_or_create(create_params, save_options, &block)
     raise "Cannot use .raw() with .first_or_create()" if raw?
-    raise "Use first_or_create() on the root class `#{model.root_class}'" unless model.is_root_class?
 
     save_method = save_options.delete(:save_method)
     should_update = save_options.delete(:update)
@@ -60,6 +59,25 @@ module NoBrainer::Criteria::FirstOrCreate
           else        "  field :#{keys.first}, :uniq => {:scope => #{keys[1..-1].inspect}}"
           end +
         "\nend"
+    end
+
+    unless model.is_root_class? || (model.superclass.fields.keys & keys).empty?
+      # We can't allow the parent to share the keys we are matching on.
+      # Consider this case:
+      # - Base has the field :name, :uniq => true declared
+      # - A < Base
+      # - B < Base
+      # - A.create(:name => 'x'),
+      # - B.where(:name => 'x').first_or_create
+      # We are forced to return nil, or raise.
+      parent = model
+      parent = parent.superclass while parent.superclass < NoBrainer::Document &&
+                                      !(parent.superclass.fields.keys & keys).empty?
+      raise "A polymorphic problem has been detected: The fields `#{keys.inspect}' are defined on `#{parent}'.\n" +
+            "This is problematic as first_or_create() could return nil in some cases.\n" +
+            "Either 1) Only define `#{keys.inspect}' on `#{model}', \n" +
+            "or     2) Query the superclass, and pass :_type in first_or_create() as such:\n" +
+            "          `#{parent}.where(...).first_or_create(:_type => \"#{model}\")'."
     end
 
     # We don't want to access create_params yet, because invoking the block
@@ -108,18 +126,22 @@ module NoBrainer::Criteria::FirstOrCreate
     where_clauses = finalized_criteria.options[:where_ast]
 
     unless where_clauses.is_a?(NoBrainer::Criteria::Where::MultiOperator) &&
-           where_clauses.op == :and && where_clauses.clauses.size > 0 &&
-           where_clauses.clauses.all? do |c|
-             c.is_a?(NoBrainer::Criteria::Where::BinaryOperator) &&
-             c.op == :eq && c.key_modifier == :scalar
-           end
+           where_clauses.op == :and
       raise "Please use a query of the form `.where(...).first_or_create(...)'"
     end
 
     Hash[where_clauses.clauses.map do |c|
+      unless c.is_a?(NoBrainer::Criteria::Where::BinaryOperator) &&
+             c.op == :eq && c.key_modifier == :scalar
+        # Ignore params on the subclass type, we are handling this case directly
+        # in _first_or_create()
+        next if c.key_path == [:_type]
+        raise "Please only use equal constraints in your where() query when using first_or_create()"
+      end
+
       raise "You may not use nested hash queries with first_or.create()" if c.key_path.size > 1
       [c.key_path.first.to_sym, c.value]
-    end]
+    end.compact].tap { |h| raise "Missing where() clauses for first_or_create()" if h.empty? }
   end
 
   def get_model_unique_fields
