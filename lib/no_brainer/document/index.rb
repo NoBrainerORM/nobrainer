@@ -15,6 +15,7 @@ module NoBrainer::Document::Index
       name = case name
         when String then name.to_sym
         when Symbol then name
+        when Array  then args.unshift(name); name.map(&:to_s).join('_').to_sym
         else raise ArgumentError, "Incorrect index specification"
       end
 

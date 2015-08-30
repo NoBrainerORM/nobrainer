@@ -361,6 +361,26 @@ describe 'NoBrainer index' do
     end
   end
 
+  context 'when indexing a compound field with an implicit index name' do
+    before do
+      SimpleDocument.index [:field1, :field2]
+      NoBrainer.sync_indexes
+    end
+
+    let!(:doc1) { SimpleDocument.create(:field1 => 'hello', :field2 => 'world') }
+    let!(:doc2) { SimpleDocument.create(:field1 => 'ohai',  :field2 => 'yay') }
+
+    it 'uses the index' do
+      SimpleDocument.where(:field1_field2 => ['hello', 'world']).where_indexed?.should == true
+      SimpleDocument.where(:field1_field2 => ['hello', 'world']).count.should == 1
+    end
+
+    it 'uses an index when possible' do
+      SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').used_index.should == :field1_field2
+      SimpleDocument.where(:field1 => 'ohai', :field2 => 'yay').count.should == 1
+    end
+  end
+
   context 'with a scope' do
     before do
       SimpleDocument.class_eval do
