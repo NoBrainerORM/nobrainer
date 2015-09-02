@@ -60,7 +60,7 @@ module NoBrainer::Document::Persistance
   end
 
   def _create(options={})
-    attrs = self.class.persistable_attributes(@_attributes, :instance => self)
+    attrs = self.class.persistable_attributes(@_attributes)
     result = NoBrainer.run(self.class.rql_table.insert(attrs))
     self.pk_value ||= result['generated_keys'].to_a.first
     @new_record = false
@@ -69,7 +69,7 @@ module NoBrainer::Document::Persistance
   end
 
   def _update(attrs)
-    rql = ->(doc){ self.class.persistable_attributes(attrs, :instance => self, :rql_doc => doc) }
+    rql = ->(doc){ self.class.persistable_attributes(attrs, :rql_doc => doc) }
     NoBrainer.run { selector.update(&rql) }
   end
 
