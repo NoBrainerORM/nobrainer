@@ -20,6 +20,9 @@ class NoBrainer::Lock
       # We reset our instance_token to allow recoveries.
       self.instance_token = get_new_instance_token
     else
+      @default_options = options.slice(:expire, :timeout)
+      options.delete(:expire); options.delete(:timeout);
+
       super(options.merge(:key => key))
       raise ArgumentError unless valid?
     end
@@ -40,7 +43,7 @@ class NoBrainer::Lock
 
   def lock(options={})
     options.assert_valid_keys(:expire, :timeout)
-    timeout = NoBrainer::Config.lock_options.merge(options)[:timeout]
+    timeout = get_option_value(options, :timeout)
     sleep_amount = 0.1
 
     start_at = Time.now
@@ -111,11 +114,14 @@ class NoBrainer::Lock
   private
 
   def set_expiration(options)
-    expire = options[:expire]
-    expire ||= @previous_expire if options[:use_previous_expire]
-    expire ||= NoBrainer::Config.lock_options[:expire]
+    expire = @previous_expire if options[:use_previous_expire] && !options[:expire]
+    expire ||= get_option_value(options, :expire)
     @previous_expire = expire
     self.expires_at = RethinkDB::RQL.new.now + expire
+  end
+
+  def get_option_value(options, key)
+    NoBrainer::Config.lock_options.merge(@default_options || {}).merge(options)[key]
   end
 
   def raise_if_locked!

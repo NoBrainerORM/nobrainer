@@ -78,6 +78,25 @@ describe NoBrainer::Lock do
     expect { lock1.delete      }.to raise_error(NotImplementedError)
     expect { lock1.destroy     }.to raise_error(NotImplementedError)
   end
+
+  context 'when specifying default expire value' do
+    it 'uses the expires default value' do
+      lock1 = NoBrainer::Lock.new(:some_key, :expire => 0.1)
+      lock1.lock
+      lock2 = NoBrainer::Lock.new(:some_key)
+      lock2.lock
+      expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+    end
+  end
+
+  context 'when specifying default timeout value' do
+    it 'uses the expires default value' do
+      lock1 = NoBrainer::Lock.new(:some_key)
+      lock1.lock
+      lock2 = NoBrainer::Lock.new(:some_key, :timeout => 0)
+      expect { lock2.lock }.to raise_error(NoBrainer::Error::LockUnavailable)
+    end
+  end
 end
 
 describe NoBrainer::ReentrantLock do
