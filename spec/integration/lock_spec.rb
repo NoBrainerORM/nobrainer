@@ -54,7 +54,7 @@ describe NoBrainer::Lock do
 
   it 'refreshes locks' do
     lock1.lock(:expire => 0.2)
-    lock1.refresh
+    lock1.refresh(:expire => 60)
     expect { lock2.lock(:timeout => 1) }.to raise_error(NoBrainer::Error::LockUnavailable)
   end
 
@@ -68,6 +68,80 @@ describe NoBrainer::Lock do
     lock1.lock(:expire => 0.1)
     sleep 0.1
     expired_lock = NoBrainer::Lock.expired.first
+    expired_lock.lock
+    expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
+  end
+
+  it 'prevents save/update/delete/destroy' do
+    expect { lock1.save        }.to raise_error(NotImplementedError)
+    expect { lock1.update({})  }.to raise_error(NotImplementedError)
+    expect { lock1.delete      }.to raise_error(NotImplementedError)
+    expect { lock1.destroy     }.to raise_error(NotImplementedError)
+  end
+end
+
+describe NoBrainer::ReentrantLock do
+  let(:lock1)  { lock1a }
+  let(:lock1a) { NoBrainer::ReentrantLock.new(:some_key, :instance_token => 'hello') }
+  let(:lock1b) { NoBrainer::ReentrantLock.new(:some_key, :instance_token => 'hello') }
+  let(:lock2)  { NoBrainer::ReentrantLock.new(:some_key) }
+
+  it 'locks with try_lock' do
+    lock1a.try_lock.should == true
+    lock1b.try_lock.should == true
+    lock2.try_lock.should == false
+    lock1a.try_lock.should == true
+    lock1a.unlock
+    lock1a.unlock
+    lock2.try_lock.should == false
+    lock1b.unlock
+    lock2.try_lock.should == true
+  end
+
+  it 'locks with synchronize and a block' do
+    lock1.synchronize do
+      lock2.try_lock.should == false
+    end
+    lock2.try_lock.should == true
+  end
+
+  it 'does not accept weird keys' do
+    expect { NoBrainer::ReentrantLock.new(1) }.to raise_error(ArgumentError)
+  end
+
+  it 'lock/refresh/unlock methods return nil' do
+    lock1.lock.should == nil
+    lock1.refresh.should == nil
+    lock1.unlock.should == nil
+  end
+
+  it 'times out if it cannot get the lock' do
+    lock1.lock(:expire => 10)
+    expect { lock2.lock(:timeout => 0.5) }.to raise_error(NoBrainer::Error::LockUnavailable)
+  end
+
+  it 'steals the lock if necessary' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+  end
+
+  it 'refreshes locks' do
+    lock1.lock(:expire => 0.2)
+    lock1.refresh(:expire => 60)
+    expect { lock2.lock(:timeout => 1) }.to raise_error(NoBrainer::Error::LockUnavailable)
+  end
+
+  it 'does not allow refresh to happen on a lost lock' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
+  end
+
+  it 'allows recovering expired locks' do
+    lock1.lock(:expire => 0.1)
+    sleep 0.1
+    expired_lock = NoBrainer::ReentrantLock.expired.first
     expired_lock.lock
     expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
   end

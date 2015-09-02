@@ -7,27 +7,26 @@ class NoBrainer::Lock
 
   # Since PKs are limited to 127 characters, we can't use the user's key as a PK
   # as it could be arbitrarily long.
-  field :key_hash,       :type => String, :primary_key => true, :default => ->{ Digest::SHA1.base64digest(key) }
+  field :key_hash,       :type => String, :primary_key => true, :default => ->{ Digest::SHA1.base64digest(key.to_s) }
   field :key,            :type => String
-  field :instance_token, :type => String
+  field :instance_token, :type => String, :default => ->{ get_new_instance_token }
   field :expires_at,     :type => Time
-
-  # We always use a new instance_token, even when reading from the DB. Which is what
-  # distingushes locks.
-  after_initialize { self.instance_token = NoBrainer::Document::PrimaryKey::Generator.generate }
 
   scope :expired, where(:expires_at.lt(RethinkDB::RQL.new.now))
 
   def initialize(key, options={})
-    return super if options[:from_db]
-
-    key = case key
-      when Symbol then key.to_s
-      when String then key
-      else raise ArgumentError
+    if options[:from_db]
+      super
+      # We reset our instance_token to allow recoveries.
+      self.instance_token = get_new_instance_token
+    else
+      super(options.merge(:key => key))
+      raise ArgumentError unless valid?
     end
+  end
 
-    super(options.merge(:key => key))
+  def get_new_instance_token
+    NoBrainer::Document::PrimaryKey::Generator.generate
   end
 
   def synchronize(options={}, &block)
@@ -88,7 +87,7 @@ class NoBrainer::Lock
     options.assert_valid_keys(:expire)
     raise_unless_locked!
 
-    set_expiration(options)
+    set_expiration(options.merge(:use_previous_expire => true))
 
     result = NoBrainer.run do |r|
       selector.update do |doc|
@@ -112,7 +111,10 @@ class NoBrainer::Lock
   private
 
   def set_expiration(options)
-    expire = NoBrainer::Config.lock_options.merge(options)[:expire]
+    expire = options[:expire]
+    expire ||= @previous_expire if options[:use_previous_expire]
+    expire ||= NoBrainer::Config.lock_options[:expire]
+    @previous_expire = expire
     self.expires_at = RethinkDB::RQL.new.now + expire
   end
 
