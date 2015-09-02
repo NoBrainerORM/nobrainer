@@ -14,6 +14,10 @@ class NoBrainer::Lock
 
   scope :expired, where(:expires_at.lt(RethinkDB::RQL.new.now))
 
+  def self.find(key)
+    super(Digest::SHA1.base64digest(key.to_s))
+  end
+
   def initialize(key, options={})
     if options[:from_db]
       super

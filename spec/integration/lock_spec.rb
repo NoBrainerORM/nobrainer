@@ -97,6 +97,13 @@ describe NoBrainer::Lock do
       expect { lock2.lock }.to raise_error(NoBrainer::Error::LockUnavailable)
     end
   end
+
+  context 'when looking for a lock' do
+    it 'finds it by key' do
+      lock1.lock
+      NoBrainer::Lock.find(lock1.key).should == lock1
+    end
+  end
 end
 
 describe NoBrainer::ReentrantLock do
