@@ -11,6 +11,7 @@ module NoBrainer::Error
   class UnknownAttribute        < RuntimeError; end
   class AtomicBlock             < RuntimeError; end
   class LostLock                < RuntimeError; end
+  class LockInvalidOp           < RuntimeError; end
   class LockUnavailable         < RuntimeError; end
   class InvalidPolymorphicType  < RuntimeError; end
 

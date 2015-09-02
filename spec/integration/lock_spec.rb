@@ -30,15 +30,15 @@ describe NoBrainer::Lock do
 
   it 'prevents locking twice' do
     lock1.lock
-    expect { lock1.lock }.to raise_error(/already locked/)
+    expect { lock1.lock }.to raise_error(NoBrainer::Error::LockInvalidOp, /already locked/)
   end
 
   it 'prevents unlocking an unlocked lock' do
-    expect { lock1.unlock }.to raise_error(/not locked/)
+    expect { lock1.unlock }.to raise_error(NoBrainer::Error::LockInvalidOp, /not locked/)
   end
 
   it 'prevents refreshing when not locked' do
-    expect { lock1.refresh }.to raise_error(/not locked/)
+    expect { lock1.refresh }.to raise_error(NoBrainer::Error::LockInvalidOp, /not locked/)
   end
 
   it 'times out if it cannot get the lock' do

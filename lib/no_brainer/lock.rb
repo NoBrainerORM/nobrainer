@@ -7,14 +7,14 @@ class NoBrainer::Lock
 
   # Since PKs are limited to 127 characters, we can't use the user's key as a PK
   # as it could be arbitrarily long.
-  field :key_hash,   :type => String, :primary_key => true, :default => ->{ Digest::SHA1.base64digest(key) }
-  field :key,        :type => String
-  field :token,      :type => String
-  field :expires_at, :type => Time
+  field :key_hash,       :type => String, :primary_key => true, :default => ->{ Digest::SHA1.base64digest(key) }
+  field :key,            :type => String
+  field :instance_token, :type => String
+  field :expires_at,     :type => Time
 
-  # We always use a new token, even when reading from the DB, because that's
-  # what represent our instance.
-  after_initialize { self.token = NoBrainer::Document::PrimaryKey::Generator.generate }
+  # We always use a new instance_token, even when reading from the DB. Which is what
+  # distingushes locks.
+  after_initialize { self.instance_token = NoBrainer::Document::PrimaryKey::Generator.generate }
 
   scope :expired, where(:expires_at.lt(RethinkDB::RQL.new.now))
 
@@ -46,17 +46,17 @@ class NoBrainer::Lock
 
     start_at = Time.now
     while Time.now - start_at < timeout
-      return if try_lock(options.select { |k,_| k == :expire })
+      return if try_lock(options.slice(:expire))
       sleep(sleep_amount)
       sleep_amount = [1, sleep_amount * 2].min
     end
 
-    raise NoBrainer::Error::LockUnavailable.new("Lock on `#{key}' unavailable")
+    raise_lock_unavailable!
   end
 
   def try_lock(options={})
     options.assert_valid_keys(:expire)
-    raise "Lock instance `#{key}' already locked" if @locked
+    raise_if_locked!
 
     set_expiration(options)
 
@@ -71,28 +71,28 @@ class NoBrainer::Lock
   end
 
   def unlock
-    raise "Lock instance `#{key}' not locked" unless @locked
+    raise_unless_locked!
 
     result = NoBrainer.run do |r|
       selector.replace do |doc|
-        r.branch(doc[:token].eq(self.token),
+        r.branch(doc[:instance_token].eq(self.instance_token),
                  nil, doc)
       end
     end
 
     @locked = false
-    raise NoBrainer::Error::LostLock.new("Lost lock on `#{key}'") unless result['deleted'] == 1
+    raise_lost_lock! unless result['deleted'] == 1
   end
 
   def refresh(options={})
     options.assert_valid_keys(:expire)
-    raise "Lock instance `#{key}' not locked" unless @locked
+    raise_unless_locked!
 
     set_expiration(options)
 
     result = NoBrainer.run do |r|
       selector.update do |doc|
-        r.branch(doc[:token].eq(self.token),
+        r.branch(doc[:instance_token].eq(self.instance_token),
                  { :expires_at => self.expires_at }, nil)
       end
     end
@@ -102,7 +102,7 @@ class NoBrainer::Lock
     # unlikely to happen and should not harmful.
     unless result['replaced'] == 1
       @locked = false
-      raise NoBrainer::Error::LostLock.new("Lost lock on `#{key}'")
+      raise_lost_lock!
     end
   end
 
@@ -114,5 +114,21 @@ class NoBrainer::Lock
   def set_expiration(options)
     expire = NoBrainer::Config.lock_options.merge(options)[:expire]
     self.expires_at = RethinkDB::RQL.new.now + expire
+  end
+
+  def raise_if_locked!
+    raise NoBrainer::Error::LockInvalidOp.new("Lock instance `#{key}' already locked") if @locked
+  end
+
+  def raise_unless_locked!
+    raise NoBrainer::Error::LockInvalidOp.new("Lock instance `#{key}' not locked") unless @locked
+  end
+
+  def raise_lost_lock!
+    raise NoBrainer::Error::LostLock.new("Lost lock on `#{key}'")
+  end
+
+  def raise_lock_unavailable!
+    raise NoBrainer::Error::LockUnavailable.new("Lock on `#{key}' unavailable")
   end
 end
