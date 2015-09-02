@@ -53,9 +53,10 @@ module NoBrainer::Criteria::Join
     join_ast.reduce(super) do |rql, (association, criteria)|
       rql.concat_map do |doc|
         key = doc[association.eager_load_owner_key]
-        criteria.where(association.eager_load_target_key => key).to_rql.map do |assoc_doc|
-          doc.merge(association.target_name => assoc_doc)
-        end
+        RethinkDB::RQL.new.branch(key.eq(nil), [],
+          criteria.where(association.eager_load_target_key => key).to_rql.map do |assoc_doc|
+            doc.merge(association.target_name => assoc_doc)
+        end)
       end
     end
   end

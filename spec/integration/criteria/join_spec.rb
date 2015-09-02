@@ -7,6 +7,9 @@ describe 'join' do
   let!(:posts)    { 3.times.map { |i| Post.create(:author => author, :title => i) } }
   let!(:comments) { 3.times.map { |i| 3.times.map { |j| Comment.create(:post => author.posts[i], :body => j) } }.flatten }
 
+  before { Post.create(:author => nil)}
+  before { Comment.create(:post => nil)}
+
   before { expect(NoBrainer).to receive(:run).and_call_original.exactly(1).times }
 
   context 'joining on a belongs_to association' do
