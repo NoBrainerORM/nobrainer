@@ -50,6 +50,16 @@ describe NoBrainer::Lock do
     lock1.lock(:expire => 0.2)
     lock2.lock
     expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+    lock2.unlock
+    NoBrainer::Lock.count.should == 0
+  end
+
+  it 'steals the lock if necessary 2' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    lock2.unlock
+    expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+    NoBrainer::Lock.count.should == 0
   end
 
   it 'refreshes locks' do
@@ -61,6 +71,13 @@ describe NoBrainer::Lock do
   it 'does not allow refresh to happen on a lost lock' do
     lock1.lock(:expire => 0.2)
     lock2.lock
+    expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
+  end
+
+  it 'does not allow refresh to happen on a lost lock 2' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    lock2.unlock
     expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
   end
 
@@ -122,6 +139,8 @@ describe NoBrainer::ReentrantLock do
     lock2.try_lock.should == false
     lock1b.unlock
     lock2.try_lock.should == true
+    lock2.unlock
+    NoBrainer::ReentrantLock.count.should == 0
   end
 
   it 'locks with synchronize and a block' do
@@ -150,6 +169,16 @@ describe NoBrainer::ReentrantLock do
     lock1.lock(:expire => 0.2)
     lock2.lock
     expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+    lock2.unlock
+    NoBrainer::ReentrantLock.count.should == 0
+  end
+
+  it 'steals the lock if necessary 2' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    lock2.unlock
+    expect { lock1.unlock }.to raise_error(NoBrainer::Error::LostLock)
+    NoBrainer::ReentrantLock.count.should == 0
   end
 
   it 'refreshes locks' do
@@ -161,6 +190,13 @@ describe NoBrainer::ReentrantLock do
   it 'does not allow refresh to happen on a lost lock' do
     lock1.lock(:expire => 0.2)
     lock2.lock
+    expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
+  end
+
+  it 'does not allow refresh to happen on a lost lock 2' do
+    lock1.lock(:expire => 0.2)
+    lock2.lock
+    lock2.unlock
     expect { lock1.refresh }.to raise_error(NoBrainer::Error::LostLock)
   end
 

@@ -81,7 +81,7 @@ class NoBrainer::Lock
 
     result = NoBrainer.run do |r|
       selector.replace do |doc|
-        r.branch(doc[:instance_token].eq(self.instance_token),
+        r.branch(doc[:instance_token].default(nil).eq(self.instance_token),
                  nil, doc)
       end
     end
