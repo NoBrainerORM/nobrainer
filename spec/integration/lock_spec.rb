@@ -46,6 +46,13 @@ describe NoBrainer::Lock do
     expect { lock2.lock(:timeout => 0.5) }.to raise_error(NoBrainer::Error::LockUnavailable)
   end
 
+  it 'does not timeout if it can get the lock' do
+    lock1.lock(:timeout => 0.1)
+    lock1.unlock
+    lock1.lock(:timeout => 0)
+    lock1.unlock
+  end
+
   it 'steals the lock if necessary' do
     lock1.lock(:expire => 0.2)
     lock2.lock

@@ -51,13 +51,12 @@ class NoBrainer::Lock
     sleep_amount = 0.1
 
     start_at = Time.now
-    while Time.now - start_at < timeout
+    loop do
       return if try_lock(options.slice(:expire))
+      raise_lock_unavailable! if Time.now - start_at + sleep_amount > timeout
       sleep(sleep_amount)
       sleep_amount = [1, sleep_amount * 2].min
     end
-
-    raise_lock_unavailable!
   end
 
   def try_lock(options={})
