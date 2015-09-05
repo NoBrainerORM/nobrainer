@@ -18,18 +18,13 @@ module NoBrainer::Document::Persistance
     !new_record? && !destroyed?
   end
 
-  def _reload_selector(options={})
-    rql = selector
-    if opt = options[:missing_attributes]
-      rql = rql.pluck(self.class.with_fields_aliased(opt[:pluck])) if opt[:pluck]
-      rql = rql.without(self.class.with_fields_aliased(opt[:without])) if opt[:without]
-    end
-    rql
-  end
-
   def _reload(options={})
-    attrs = NoBrainer.run { _reload_selector(options) }
-    raise NoBrainer::Error::DocumentNotFound, "#{self.class} :#{self.class.pk_name}=>\"#{pk_value}\" not found" unless attrs
+    criteria = root_class.raw
+    if opt = options[:missing_attributes]
+      criteria = criteria.pluck(opt[:pluck]) if opt[:pluck]
+      criteria = criteria.without(opt[:without]) if opt[:without]
+    end
+    attrs = criteria.find(pk_value)
 
     options = options.merge(:pristine => true, :from_db => true)
 
