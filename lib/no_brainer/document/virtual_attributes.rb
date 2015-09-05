@@ -10,6 +10,7 @@ module NoBrainer::Document::VirtualAttributes
 
   module ClassMethods
     def virtual_field(attr, rql=nil, options={}, &block)
+      rql, options = nil, rql if rql.is_a?(Hash)
       rql ||= block
       rql_proc = rql.is_a?(Proc) ? rql : proc { rql }
       field(attr, options.merge(:virtual => rql_proc))

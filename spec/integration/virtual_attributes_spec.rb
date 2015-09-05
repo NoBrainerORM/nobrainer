@@ -51,4 +51,16 @@ describe 'types' do
       expect { Child.virtual_field :vfield, ->(doc, r){} }.to raise_error(/root class.*Parent/)
     end
   end
+
+  context 'when using custom types' do
+    before { SimpleDocument.virtual_field :is_hello, :type => SimpleDocument::Boolean do |doc, r|
+      doc[:field1].eq('hello')
+    end }
+    before { SimpleDocument.create(:field1 => 'xx') }
+
+    it 'types check' do
+      doc.is_hello?.should == true
+      SimpleDocument.where(:is_hello => 'true').count.should == 1
+    end
+  end
 end
