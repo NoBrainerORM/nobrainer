@@ -7,7 +7,7 @@ module NoBrainer::Document
   autoload_and_include :Core, :TableConfig, :InjectionLayer, :Attributes, :Readonly,
                        :Persistance, :Callbacks, :Validation, :Types, :Dirty, :PrimaryKey,
                        :Association, :Serialization, :Criteria, :Polymorphic, :Index, :Aliases,
-                       :MissingAttributes, :LazyFetch, :AtomicOps
+                       :MissingAttributes, :LazyFetch, :AtomicOps, :VirtualAttributes
 
   autoload :DynamicAttributes, :Timestamps
 
