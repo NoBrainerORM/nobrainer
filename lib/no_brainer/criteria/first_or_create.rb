@@ -39,6 +39,11 @@ module NoBrainer::Criteria::FirstOrCreate
   def _first_or_create(create_params, save_options, &block)
     raise "Cannot use .raw() with .first_or_create()" if raw?
 
+    if block && block.arity == 1
+      raise "When passing a block to first_or_create(), you must pass a block with no arguments.\n" +
+            "The passed block must return a hash of additional attributes for create()"
+    end
+
     save_method = save_options.delete(:save_method)
     should_update = save_options.delete(:update)
 

@@ -76,6 +76,13 @@ describe 'first_or_create' do
     end
   end
 
+  context 'when passing arguments in the params block' do
+    it 'raises' do
+      expect do
+        SimpleDocument.where(:field1 => 123).first_or_create { |doc| }
+      end.to raise_error(/no argument/)
+    end
+  end
 
   context 'when matching a uniqueness validator' do
     before { SimpleDocument.field :field2, :uniq => {:scope => :field3} }
