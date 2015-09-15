@@ -195,11 +195,12 @@ module NoBrainer::Criteria::Where
         else
           # 1) Box value in array if we have an any/all modifier
           # 2) Box value in hash if we have a nested query.
-          value = [value] if key_modifier.in?([:any, :all])
+          box_value = key_modifier.in?([:any, :all]) || op == :include
+          value = [value] if box_value
           value_hash = key_path.reverse.reduce(value) { |v,k| {k => v} }
           value = model.cast_user_to_db_for(*value_hash.first)
           value = key_path[1..-1].reduce(value) { |h,k| h[k] }
-          value = value.first if key_modifier.in?([:any, :all])
+          value = value.first if box_value
           value
         end
       end

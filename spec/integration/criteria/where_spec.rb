@@ -453,7 +453,9 @@ describe 'complex where queries' do
     end
 
     context 'when using include' do
+      before { SimpleDocument.field :field1, :type => Array }
       it 'aliases to any.eq' do
+        SimpleDocument.where(:field1.any => 6).count.should == 2
         SimpleDocument.where(:field1.any.eq => 6).count.should == 2
         SimpleDocument.where(:field1.include => 6).count.should == 2
       end
