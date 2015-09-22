@@ -47,6 +47,8 @@ module NoBrainer::Profiler::ControllerRuntime
   end
 
   def cleanup_view_runtime
+    return super unless Profiler.current
+
     time_spent_in_db_before_views = Profiler.current.total_duration
     runtime = super
     time_spent_in_db_after_views = Profiler.current.total_duration
