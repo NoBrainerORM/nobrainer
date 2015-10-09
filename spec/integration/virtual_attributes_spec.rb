@@ -52,6 +52,13 @@ describe 'types' do
     end
   end
 
+  context 'when not returning RQL' do
+    before { SimpleDocument.virtual_field :vfield, ->(doc, r) { 123 } }
+    it 'does not work' do
+      expect { doc.vfield }.to raise_error(/SimpleDocument.vfield.*should return a RQL expression/)
+    end
+  end
+
   context 'when using custom types' do
     before { SimpleDocument.virtual_field :is_hello, :type => SimpleDocument::Boolean do |doc, r|
       doc[:field1].eq('hello')

@@ -8,7 +8,14 @@ module NoBrainer::Criteria::VirtualAttributes
       rql = rql.map do |_doc|
         model.virtual_fields.reduce(_doc) do |doc, field|
           field_rql = model.fields[field][:virtual].call(doc, RethinkDB::RQL.new)
-          field_rql.nil? ? doc : doc.merge(field => field_rql)
+          if field_rql.nil?
+            doc
+          else
+            unless field_rql.is_a?(RethinkDB::RQL)
+              raise "The virtual attribute `#{model}.#{field}' should return a RQL expression"
+            end
+            doc.merge(field => field_rql)
+          end
         end
       end
     end
