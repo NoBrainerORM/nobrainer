@@ -32,6 +32,13 @@ describe 'NoBrainer persistance' do
     doc.field2.should == 'halp'
   end
 
+  it 'updates with update_attributes' do
+    doc.update_attributes(:field1 => 'please', :field2 => 'halp')
+    doc.reload
+    doc.field1.should == 'please'
+    doc.field2.should == 'halp'
+  end
+
   it 'deletes' do
     doc.delete.should == true
     SimpleDocument.find?(doc.pk_value).should == nil

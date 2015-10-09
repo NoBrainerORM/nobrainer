@@ -112,6 +112,7 @@ module NoBrainer::Document::Persistance
   def update(*args)
     update?(*args)
   end
+  alias_method :update_attributes, :update # for API compat like devise
 
   def delete
     unless @destroyed

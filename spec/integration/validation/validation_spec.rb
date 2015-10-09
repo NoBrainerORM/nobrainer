@@ -100,6 +100,10 @@ describe 'validations' do
       it 'throws an exception for update!' do
         expect { doc.update!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
       end
+
+      it 'throws an exception for update_attributes!' do
+        expect { doc.update_attributes!(:field1 => nil) }.to raise_error(NoBrainer::Error::DocumentInvalid)
+      end
     end
   end
 
