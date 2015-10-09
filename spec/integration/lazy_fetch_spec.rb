@@ -33,6 +33,15 @@ describe 'lazy fetch' do
     end
   end
 
+  context 'when lazy loading a non existing field' do
+    before { SimpleDocument.field :field5, :lazy_fetch => true }
+
+    it 'returns nil' do
+      doc = SimpleDocument.first
+      doc.field5.should == nil
+    end
+  end
+
   context 'when using a default' do
     before { SimpleDocument.field :field2, :default => 10 }
     it 'uses the default' do

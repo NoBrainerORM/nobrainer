@@ -49,6 +49,7 @@ module NoBrainer::Document::LazyFetch
             raise e unless attr.in?(@lazy_fetch)
             reload(:pluck => attr, :keep_ivars => true)
             @lazy_fetch.delete(attr)
+            clear_missing_field(attr)
             retry
           end
         end
