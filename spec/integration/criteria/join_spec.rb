@@ -10,6 +10,9 @@ describe 'join' do
   before { Post.create(:author => nil)}
   before { Comment.create(:post => nil)}
 
+  before { Post.create }
+  before { Comment.create }
+
   before { expect(NoBrainer).to receive(:run).and_call_original.exactly(1).times }
 
   context 'joining on a belongs_to association' do
