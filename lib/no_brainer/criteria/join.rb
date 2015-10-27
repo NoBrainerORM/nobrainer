@@ -36,6 +36,7 @@ module NoBrainer::Criteria::Join
 
   def _instantiate_model(attrs, options={})
     return super unless @options[:join] && !raw?
+    return super if attrs.nil?
 
     associated_instances = join_ast.map do |association, criteria|
       [association, criteria.send(:_instantiate_model, attrs.delete(association.target_name.to_s))]

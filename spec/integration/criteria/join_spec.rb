@@ -8,7 +8,9 @@ describe 'join' do
   let!(:comments) { 3.times.map { |i| 3.times.map { |j| Comment.create(:post => author.posts[i], :body => j) } }.flatten }
 
   before { Post.create(:author => nil)}
+  before { Post.create }
   before { Comment.create(:post => nil)}
+  before { Comment.create }
 
   before { Post.create }
   before { Comment.create }
@@ -18,6 +20,12 @@ describe 'join' do
   context 'joining on a belongs_to association' do
     it 'joins' do
       Comment.join(:post).map { |c| [c, c.post] }.should =~ comments.map { |c| [c, c.post] }
+    end
+
+    context 'when getting a nil element' do
+      it 'returns nil' do
+        Comment.join(:post).last.should == nil
+      end
     end
 
     context 'when using raw' do
