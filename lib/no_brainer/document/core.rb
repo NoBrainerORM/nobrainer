@@ -27,4 +27,8 @@ module NoBrainer::Document::Core
       end
     end.reduce([], &:+)
   end
+
+  def self.reflect_on_association(association)
+    puts "TEST"
+  end
 end
