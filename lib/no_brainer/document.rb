@@ -14,11 +14,6 @@ module NoBrainer::Document
   included { define_default_pk }
 
   singleton_class.delegate :all, :to => Core
-  singleton_class.delegate :reflect_on_association, :to => Core
-
-  module ClassMethods
-    def foo
-      "OI"
-    end
-  endzz
+  singleton_class.delegate :reflect_on_association, :to => Reflections
+  singleton_class.delegate :reflect_on_all_associations, :to => Reflections
 end
