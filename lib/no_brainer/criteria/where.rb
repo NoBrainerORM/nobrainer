@@ -365,7 +365,7 @@ module NoBrainer::Criteria::Where
     end
 
     def find_strategy_canonical
-      clauses = get_candidate_clauses(:eq, :in, :between, :near, :intersects)
+      clauses = get_candidate_clauses(:eq, :in, :between, :near, :intersects, :defined)
       return nil unless clauses.present?
 
       usable_indexes = Hash[get_usable_indexes.map { |i| [[i.name], i] }]
@@ -384,6 +384,11 @@ module NoBrainer::Criteria::Where
             [:get_nearest, circle.center.to_rql, circle.options.merge(options)]
           when :eq      then [:get_all, [clause.value]]
           when :in      then [:get_all, clause.value]
+          when :defined then
+            next unless clause.value == true
+            next unless clause.key_modifier == :scalar && index.multi == false
+            [:between, [RethinkDB::RQL.new.minval, RethinkDB::RQL.new.maxval],
+             :left_bound => :open, :right_bound => :open]
           when :between then [:between, [clause.value.min, clause.value.max],
                               :left_bound => :closed, :right_bound => :closed]
         end

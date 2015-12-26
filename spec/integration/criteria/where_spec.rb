@@ -253,6 +253,20 @@ describe 'complex where queries' do
           SimpleDocument.where(:field2.defined => 'FaLse').count.should == 1
         end
       end
+
+      context 'when using an index' do
+        before { SimpleDocument.index :field1 }
+        before { NoBrainer.sync_indexes }
+        after  { NoBrainer.drop! }
+
+        it 'filters documents' do
+          SimpleDocument.where(:field1.defined => false).count.should == 1
+          SimpleDocument.where(:field1.defined => true).count.should == 2
+
+          SimpleDocument.where(:field1.defined => false).where_indexed?.should == false
+          SimpleDocument.where(:field1.defined => true).where_indexed?.should == true
+        end
+      end
     end
 
     context 'when using undefined' do
