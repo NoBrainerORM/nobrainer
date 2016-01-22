@@ -3,7 +3,7 @@ module NoBrainer::Document::PrimaryKey::Generator
 
   BASE_TABLE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".freeze
 
-  TIME_OFFSET = Time.parse('2014-01-01').to_i
+  TIME_OFFSET = Time.utc(2014, 01, 01).to_i
 
   # 30 bits timestamp with 1s resolution -> We overflow in year 2048. Good enough.
   # Math.log(Time.parse('2048-01-01').to_f - TIME_OFFSET)/Math.log(2) = 29.999
