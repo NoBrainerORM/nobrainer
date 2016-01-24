@@ -63,6 +63,36 @@ describe 'belongs_to' do
       post2.save
       comment.save
     end
+
+    context 'when that object is itself' do
+      before do
+        define_class :Foo do
+          include NoBrainer::Document
+
+          belongs_to :foo
+        end
+      end
+
+      context 'when using the object' do
+        it 'does persist the target' do
+          foo = Foo.new
+          foo.foo = foo
+          foo.save!
+          foo.reload
+          foo.foo.should == foo
+        end
+      end
+
+      context 'when using the foreign key' do
+        it 'does persist the target' do
+          foo = Foo.new
+          foo.foo__id_ = foo.pk_value
+          foo.save!
+          foo.reload
+          foo.foo.should == foo
+        end
+      end
+    end
   end
 
   context 'when the association is set with a wrong object type' do

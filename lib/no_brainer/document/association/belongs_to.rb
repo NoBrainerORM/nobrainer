@@ -54,9 +54,9 @@ class NoBrainer::Document::Association::BelongsTo
         if options[:required]
           owner_model.validates(target_name, :presence => options[:required])
         else
-          # Always validate the validity of the foreign_key if not nil.
+          # Always validate the foreign_key if not nil.
           owner_model.validates_each(foreign_key) do |doc, attr, value|
-            if !value.nil? && doc.read_attribute_for_validation(target_name).nil?
+            if !value.nil? && value != doc.pk_value && doc.read_attribute_for_validation(target_name).nil?
               doc.errors.add(attr, :invalid_foreign_key, :target_model => target_model, :primary_key => primary_key)
             end
           end
@@ -109,7 +109,7 @@ class NoBrainer::Document::Association::BelongsTo
   end
 
   def after_validation_callback
-    if loaded? && target && !target.persisted?
+    if loaded? && target && !target.persisted? && target != owner
       raise NoBrainer::Error::AssociationNotPersisted.new("#{target_name} must be saved first")
     end
   end
