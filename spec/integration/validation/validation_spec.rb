@@ -160,21 +160,40 @@ describe 'validations' do
     end
   end
 
-  context 'when using unique on the field' do
-    before { SimpleDocument.field :field1, :unique => true }
+  context 'when using uniqueness validation' do
+    shared_examples_for "validates" do
+      context 'with simple documents' do
+        before { SimpleDocument.field :field1, uniqueness_key => true }
 
-    it 'validates' do
-      SimpleDocument.new(:field1 => 123).save?.should == true
-      SimpleDocument.new(:field1 => 123).save?.should == false
+        it 'validates' do
+          SimpleDocument.new(:field1 => 123).save?.should == true
+          SimpleDocument.new(:field1 => 123).save?.should == false
+        end
+      end
+
+      context 'with a belongs_to' do
+        before { load_blog_models }
+        before { Comment.belongs_to :post, :uniq => true }
+
+        it 'validates' do
+          post = Post.create
+          c = Comment.new(:post => post)
+          c.valid?.should == true
+          c.save!
+          c = Comment.new(:post => post)
+          c.valid?.should == false
+        end
+      end
     end
-  end
 
-  context 'when using uniq on the field' do
-    before { SimpleDocument.field :field1, :uniq => true }
+    context "when using :uniq" do
+      let(:uniqueness_key) { :uniq }
+      it_behaves_like 'validates'
+    end
 
-    it 'validates' do
-      SimpleDocument.new(:field1 => 123).save?.should == true
-      SimpleDocument.new(:field1 => 123).save?.should == false
+    context "when using :unique" do
+      let(:uniqueness_key) { :unique }
+      it_behaves_like 'validates'
     end
   end
 

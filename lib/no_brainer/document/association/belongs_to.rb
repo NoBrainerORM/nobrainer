@@ -2,7 +2,8 @@ class NoBrainer::Document::Association::BelongsTo
   include NoBrainer::Document::Association::Core
 
   class Metadata
-    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_store_as, :index, :validates, :required]
+    VALID_OPTIONS = [:primary_key, :foreign_key, :class_name, :foreign_key_store_as,
+                     :index, :validates, :required, :uniq, :unique]
     include NoBrainer::Document::Association::Core::Metadata
     include NoBrainer::Document::Association::EagerLoader::Generic
 
@@ -50,6 +51,11 @@ class NoBrainer::Document::Association::BelongsTo
 
       unless options[:validates] == false
         owner_model.validates(target_name, options[:validates]) if options[:validates]
+
+        uniq = options[:uniq] || options[:unique]
+        if uniq
+          owner_model.validates(foreign_key, :uniqueness => uniq)
+        end
 
         if options[:required]
           owner_model.validates(target_name, :presence => options[:required])
