@@ -232,7 +232,7 @@ describe 'first_or_create' do
       end
     end
 
-    context 'when matching a uniqueness validator' do
+    context 'when matching a uniqueness validator with validations' do
       context 'when validations fail' do
         before { SimpleDocument.field :field2, :required => true }
 
@@ -248,6 +248,18 @@ describe 'first_or_create' do
               .to raise_error(NoBrainer::Error::DocumentInvalid)
           end
         end
+      end
+    end
+
+    context 'when matching a uniqueness validator with a belongs_to' do
+      before { load_blog_models }
+      before { Comment.belongs_to :post, :uniq => true }
+      let(:post) { Post.create }
+
+      it 'upserts with model instances as foreign keys' do
+        Comment.upsert(:post => post)
+        Comment.upsert(:post => post)
+        Comment.count.should == 1
       end
     end
   end

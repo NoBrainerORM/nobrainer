@@ -74,6 +74,15 @@ class NoBrainer::Document::Association::BelongsTo
       add_callback_for(:after_validation)
     end
 
+    def cast_attr(k, v)
+      return [k, v] if v.nil?
+      unless v.is_a?(target_model)
+        opts = { :model => owner_model, :attr_name => k, :type => target_model, :value => v }
+        raise NoBrainer::Error::InvalidType.new(opts)
+      end
+      [foreign_key, v.__send__(primary_key)]
+    end
+
     def eager_load_owner_key;  foreign_key; end
     def eager_load_target_key; primary_key; end
   end

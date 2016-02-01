@@ -21,6 +21,7 @@ module NoBrainer::Criteria::FirstOrCreate
 
   def _upsert(attrs, save_options)
     attrs = attrs.symbolize_keys
+    attrs = model.association_user_to_model_cast(attrs)
     unique_keys = get_model_unique_fields.detect { |keys| keys & attrs.keys == keys }
     return where(attrs.slice(*unique_keys)).__send__(:_first_or_create, attrs, save_options) if unique_keys
 
