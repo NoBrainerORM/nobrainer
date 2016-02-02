@@ -75,12 +75,13 @@ class NoBrainer::Document::Association::BelongsTo
     end
 
     def cast_attr(k, v)
-      return [k, v] if v.nil?
-      unless v.is_a?(target_model)
+      case v
+      when target_model then [foreign_key, v.__send__(primary_key)]
+      when nil          then [foreign_key, nil]
+      else
         opts = { :model => owner_model, :attr_name => k, :type => target_model, :value => v }
         raise NoBrainer::Error::InvalidType.new(opts)
       end
-      [foreign_key, v.__send__(primary_key)]
     end
 
     def eager_load_owner_key;  foreign_key; end

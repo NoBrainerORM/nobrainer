@@ -150,69 +150,57 @@ module NoBrainer::Criteria::Where
       raise "Incorrect use of `#{op}' and `#{key_modifier}'" if key_modifier != :scalar
     end
 
-    def association
-      return nil if key_path.size > 1
-      @association ||= [model.association_metadata[key_path.first]]
-      @association.first
-    end
-
     def cast_value(value)
       return value if casted_values
 
-      case association
-      when NoBrainer::Document::Association::BelongsTo::Metadata
-        target_model = association.target_model
-        unless value.is_a?(target_model)
-          opts = { :model => model, :attr_name => key_path.first, :type => target_model, :value => value }
-          raise NoBrainer::Error::InvalidType.new(opts)
-        end
-        value.pk_value
-      else
-        case op
-        when :defined, :undefined then NoBrainer::Boolean.nobrainer_cast_user_to_model(value)
-        when :intersects
-          raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
-          value
-        when :near
-          # TODO enforce key is a geo type
-          case value
-          when Hash
-            options = NoBrainer::Geo::Base.normalize_geo_options(value)
+      case op
+      when :defined, :undefined then NoBrainer::Boolean.nobrainer_cast_user_to_model(value)
+      when :intersects
+        raise "Use a geo object with `intersects`" unless value.is_a?(NoBrainer::Geo::Base)
+        value
+      when :near
+        # TODO enforce key is a geo type
+        case value
+        when Hash
+          options = NoBrainer::Geo::Base.normalize_geo_options(value)
 
-            options[:radius] = options.delete(:max_distance) if options[:max_distance]
-            options[:radius] = options.delete(:max_dist) if options[:max_dist]
-            options[:center] = options.delete(:point) if options[:point]
+          options[:radius] = options.delete(:max_distance) if options[:max_distance]
+          options[:radius] = options.delete(:max_dist) if options[:max_dist]
+          options[:center] = options.delete(:point) if options[:point]
 
-            unless options[:circle]
-              unless options[:center] && options[:radius]
-                raise "`near' takes something like {:center => P, :radius => d}"
-              end
-              { :circle => NoBrainer::Geo::Circle.new(options), :max_results => options[:max_results] }
+          unless options[:circle]
+            unless options[:center] && options[:radius]
+              raise "`near' takes something like {:center => P, :radius => d}"
             end
-          when NoBrainer::Geo::Circle then { :circle => value }
-          else raise "Incorrect use of `near': rvalue must be a hash or a circle"
+            { :circle => NoBrainer::Geo::Circle.new(options), :max_results => options[:max_results] }
           end
-        else
-          # 1) Box value in array if we have an any/all modifier
-          # 2) Box value in hash if we have a nested query.
-          box_value = key_modifier.in?([:any, :all]) || op == :include
-          value = [value] if box_value
-          value_hash = key_path.reverse.reduce(value) { |v,k| {k => v} }
-          value = model.cast_user_to_db_for(*value_hash.first)
-          value = key_path[1..-1].reduce(value) { |h,k| h[k] }
-          value = value.first if box_value
-          value
+        when NoBrainer::Geo::Circle then { :circle => value }
+        else raise "Incorrect use of `near': rvalue must be a hash or a circle"
         end
+      else
+        # 1) Box value in array if we have an any/all modifier
+        # 2) Box value in hash if we have a nested query.
+        box_value = key_modifier.in?([:any, :all]) || op == :include
+        value = [value] if box_value
+        k_v = key_path.reverse.reduce(value) { |v,k| {k => v} }.first
+        k_v = model.association_user_to_model_cast(*k_v)
+        value = model.cast_user_to_db_for(*k_v)
+        value = key_path[1..-1].reduce(value) { |h,k| h[k] }
+        value = value.first if box_value
+        value
       end
     end
 
-    def cast_key_path(key)
-      return key if casted_values
+    def cast_key_path(key_path)
+      return key_path if casted_values
 
-      case association
-      when NoBrainer::Document::Association::BelongsTo::Metadata then [association.foreign_key]
-      else model.ensure_valid_key!(key_path.first); key_path
+      if key_path.size == 1
+        k, _v = model.association_user_to_model_cast(key_path.first, nil)
+        key_path = [k]
       end
+
+      model.ensure_valid_key!(key_path.first)
+      key_path
     end
   end
 

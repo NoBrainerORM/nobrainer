@@ -20,8 +20,10 @@ module NoBrainer::Criteria::FirstOrCreate
   private
 
   def _upsert(attrs, save_options)
-    attrs = attrs.symbolize_keys
-    attrs = model.association_user_to_model_cast(attrs)
+    # Note: we don't do a full cast of user_to_cast because where() takes care
+    # of it. We just need to locate a suitable uniqueness validator, for which
+    # we just need to translate keys.
+    attrs = Hash[attrs.map { |k,v| model.association_user_to_model_cast(k.to_sym, v) }]
     unique_keys = get_model_unique_fields.detect { |keys| keys & attrs.keys == keys }
     return where(attrs.slice(*unique_keys)).__send__(:_first_or_create, attrs, save_options) if unique_keys
 
