@@ -60,6 +60,7 @@ module NoBrainer::Document::Dirty
       @_old_attributes[attr] = current_value.deep_dup
     end
   end
+  alias_method :attribute_will_change!, :attribute_may_change
 
   def _read_attribute(name)
     super.tap do |value|
