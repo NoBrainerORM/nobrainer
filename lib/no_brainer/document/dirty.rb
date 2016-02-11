@@ -61,6 +61,11 @@ module NoBrainer::Document::Dirty
     end
   end
 
+  def attribute_will_change!(*)
+    # Provided for comatibility. See issue #190
+    :not_implemented_in_no_brainer_see_issue_190
+  end
+
   def _read_attribute(name)
     super.tap do |value|
       # This take care of string/arrays/hashes that could change without going
