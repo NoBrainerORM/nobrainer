@@ -1,11 +1,18 @@
 module NoBrainer::Document::Callbacks
   extend ActiveSupport::Concern
 
+  def self.define_callbacks_options(options={})
+    if ActiveSupport::Callbacks.respond_to?(:halt_and_display_warning_on_return_false)
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = false
+    end
+    NoBrainer.rails5? ? options : options.merge(:terminator => proc { false })
+  end
+
   included do
     extend ActiveModel::Callbacks
 
-    define_model_callbacks :initialize, :create, :update, :save, :destroy, :terminator => proc { false }
-    define_model_callbacks :find, :only => [:after], :terminator => proc { false }
+    define_model_callbacks :initialize, :create, :update, :save, :destroy, NoBrainer::Document::Callbacks.define_callbacks_options
+    define_model_callbacks :find, NoBrainer::Document::Callbacks.define_callbacks_options(:only => [:after])
   end
 
   def initialize(*args, &block)
