@@ -284,4 +284,11 @@ describe 'order_by' do
       SimpleDocument.order_by(:field1 => :asc).first.field1.should == 1
     end
   end
+
+  context 'when using order()' do
+    it 'aliases to order_by()' do
+      SimpleDocument.order(:field1, :field2)
+        .map(&:field1).should == [1,1,2,2]
+    end
+  end
 end

@@ -24,6 +24,8 @@ module NoBrainer::Criteria::OrderBy
                               :reversed_ordering => false)
   end
 
+  alias_method :order, :order_by
+
   def without_ordering
     chain(:ordering_mode => :disabled)
   end
