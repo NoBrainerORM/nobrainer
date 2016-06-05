@@ -37,9 +37,12 @@ module NoBrainer::Generators
       (Dir['config/environments/*'] + ['config/application.rb']).each do |config_file|
         comment_lines(config_file, /active_record/)
       end
-      remove_file('config/database.yml')
-    end
 
+      (Dir['config/**/*active_record*.rb'] +
+       Dir['app/models/application_record.rb'] +
+       ['config/database.yml'])
+      .each { |f| remove_file(f) }
+    end
 
     def copy_initializer
       template('nobrainer.rb', 'config/initializers/nobrainer.rb')
