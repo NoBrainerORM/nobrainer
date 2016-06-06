@@ -10,7 +10,7 @@ class NoBrainer::Document::Index::MetaStore
 
   field :table_name,   :type => String, :required => true
   field :index_name,   :type => String, :required => true
-  field :rql_function, :type => String, :required => true
+  field :rql_function, :type => Text,   :required => true
 
   def rql_function=(value)
     super(JSON.dump(value))
