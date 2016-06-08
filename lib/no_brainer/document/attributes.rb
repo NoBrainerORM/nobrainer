@@ -70,6 +70,7 @@ module NoBrainer::Document::Attributes
   end
 
   def assign_attributes(attrs, options={})
+    attrs = attrs.to_h if !attrs.is_a?(Hash) && attrs.respond_to?(:to_h)
     raise ArgumentError, "To assign attributes, please pass a hash instead of `#{attrs.class}'" unless attrs.is_a?(Hash)
 
     if options[:pristine]
