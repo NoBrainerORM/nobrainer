@@ -119,9 +119,10 @@ module NoBrainer::Config
       db ||= "#{self.app_name}_#{self.environment}" if self.app_name && self.environment
       host = ENV['RETHINKDB_HOST'] || ENV['RDB_HOST'] || 'localhost'
       port = ENV['RETHINKDB_PORT'] || ENV['RDB_PORT']
-      auth = ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
+      user = ENV['RETHINKDB_USER'] || ENV['RDB_USER']
+      pass = ENV['RETHINKDB_PASSWORD'] || ENV['RDB_PASSWORD'] || ENV['RETHINKDB_AUTH'] || ENV['RDB_AUTH']
       url = ENV['RETHINKDB_URL'] || ENV['RDB_URL']
-      url ||= "rethinkdb://#{":#{auth}@" if auth}#{host}#{":#{port}" if port}/#{db}" if db
+      url ||= "rethinkdb://#{"#{user}:#{pass}@" if (user || pass)}#{host}#{":#{port}" if port}/#{db}" if db
       url
     end
 

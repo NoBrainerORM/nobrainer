@@ -18,7 +18,9 @@ class NoBrainer::Connection
           "Invalid URI. Expecting something like rethinkdb://host:port/database. Got #{uri}"
       end
 
-      { :auth_key => uri.password,
+      {
+        :user     => uri.user,
+        :password => uri.password,
         :host     => uri.host,
         :port     => uri.port || 28015,
         :db       => uri.path.gsub(/^\//, ''),

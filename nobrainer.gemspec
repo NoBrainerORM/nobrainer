@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = "ORM for RethinkDB"
   s.license     = "LGPLv3"
 
-  s.add_dependency "rethinkdb",         ">= 2.1.0"
+  s.add_dependency "rethinkdb",         ">= 2.3.0"
   s.add_dependency "activesupport",     ">= 4.1.0"
   s.add_dependency "activemodel",       ">= 4.1.0"
   s.add_dependency "middleware",        "~> 0.1.0"

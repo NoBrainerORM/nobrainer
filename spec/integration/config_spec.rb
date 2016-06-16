@@ -25,33 +25,50 @@ describe 'config' do
       ENV['RETHINKDB_HOST'] = nil
       ENV['RETHINKDB_PORT'] = nil
       ENV['RETHINKDB_AUTH'] = nil
+      ENV['RETHINKDB_USER'] = nil
+      ENV['RETHINKDB_PASSWORD'] = nil
       ENV['RETHINKDB_DB'] = nil
     end
 
-    it 'picks a default url' do
-      ENV['RETHINKDB_URL'] = 'rethinkdb://l/db'
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://l/db'
+    describe "URL settings based on env variables" do
+      before { env.each { |k,v| ENV[k] = v } }
+      before { NoBrainer::Config.configure { |c| c.reset! } }
+      subject { NoBrainer::Config.rethinkdb_urls.first }
 
-      ENV['RETHINKDB_URL'] = nil
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://localhost/some_app_env'
+      context 'no env (rails settings)' do
+        let(:env) { {} }
+        it { should == 'rethinkdb://localhost/some_app_env' }
+      end
 
-      ENV['RETHINKDB_HOST'] = 'host'
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://host/some_app_env'
+      context 'setting RETHINKDB_URL' do
+        let(:env) { { 'RETHINKDB_URL' => 'rethinkdb://l/db' } }
+        it { should == 'rethinkdb://l/db' }
+      end
 
-      ENV['RETHINKDB_PORT'] = '12345'
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://host:12345/some_app_env'
+      context 'setting RETHINKDB_HOST' do
+        let(:env) { { 'RETHINKDB_HOST' => 'host' } }
+        it { should == 'rethinkdb://host/some_app_env' }
+      end
 
-      ENV['RETHINKDB_AUTH'] = 'auth'
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://:auth@host:12345/some_app_env'
+      context 'setting RETHINKDB_PORT' do
+        let(:env) { { 'RETHINKDB_PORT' => '12345' } }
+        it { should == 'rethinkdb://localhost:12345/some_app_env' }
+      end
 
-      ENV['RETHINKDB_DB'] = 'hello'
-      NoBrainer::Config.configure { |c| c.reset! }
-      NoBrainer::Config.rethinkdb_urls.first.should == 'rethinkdb://:auth@host:12345/hello'
+      context 'setting RETHINKDB_AUTH' do
+        let(:env) { { 'RETHINKDB_AUTH' => 'auth' } }
+        it { should == 'rethinkdb://:auth@localhost/some_app_env' }
+      end
+
+      context 'setting RETHINKDB_USER and RETHINKDB_PASSWORD' do
+        let(:env) { { 'RETHINKDB_USER' => 'user', 'RETHINKDB_PASSWORD' => 'password' } }
+        it { should == 'rethinkdb://user:password@localhost/some_app_env' }
+      end
+
+      context 'setting RETHINKDB_DB' do
+        let(:env) { { 'RETHINKDB_DB' => 'hello' } }
+        it { should == 'rethinkdb://localhost/hello' }
+      end
     end
   end
 

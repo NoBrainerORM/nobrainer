@@ -13,9 +13,8 @@ NoBrainer.configure do |config|
   # The default is to use localhost, with a database name matching the
   # application name and the environment.
   # NoBrainer also reads environment variables when defined:
-  # * RETHINKDB_URL, RDB_URL
-  # * RETHINKDB_HOST, RETHINKDB_PORT, RETHINKDB_DB, RETHINKDB_AUTH
-  # * RDB_HOST, RDB_PORT, RDB_DB, RDB_AUTH
+  # * RDB_URL, RDB_USER, RDB_PASSWORD, RDB_HOST, RDB_PORT, RDB_DB
+  # * All the above, but with RETHINKDB instead of RDB
   # config.rethinkdb_urls = [config.default_rethinkdb_url]
 
   # ssl_options may be set to {:ca_certs => '/path/to/ca.crt'} to establish
