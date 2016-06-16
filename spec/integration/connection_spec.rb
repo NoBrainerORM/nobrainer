@@ -26,6 +26,22 @@ unless ENV['EM']
   end
 end
 
+describe 'NoBrainer::Connection.parse_uri' do
+  let(:connection) { NoBrainer::Connection.new }
+  let(:auth_key) { 'rethinkdb://:abcd@localhost:1234/db' }
+  let(:user) { 'rethinkdb://user:pass@localhost:1234/db' }
+
+  it 'parses token auth' do
+    connection = NoBrainer::Connection.new(auth_key)
+    expect(connection.parsed_uri[:auth_key]).to eq('abcd')
+  end
+
+  it 'parses user auth' do
+    connection = NoBrainer::Connection.new(user)
+    expect(connection.parsed_uri.slice(:user, :password).values).to eq(['user', 'pass'])
+  end
+end
+
 describe 'NoBrainer.run' do
   it 'works well' do
     NoBrainer.run { |r| r.expr(3) }.should == 3

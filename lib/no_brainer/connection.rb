@@ -18,11 +18,19 @@ class NoBrainer::Connection
           "Invalid URI. Expecting something like rethinkdb://host:port/database. Got #{uri}"
       end
 
-      { :auth_key => uri.password,
+      auth = {
         :host     => uri.host,
         :port     => uri.port || 28015,
-        :db       => uri.path.gsub(/^\//, ''),
-      }.tap { |result| raise "No database specified in #{uri}" unless result[:db].present? }
+        :db       => uri.path.gsub(/^\//, '')
+      }
+
+      if uri.user.present?
+        auth.merge! :user => uri.user, :password => uri.password
+      else
+        auth.merge! :auth_key => uri.password
+      end
+
+      auth.tap { |result| raise "No database specified in #{uri}" unless result[:db].present? }
     end
   end
 
