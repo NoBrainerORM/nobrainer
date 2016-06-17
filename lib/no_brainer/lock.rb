@@ -8,7 +8,7 @@ class NoBrainer::Lock
   # Since PKs are limited to 127 characters, we can't use the user's key as a PK
   # as it could be arbitrarily long.
   field :key_hash,       :type => String, :primary_key => true, :default => ->{ Digest::SHA1.base64digest(key.to_s) }
-  field :key,            :type => String
+  field :key,            :type => Text
   field :instance_token, :type => String, :default => ->{ get_new_instance_token }
   field :expires_at,     :type => Time
 
@@ -27,6 +27,7 @@ class NoBrainer::Lock
       @default_options = options.slice(:expire, :timeout)
       options.delete(:expire); options.delete(:timeout);
 
+      key = key.to_s if key.is_a?(Symbol)
       super(options.merge(:key => key))
       raise ArgumentError unless valid?
     end
