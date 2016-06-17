@@ -55,13 +55,13 @@ NoBrainer.configure do |config|
   # config.max_string_length = 255
 
   # user_timezone can be configured with :utc, :local, or :unchanged.
-  # When reading an attribute from a model which type is Time, the timezone
-  # of that time is translated according to this setting.
+  # When reading a Time attribute from a model, the timezone of that attribute
+  # is set according to the following setting.
   # config.user_timezone = :local
 
   # db_timezone can be configured with :utc, :local, or :unchanged.
-  # When writting to the database, the timezone of Time attributes are
-  # translated according to this setting.
+  # When writing a Time attribute into the database, the timezone of that
+  # attribute is set according to the following setting.
   # config.db_timezone = :utc
 
   # Default options used when compiling geo queries.
