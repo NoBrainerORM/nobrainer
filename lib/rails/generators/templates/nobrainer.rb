@@ -65,7 +65,7 @@ NoBrainer.configure do |config|
   # config.db_timezone = :utc
 
   # Default options used when compiling geo queries.
-  # config.geo_options => { :geo_system => 'WGS84', :unit => 'm' }
+  # config.geo_options = { :geo_system => 'WGS84', :unit => 'm' }
 
   # Configures which mechanism to use in order to perform non-racy uniqueness
   # validations. More about this behavior in the Distributed Locks section.
