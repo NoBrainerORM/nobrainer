@@ -83,57 +83,28 @@ describe 'config' do
     end
   end
 
-  context 'when configuring the in dev mode' do
-    it 'sets the the durability to soft' do
+  context 'when configuring the environement' do
+    it 'sets the the durability appropriatly' do
       NoBrainer.configure do |c|
         c.reset!
         c.app_name = :app
         c.environment = :development
       end
-      NoBrainer::Config.durability.should == :soft
+      NoBrainer::Config.run_options[:durability].should == :soft
 
       NoBrainer.configure do |c|
         c.environment = :test
       end
-      NoBrainer::Config.durability.should == :soft
+      NoBrainer::Config.run_options[:durability].should == :soft
 
       NoBrainer.configure do |c|
         c.environment = :other
       end
-      NoBrainer::Config.durability.should == :hard
-
-      NoBrainer.configure do |c|
-        c.environment = :test
-        c.durability = :hard
-      end
-      NoBrainer::Config.durability.should == :hard
-
-      NoBrainer.configure do |c|
-        c.environment = :test
-      end
-      NoBrainer::Config.durability.should == :hard
-
-      NoBrainer.configure do |c|
-        c.reset!
-        c.app_name = :app
-        c.environment = :test
-      end
-      NoBrainer::Config.durability.should == :soft
+      NoBrainer::Config.run_options[:durability].should == :hard
     end
   end
 
   context 'when configuring bad values' do
-    context 'with durability' do
-      it 'yells' do
-        expect do
-          NoBrainer.configure do |c|
-            c.reset!
-            c.durability = :blah
-          end
-        end.to raise_error(ArgumentError, "Invalid configuration for durability: blah. Valid values are: [:hard, :soft]")
-      end
-    end
-
     context 'with the url' do
       before { NoBrainer.logger.level = Logger::FATAL }
       it 'yells' do

@@ -10,7 +10,10 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
   end
 
   def self.current_run_options
-    Thread.current[:nobrainer_run_with] || {}
+    options = NoBrainer::Config.run_options
+    options = options.merge(:durability => NoBrainer::Config.durability) if NoBrainer::Config.durability
+    options = options.merge(Thread.current[:nobrainer_run_with]) if Thread.current[:nobrainer_run_with]
+    options
   end
 
   def self.run_with(options={}, &block)
@@ -29,17 +32,9 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
   end
 
   def call(env)
-    options = env[:options].symbolize_keys
-    options = self.class.current_run_options.merge(options)
-
-    if NoBrainer::Config.durability.to_s != 'hard'
-      options[:durability] ||= NoBrainer::Config.durability
-    end
-
-    options[:db] = options[:db].to_s if options[:db]
-    if options[:db].blank? || options[:db] == NoBrainer.default_db
-      options.delete(:db)
-    end
+    options = self.class.current_run_options
+    options = options.merge(env[:options].symbolize_keys)
+    options = prune_default_run_options(options)
 
     env[:criteria] = options.delete(:criteria)
 
@@ -51,5 +46,15 @@ class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
 
     env[:options] = options
     @runner.call(env)
+  end
+
+  def prune_default_run_options(options)
+    options = options.dup
+    options.delete(:durability) if options[:durability].to_s == 'hard'
+
+    options[:db] = options[:db].to_s if options[:db]
+    options.delete(:db) if options[:db].blank? || options[:db] == NoBrainer.default_db
+
+    options
   end
 end

@@ -47,6 +47,6 @@ class NoBrainer::Connection
   end
 
   def current_db
-    NoBrainer.current_run_options.try(:[], :db) || default_db
+    NoBrainer.current_run_options[:db] || default_db
   end
 end

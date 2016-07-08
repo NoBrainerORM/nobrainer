@@ -35,7 +35,7 @@ NoBrainer::Document::PrimaryKey.__send__(:const_set,    :DEFAULT_PK_NAME, :_id_)
 nobrainer_conf = proc do |c|
   c.reset!
   c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
-  c.durability = :soft
+  c.environment = :test
   c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
   c.driver = :em if ENV['EM']
 end

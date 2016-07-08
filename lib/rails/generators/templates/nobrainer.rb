@@ -42,9 +42,10 @@ NoBrainer.configure do |config|
   # You can turn off the warning if you want to use both.
   # config.warn_on_active_record = true
 
-  # Configures the durability for database writes.
-  # The default is :soft for development or test environment, otherwise :hard.
-  # config.durability = config.default_durability
+  # Configures the run options passed to r.run() when executing queries.
+  # The options are listed in the RethinkDB run() documentation.
+  # The default durability is :soft for development or test environments, otherwise :hard.
+  # config.run_options = { :durability => config.default_durability }
 
   # Configures the default table configuration options. These values are
   # reflected to the database when running `rake nobrainer:sync_schema'.
