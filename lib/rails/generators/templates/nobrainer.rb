@@ -89,7 +89,7 @@ NoBrainer.configure do |config|
   # generated without conflicts.
   # config.machine_id = config.default_machine_id
 
-  # Criteria cache elements. For example, the result of a has_many association
+  # Criteria cache documents. For example, the result of a has_many association
   # is cached. The per criteria cache is disabled if it grows too big to avoid
   # out of memory issues.
   # config.criteria_cache_max_entries = 10_000
