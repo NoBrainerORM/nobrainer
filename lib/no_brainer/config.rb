@@ -139,7 +139,8 @@ module NoBrainer::Config
     end
 
     def default_logger
-      defined?(Rails.logger) ? Rails.logger : Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
+      (Rails.logger if defined?(Rails.logger)) ||
+         Logger.new(STDERR).tap { |l| l.level = Logger::WARN }
     end
 
     def default_durability
