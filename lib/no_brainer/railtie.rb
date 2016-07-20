@@ -26,8 +26,10 @@ class NoBrainer::Railtie < Rails::Railtie
   config.after_initialize do
     NoBrainer::Config.configure unless NoBrainer::Config.configured?
 
-    (NoBrainer.rails5? ? ActiveSupport::Reloader : ActionDispatch::Reloader).to_prepare do
-      NoBrainer::Loader.cleanup
+    if NoBrainer.rails5?
+      ActiveSupport::Reloader.before_class_unload { NoBrainer::Loader.cleanup }
+    else
+      ActionDispatch::Reloader.to_prepare { NoBrainer::Loader.cleanup }
     end
   end
 
