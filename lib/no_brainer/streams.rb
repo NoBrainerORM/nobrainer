@@ -8,6 +8,19 @@ module NoBrainer::Streams
   private
 
   def stream_from(query, options = {}, callback = nil)
+    if query.respond_to? :to_rql
+      nobrainer_stream_from(query, options, callback)
+    else
+      super(query, options, callback)
+    end
+  end
+
+  def stop_all_streams
+    nobrainer_stop_all_streams
+    super
+  end
+
+  def nobrainer_stream_from(query, options = {}, callback = nil)
     callback ||= -> (changes) do
       transmit changes, via: "streamed from #{query.inspect}"
     end
@@ -15,10 +28,10 @@ module NoBrainer::Streams
     # defer_subscription_confirmation!
     connection = NoBrainer::Streams::streams_connection
     cursor = query.to_rql.changes(options).async_run(connection, ConcurrentAsyncHandler, &callback)
-    cursors << cursor
+    nobrainer_cursors << cursor
   end
 
-  def stop_all_streams
+  def nobrainer_stop_all_streams
     cursors.each do |cursor|
       begin
         logger.info "Closing cursor: #{cursor.inspect}"
@@ -29,8 +42,8 @@ module NoBrainer::Streams
     end
   end
   
-  def cursors
-    @_cursors ||= []
+  def nobrainer_cursors
+    @_nobrainer_cursors ||= []
   end
 
   def self.streams_connection
