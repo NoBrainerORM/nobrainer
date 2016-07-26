@@ -7,14 +7,15 @@ describe 'update' do
 
   context 'when passing a hash of attributes' do
     it 'updates documents' do
-      SimpleDocument.update_all(:field1 => 2)['replaced'].should == 2
+      SimpleDocument.update_all { |doc| doc.without(:field2).merge(:field1 => 2) }['replaced'].should == 2
       SimpleDocument.where(:field1 => 2).count.should == 2
+      SimpleDocument.where(:field2.defined => true).count.should == 2
     end
 
     it 'replaces documents' do
-      doc = SimpleDocument.first
-      SimpleDocument.all.limit(1).replace_all(doc.attributes.merge('field1' => 2))['replaced'].should == 1
-      SimpleDocument.where(:field1 => 2).count.should == 1
+      SimpleDocument.replace_all { |doc| doc.without(:field2).merge(:field1 => 2) }['replaced'].should == 2
+      SimpleDocument.where(:field1 => 2).count.should == 2
+      SimpleDocument.where(:field2.defined => true).count.should == 0
     end
   end
 
