@@ -97,13 +97,16 @@ class NoBrainer::Document::Association::HasMany
     ->(target){ set_inverses_of([target]) if target.is_a?(NoBrainer::Document) }
   end
 
+  def dependent_criteria
+    target_criteria.unscoped
+  end
+
   def before_destroy_callback
-    criteria = target_criteria.unscoped.without_cache
     case metadata.options[:dependent]
-    when :destroy  then criteria.destroy_all
-    when :delete   then criteria.delete_all
-    when :nullify  then criteria.update_all(foreign_key => nil)
-    when :restrict then raise NoBrainer::Error::ChildrenExist unless criteria.count.zero?
+    when :destroy  then dependent_criteria.destroy_all
+    when :delete   then dependent_criteria.delete_all
+    when :nullify  then dependent_criteria.update_all(foreign_key => nil)
+    when :restrict then raise NoBrainer::Error::ChildrenExist unless dependent_criteria.empty?
     end
   end
 end
