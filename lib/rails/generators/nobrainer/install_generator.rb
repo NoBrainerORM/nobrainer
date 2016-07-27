@@ -34,7 +34,9 @@ module NoBrainer::Generators
     end
 
     def remove_active_record
-      (Dir['config/environments/*'] + ['config/application.rb']).each do |config_file|
+      (Dir['config/environments/*'] +
+       Dir['config/initializers/*'] +
+       ['config/application.rb']).each do |config_file|
         comment_lines(config_file, /active_record/)
       end
 
