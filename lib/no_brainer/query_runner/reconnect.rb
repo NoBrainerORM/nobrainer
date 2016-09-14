@@ -16,7 +16,8 @@ class NoBrainer::QueryRunner::Reconnect < NoBrainer::QueryRunner::Middleware
     when RethinkDB::RqlError
       e.message =~ /lost contact/ ||
       e.message =~ /(P|p)rimary .* not available/||
-      e.message =~ /Connection.*closed/
+      e.message =~ /Connection.*closed/ ||
+      e.message =~ /Connection.*refused/
     else
       false
     end
