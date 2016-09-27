@@ -19,8 +19,8 @@ class NoBrainer::Connection
       end
 
       {
-        :user     => uri.user,
-        :password => uri.password,
+        :user     => uri.user && URI.decode(uri.user),
+        :password => uri.password && URI.decode(uri.password),
         :host     => uri.host,
         :port     => uri.port || 28015,
         :db       => uri.path.gsub(/^\//, ''),
@@ -29,7 +29,7 @@ class NoBrainer::Connection
   end
 
   def uri
-    "rethinkdb://#{'****@' if parsed_uri[:auth_key]}#{parsed_uri[:host]}:#{parsed_uri[:port]}/#{parsed_uri[:db]}"
+    "rethinkdb://#{'****@' if parsed_uri[:password]}#{parsed_uri[:host]}:#{parsed_uri[:port]}/#{parsed_uri[:db]}"
   end
 
   def raw
