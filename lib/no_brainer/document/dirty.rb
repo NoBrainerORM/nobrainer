@@ -60,6 +60,7 @@ module NoBrainer::Document::Dirty
       @_old_attributes[attr] = current_value.deep_dup
     end
   end
+  alias_method :attribute_will_change!, :attribute_may_change
 
   def attribute_will_change!(*)
     # Provided for comatibility. See issue #190
