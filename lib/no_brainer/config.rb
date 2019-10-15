@@ -12,7 +12,7 @@ module NoBrainer::Config
     :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
     :durability             => { :default => ->{ nil } }, # legacy
     :table_options          => { :default => ->{ {:shards => 1, :replicas => 1, :write_acks => :majority} },
-                                 :valid_keys => [:shards, :replicas, :primary_replica_tag, :write_acks, :durability] },
+                                 :valid_keys => [:durability, :shards, :replicas, :primary_replica_tag, :nonvoting_replica_tags, :write_acks] },
     :run_options            => { :default => ->{ {:durability => default_durability} } },
     :max_string_length      => { :default => ->{ 255 } },
     :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },

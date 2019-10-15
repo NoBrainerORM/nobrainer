@@ -6,7 +6,7 @@ module NoBrainer::Document::TableConfig
 
   autoload :Synchronizer
 
-  VALID_TABLE_CONFIG_OPTIONS = [:name, :durability, :shards, :replicas, :primary_replica_tag, :write_acks]
+  VALID_TABLE_CONFIG_OPTIONS = [:name, :durability, :shards, :replicas, :primary_replica_tag, :nonvoting_replica_tags, :write_acks]
 
   included do
     cattr_accessor :table_config_options, :instance_accessor => false
@@ -78,7 +78,7 @@ module NoBrainer::Document::TableConfig
     def sync_table_config(options={})
       c = table_create_options
       table_config.update!(c.slice(:durability, :primary_key, :write_acks))
-      NoBrainer.run { rql_table.reconfigure(c.slice(:shards, :replicas, :primary_replica_tag)) }
+      NoBrainer.run { rql_table.reconfigure(c.slice(:shards, :replicas, :primary_replica_tag, :nonvoting_replica_tags)) }
       true
     end
 

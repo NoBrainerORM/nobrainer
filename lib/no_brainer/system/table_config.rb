@@ -7,4 +7,5 @@ class NoBrainer::System::TableConfig
   field :primary_key
   field :shards
   field :write_acks
+  field :indexes
 end
