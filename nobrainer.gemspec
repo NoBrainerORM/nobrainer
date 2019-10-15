@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
 
   s.files        = Dir["lib/**/*"] + ['README.md'] + ['LICENSE']
   s.require_path = 'lib'
-  s.has_rdoc     = false
 
   s.required_ruby_version = '>= 1.9.0'
 end
