@@ -34,6 +34,16 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
       r.table_create(table_name, create_options.reject { |k,_| k.in? [:name, :write_acks] })
     end
 
+    # Prevent duplicate table errors on a cluster.
+    # Workaround from https://github.com/rethinkdb/rethinkdb/issues/4898#issuecomment-270267740
+    NoBrainer.run(:db => 'rethinkdb') do |r|
+      r.table('table_config')
+       .filter({db: db_name, name: table_name})
+       .order_by('id')
+       .slice(1)
+       .delete
+    end
+
     if create_options[:write_acks] && create_options[:write_acks] != 'single'
       NoBrainer.run(:db => db_name) do |r|
         r.table(table_name).config().update(:write_acks => create_options[:write_acks])
