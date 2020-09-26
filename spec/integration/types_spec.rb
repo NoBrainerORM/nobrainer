@@ -746,6 +746,35 @@ describe 'types' do
       end
     end
   end
+
+  context 'when using a TypedArray' do
+    let(:type) { SimpleDocument::Array.of(Date) }
+
+    it 'type checks and casts array elements' do
+      date_strs = %w(2020-09-21 2020-09-22 2020-09-23)
+      dates = date_strs.map { |s|  Date.parse(s) }
+
+      doc.field1 = dates
+      doc.field1.should == dates
+      doc.valid?.should == true
+
+      doc.field1 = date_strs
+      doc.field1.should == dates
+      doc.valid?.should == true
+
+      doc.field1 = ["2014-06-26T15:34:12-02:00"]
+      doc.field1.should == ["2014-06-26T15:34:12-02:00"]
+      doc.valid?.should == false
+
+      doc.field1 = dates
+      doc.save
+      doc.reload
+      doc.field1.should == dates
+
+      SimpleDocument.where(:field1 => dates).count.should == 1
+      SimpleDocument.where(:field1.any.eq => dates.first).count.should == 1
+    end
+  end
 end
 
 describe 'types' do
