@@ -62,6 +62,11 @@ module NoBrainer::Document::Types
     end
 
     def field(attr, options={})
+      if (type = options[:type]).is_a?(::Array)
+        raise ArgumentError, "Expected Array type to have single element, got #{types.inspect}" unless type.length == 1
+        options[:type] = NoBrainer::TypedArray.of(type.first)
+      end
+
       super
 
       type = options[:type]

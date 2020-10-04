@@ -1,17 +1,36 @@
-require 'no_brainer/document'
 require 'active_support/core_ext/array/wrap'
 
 module NoBrainer
   class Array
-    # delegate casting methods to each array element, if defined
-    %i(nobrainer_cast_user_to_model nobrainer_cast_model_to_db nobrainer_cast_db_to_model).each do |method|
-      redefine_singleton_method(method) do |values|
-        ::Array.wrap(values).map do |value|
-          if value.class.respond_to?(method)
-            value.class.__send__(method, value)
-          else
-            value
-          end
+    # delegate cast to each array element
+    def self.nobrainer_cast_user_to_model(values)
+      ::Array.wrap(values).map do |value|
+        if value.class.respond_to?(:nobrainer_cast_user_to_model)
+          value.class.nobrainer_cast_user_to_model(value)
+        else
+          value
+        end
+      end
+    end
+
+    # delegate cast to each array element
+    def self.nobrainer_cast_model_to_db(values)
+      ::Array.wrap(values).map do |value|
+        if value.class.respond_to?(:nobrainer_cast_model_to_db)
+          value.class.nobrainer_cast_model_to_db(value)
+        else
+          value
+        end
+      end
+    end
+
+    # delegate cast to each array element
+    def self.nobrainer_cast_db_to_model(values)
+      ::Array.wrap(values).map do |value|
+        if value.class.respond_to?(:nobrainer_cast_db_to_model)
+          value.class.nobrainer_cast_db_to_model(method, value)
+        else
+          value
         end
       end
     end
@@ -23,31 +42,12 @@ module NoBrainer
   end
 
   class TypedArray < ::Array
-    def self.of(object_type = nil, &object_type_proc)
-      object_type ||= object_type_proc
-      unless object_type
-        raise ArgumentError, "Expected either Object or block"
-      end
-
-      array_type = ::Class.new(TypedArray) do
-        define_singleton_method(:object_type,
-          if object_type.respond_to?(:call)
-            # wait to resolve object type until first use
-            ->{ @object_type ||= resolve_object_type(object_type) }
-          else
-            object_type = resolve_object_type(object_type)
-            ->{ object_type }
-          end
-        )
+    def self.of(object_type)
+      NoBrainer::Document::Types.load_type_extensions(object_type)
+      ::Class.new(TypedArray) do
+        define_singleton_method(:object_type) { object_type }
       end
     end
-
-    def self.resolve_object_type(type)
-      type = type.call  if type.respond_to?(:call)
-      NoBrainer::Document::Types.load_type_extensions(type)
-      type
-    end
-    private_class_method :resolve_object_type
 
     def self.name
       str = String.new "Array"

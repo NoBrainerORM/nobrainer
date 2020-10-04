@@ -747,8 +747,22 @@ describe 'types' do
     end
   end
 
-  context 'when using a TypedArray' do
+  context 'when using the Array literal shortcut' do
+    let(:type) { [Date] }
+    it 'uses a TypedArray' do
+      expect(SimpleDocument.fields[:field1][:type]).to be <= NoBrainer::TypedArray
+    end
+  end
+
+  context 'when using the Array.of shortcut' do
     let(:type) { SimpleDocument::Array.of(Date) }
+    it 'uses a TypedArray' do
+      expect(SimpleDocument.fields[:field1][:type]).to be <= NoBrainer::TypedArray
+    end
+  end
+
+  context 'when using a TypedArray' do
+    let(:type) { NoBrainer::TypedArray.of(Date) }
 
     it 'type checks and casts array elements' do
       date_strs = %w(2020-09-21 2020-09-22 2020-09-23)
