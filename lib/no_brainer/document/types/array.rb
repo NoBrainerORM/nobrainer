@@ -1,7 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 
 module NoBrainer
-  class Array
+  class Array < ::Array
     # delegate cast to each array element
     def self.nobrainer_cast_user_to_model(values)
       ::Array.wrap(values).map do |value|
@@ -41,7 +41,7 @@ module NoBrainer
     end
   end
 
-  class TypedArray < ::Array
+  class TypedArray < Array
     def self.of(object_type)
       NoBrainer::Document::Types.load_type_extensions(object_type)
       ::Class.new(TypedArray) do
