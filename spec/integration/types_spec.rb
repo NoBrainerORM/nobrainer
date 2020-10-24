@@ -789,6 +789,20 @@ describe 'types' do
       SimpleDocument.where(:field1.any.eq => dates.first).count.should == 1
     end
   end
+
+  context 'when using a TypedArray (allow_nil)' do
+    let(:type) { NoBrainer::TypedArray.of(Date, allow_nil: true) }
+
+    it 'type checks array elmeents' do
+      dates = %w(2020-09-21 2020-09-22 2020-09-23).map { |s|  Date.parse(s) }
+
+      doc.field1 = dates
+      doc.valid?.should == true
+
+      doc.field1 = dates + [nil]
+      doc.valid?.should == false
+    end
+  end
 end
 
 describe 'types' do

@@ -36,16 +36,17 @@ module NoBrainer
     end
 
     # convenience method to create a TypedArray
-    def self.of(object_type = nil, &object_type_proc)
-      NoBrainer::TypedArray.of(object_type, &object_type_proc)
+    def self.of(object_type = nil, **options)
+      NoBrainer::TypedArray.of(object_type, **options)
     end
   end
 
   class TypedArray < Array
-    def self.of(object_type)
+    def self.of(object_type, allow_nil: false)
       NoBrainer::Document::Types.load_type_extensions(object_type)
       ::Class.new(TypedArray) do
         define_singleton_method(:object_type) { object_type }
+        define_singleton_method(:allow_nil?) { allow_nil }
       end
     end
 
@@ -60,7 +61,7 @@ module NoBrainer
       cast_type = object_type.respond_to?(:nobrainer_cast_user_to_model) && object_type
       values = ::Array.wrap(values).map do |value|
         value = cast_type.nobrainer_cast_user_to_model(value)  if cast_type
-        unless value.is_a?(object_type)
+        unless (value.nil? && allow_nil?) || value.is_a?(object_type)
           raise NoBrainer::Error::InvalidType, type: object_type.name, value: value
         end
         value
