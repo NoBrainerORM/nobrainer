@@ -16,7 +16,8 @@ module NoBrainer
   # Code that is loaded through the DSL of NoBrainer should not be eager loaded.
   autoload :Document, :IndexManager, :Loader, :Fork, :Geo, :SymbolDecoration
   eager_autoload :Config, :Connection, :ConnectionManager, :Error,
-                 :QueryRunner, :Criteria, :RQL, :Lock, :ReentrantLock, :Profiler, :System
+                 :QueryRunner, :Criteria, :RQL, :Lock, :ReentrantLock, :Profiler,
+                 :System, :Migrator, :Migration
 
   class << self
     delegate :connection, :disconnect, :to => 'NoBrainer::ConnectionManager'
