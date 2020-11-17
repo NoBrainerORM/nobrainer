@@ -19,8 +19,8 @@ class NoBrainer::Connection
       end
 
       {
-        :user     => uri.user && URI.decode(uri.user),
-        :password => uri.password && URI.decode(uri.password),
+        :user     => uri.user && CGI.unescape(uri.user),
+        :password => uri.password && CGI.unescape(uri.password),
         :host     => uri.host,
         :port     => uri.port || 28015,
         :db       => uri.path.gsub(/^\//, ''),

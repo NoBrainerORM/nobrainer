@@ -1,24 +1,25 @@
 language: ruby
+os: linux
+dist: xenial
 rvm:
   - 2.2
   # - jruby-9
   # - rbx-2
 before_install:
-  - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-  - wget -qO- http://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
+  - source /etc/lsb-release && echo "deb https://download.rethinkdb.com/repository/ubuntu-$DISTRIB_CODENAME $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
+  - wget -qO- https://download.rethinkdb.com/repository/raw/pubkey.gpg | sudo apt-key add -
   - sudo apt-get update -q
   - sudo apt-get install rethinkdb
   - sudo cp /etc/rethinkdb/default.conf.sample /etc/rethinkdb/instances.d/instance1.conf
   - sudo service rethinkdb restart
   - gem update bundler
-script: bundle exec rake test
 notifications:
   email:
     on_success: never
     on_failure: change
 bundler_args: --without development
 script: bundle exec rspec spec
-matrix:
+jobs:
   include:
     - rvm: 2.2
       env: EM=1
@@ -33,3 +34,5 @@ matrix:
     - rvm: 2.6.0
       gemfile: gemfiles/rails6.gemfile
       env: EM=1
+    - rvm: 2.7.2
+      gemfile: gemfiles/rails6.gemfile
