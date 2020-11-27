@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'active_support/time'
+
 describe 'where' do
   before { load_simple_document }
 
@@ -29,6 +31,7 @@ describe 'where' do
     it 'raises' do
       expect { SimpleDocument.where("xxx") }.to raise_error(/Invalid/)
       expect { SimpleDocument.where(:xxx.eq(1,2)) }.to raise_error(/Invalid/)
+      expect { SimpleDocument.where(:xxx.eq(1,2,3)) }.to raise_error(/Invalid/)
       expect { SimpleDocument.where(123 => 456) }.to raise_error(/Invalid/)
     end
   end
@@ -311,6 +314,22 @@ describe 'complex where queries' do
       SimpleDocument.where(:field1.lt  => time + 7).count.should == 7
       SimpleDocument.where(:field1.gte => time.utc + 7).count.should == 3
       SimpleDocument.where(:field1.lt  => time.utc + 7).count.should == 7
+      SimpleDocument.where(:field1.during(time, time + 7)).count.should == 7
+    end
+  end
+
+  context 'when using TimeWithZone' do
+    before do
+      Time.zone = 'Eastern Time (US & Canada)'
+      SimpleDocument.field :field1, :type => Time
+      10.times { |i| SimpleDocument.create(:field1 => time + i) }
+    end
+
+    let(:time) { Time.zone.now }
+
+    it 'during' do
+      SimpleDocument.where(:field1.during(Time.zone.now - 1, Time.zone.now + 10)).count.should == 10
+      SimpleDocument.where(:field1.during(5.seconds.since, 8.seconds.since)).count.should == 3
     end
   end
 

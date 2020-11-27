@@ -104,6 +104,7 @@ module NoBrainer::Criteria::Where
         when :between then [key_modifier, op, (cast_value(value.min)..cast_value(value.max))]
         when :include then ensure_scalar_for(op); [:any, :eq, cast_value(value)]
         when :defined, :undefined then ensure_scalar_for(op); [key_modifier, op, cast_value(value)]
+        when :during then [key_modifier, op, [cast_value(value.first), cast_value(value.last)]]
         else [key_modifier, op, cast_value(value)]
       end
       BinaryOperator.new(new_key_path, new_key_modifier, new_op, new_value, model, true)
@@ -132,6 +133,7 @@ module NoBrainer::Criteria::Where
       when :between    then (lvalue >= value.min) & (lvalue <= value.max)
       when :in         then RethinkDB::RQL.new.expr(value).contains(lvalue)
       when :intersects then lvalue.intersects(value.to_rql)
+      when :during     then lvalue.during(value.first, value.last)
       when :near
         # XXX options[:max_results] is not used, seems to be a workaround of rethinkdb index implementation.
         circle = value[:circle]
@@ -244,6 +246,7 @@ module NoBrainer::Criteria::Where
     when Symbol::Decoration
       case clause.args.size
       when 1 then parse_clause_stub(clause, clause.args.first, options)
+      when 2 then parse_clause_stub(clause, clause.args, options)
       else raise "Invalid argument: #{clause}"
       end
     else raise "Invalid clause: #{clause}"
@@ -263,6 +266,11 @@ module NoBrainer::Criteria::Where
       else instantiate_binary_op(key.to_sym, :eq, value, options)
       end
     when Symbol::Decoration then
+      # The :eq operator can have only one arg
+      if key.decorator == :eq && value.is_a?(Array) && value.size > 1
+        raise "Invalid key: #{key}"
+      end
+
       case key.decorator
       when :any, :all, :not then instantiate_binary_op(key, :eq, value, options)
       when :gte then instantiate_binary_op(key.symbol, :ge, value, options)
