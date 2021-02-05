@@ -1,6 +1,9 @@
 module NoBrainer::Document::Types
   extend ActiveSupport::Concern
 
+  mattr_accessor :loaded_extensions
+  self.loaded_extensions = Set.new
+
   included { before_validation :add_type_errors }
 
   def add_type_errors
@@ -111,8 +114,6 @@ module NoBrainer::Document::Types
   end
 
   class << self
-    mattr_accessor :loaded_extensions
-    self.loaded_extensions = Set.new
     def load_type_extensions(model)
       unless loaded_extensions.include?(model)
         begin
