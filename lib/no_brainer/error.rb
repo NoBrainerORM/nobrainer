@@ -14,6 +14,7 @@ module NoBrainer::Error
   class LockInvalidOp           < RuntimeError; end
   class LockUnavailable         < RuntimeError; end
   class InvalidPolymorphicType  < RuntimeError; end
+  class MigrationFailure        < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance

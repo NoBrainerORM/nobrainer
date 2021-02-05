@@ -1,3 +1,9 @@
+# frozen_string_literal: true
+
+def sorted_migration_script_pathes
+  Dir.glob(Rails.root.join('db', 'migrate', '*.rb')).sort
+end
+
 namespace :nobrainer do
   desc 'Drop the database'
   task :drop => :environment do
@@ -37,5 +43,22 @@ namespace :nobrainer do
   task :reset => [:drop, :sync_schema_quiet, :seed]
 
   task :create => [:sync_schema]
-  task :migrate => [:sync_schema]
+
+  desc 'Run migration scripts'
+  task :migrate => :environment do
+    NoBrainer.sync_schema
+
+    sorted_migration_script_pathes.each do |script|
+      migrator = NoBrainer::Migrator.new(script)
+      migrator.migrate
+    end
+  end
+
+  desc 'Rollback the last migration script'
+  task :rollback => :environment do
+    sorted_migration_script_pathes.reverse.each do |script|
+      migrator = NoBrainer::Migrator.new(script)
+      break if migrator.rollback
+    end
+  end
 end

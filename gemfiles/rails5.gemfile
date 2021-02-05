@@ -8,6 +8,8 @@ gem 'eventmachine' if ENV['EM']
 gem "activesupport",     "< 6"
 gem "activemodel",       "< 6"
 
+gem 'generator_spec'
+
 group :development do
   gem 'pry'
   gem 'simplecov', :require => false
