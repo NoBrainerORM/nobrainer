@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 gemspec
 
+gem 'eventmachine' if ENV['EM']
 gem 'rspec', '~> 3.0'
 gem 'timecop'
-gem 'eventmachine' if ENV['EM']
 
-gem "activesupport",     "< 6"
-gem "activemodel",       "< 6"
+gem 'activemodel', '< 6'
+gem 'activesupport', '< 6'
 
 group :development do
   gem 'pry'
-  gem 'simplecov', :require => false
+  gem 'rake'
+  gem 'simplecov', require: false
 end

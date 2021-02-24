@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  rethinkdb:
+    extends:
+      file: ./docker-compose.yml
+      service: rethinkdb
+
+  gem:
+    build: .
+    image: nobrainerorm/nobrainer:latest
+    depends_on:
+      - rethinkdb
+    environment:
+      - RUBY_ENV=test
+      # The nobrainer Rspec config expects the DB_HOST variable
+      # (see spec/spec_helper.rb), that's why we aren't setting the RDB_HOST env
+      # variable here.
+      - DB_HOST=rethinkdb
