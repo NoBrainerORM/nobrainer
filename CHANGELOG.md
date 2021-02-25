@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Dockerfile, docker-compose and Earthfile
+- Test Ruby 3 + Rails 6 on Travis CI
 
 ## [0.34.1] - 2021-02-18
 ### Fixed
