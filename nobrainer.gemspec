@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'rethinkdb', '>= 2.3.0'
   s.add_dependency 'symbol_decoration', '~> 1.1'
 
-  s.files        = Dir['lib/**/*'] + ['README.md'] + ['LICENSE']
+  s.files        = Dir['lib/**/*'] + ['README.md'] + ['LICENSE'] + ['CHANGELOG.md']
   s.require_path = 'lib'
 
   s.required_ruby_version = '>= 1.9.0'
