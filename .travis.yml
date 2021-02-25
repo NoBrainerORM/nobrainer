@@ -1,38 +1,44 @@
-language: ruby
 os: linux
 dist: xenial
-rvm:
-  - 2.2
-  # - jruby-9
-  # - rbx-2
+
 before_install:
-  - source /etc/lsb-release && echo "deb https://download.rethinkdb.com/repository/ubuntu-$DISTRIB_CODENAME $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-  - wget -qO- https://download.rethinkdb.com/repository/raw/pubkey.gpg | sudo apt-key add -
-  - sudo apt-get update -q
-  - sudo apt-get install rethinkdb
-  - sudo cp /etc/rethinkdb/default.conf.sample /etc/rethinkdb/instances.d/instance1.conf
-  - sudo service rethinkdb restart
-  - gem update bundler
+  - sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/download/v0.5.2/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'
+  - rm -f Gemfile Gemfile.lock
+
 notifications:
   email:
     on_success: never
     on_failure: change
-bundler_args: --without development
-script: bundle exec rspec spec
+
+script: earthly --build-arg EARTHLY_RUBY_VERSION=$EARTHLY_RUBY_VERSION --build-arg EARTHLY_RAILS_VERSION=$EARTHLY_RAILS_VERSION --allow-privileged +rspec
+
 jobs:
   include:
-    - rvm: 2.2
-      env: EM=1
-      gemfile: gemfiles/rails4.gemfile
-    - rvm: 2.3.0
-      gemfile: gemfiles/rails5.gemfile
-    - rvm: 2.3.0
-      gemfile: gemfiles/rails5.gemfile
-      env: EM=1
-    - rvm: 2.6.0
-      gemfile: gemfiles/rails6.gemfile
-    - rvm: 2.6.0
-      gemfile: gemfiles/rails6.gemfile
-      env: EM=1
-    - rvm: 2.7.2
-      gemfile: gemfiles/rails6.gemfile
+    - env:
+      - EM=1
+      - EARTHLY_RAILS_VERSION=4
+      - EARTHLY_RUBY_VERSION=2.2
+    - env:
+      - EARTHLY_RAILS_VERSION=5
+      - EARTHLY_RUBY_VERSION=2.3
+    - env:
+      - EM=1
+      - EARTHLY_RAILS_VERSION=5
+      - EARTHLY_RUBY_VERSION=2.3
+    - env:
+      - EARTHLY_RAILS_VERSION=6
+      - EARTHLY_RUBY_VERSION=2.6
+    - env:
+      - EM=1
+      - EARTHLY_RAILS_VERSION=6
+      - EARTHLY_RUBY_VERSION=2.6
+    - env:
+      - EARTHLY_RAILS_VERSION=6
+      - EARTHLY_RUBY_VERSION=2.7
+    - env:
+      - EARTHLY_RAILS_VERSION=6
+      - EARTHLY_RUBY_VERSION=3
+  allow_failures:
+    - env:
+      - EARTHLY_RAILS_VERSION=6
+      - EARTHLY_RUBY_VERSION=3
