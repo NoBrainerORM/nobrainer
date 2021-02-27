@@ -1,19 +1,21 @@
+# frozen_string_literal: true
+
 module NoBrainer::Error
-  class Connection              < RuntimeError; end
-  class DocumentNotFound        < RuntimeError; end
-  class DocumentNotPersisted    < RuntimeError; end
-  class ChildrenExist           < RuntimeError; end
-  class CannotUseIndex          < RuntimeError; end
-  class MissingIndex            < RuntimeError; end
-  class AssociationNotPersisted < RuntimeError; end
-  class ReadonlyField           < RuntimeError; end
-  class MissingAttribute        < RuntimeError; end
-  class UnknownAttribute        < RuntimeError; end
-  class AtomicBlock             < RuntimeError; end
-  class LostLock                < RuntimeError; end
-  class LockInvalidOp           < RuntimeError; end
-  class LockUnavailable         < RuntimeError; end
-  class InvalidPolymorphicType  < RuntimeError; end
+  class AssociationNotPersisted                   < RuntimeError; end
+  class AtomicBlock                               < RuntimeError; end
+  class ChildrenExist                             < RuntimeError; end
+  class Connection                                < RuntimeError; end
+  class DocumentNotFound                          < RuntimeError; end
+  class DocumentNotPersisted                      < RuntimeError; end
+  class InvalidPolymorphicType                    < RuntimeError; end
+  class LockInvalidOp                             < RuntimeError; end
+  class LostLock                                  < RuntimeError; end
+  class LockUnavailable                           < RuntimeError; end
+  class MissingAttribute                          < RuntimeError; end
+  class MissingIndex                              < RuntimeError; end
+  class PolymorphicAssociationWithDifferentTypes  < RuntimeError; end
+  class ReadonlyField                             < RuntimeError; end
+  class UnknownAttribute                          < RuntimeError; end
 
   class DocumentInvalid < RuntimeError
     attr_accessor :instance
