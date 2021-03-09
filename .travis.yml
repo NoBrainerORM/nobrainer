@@ -1,6 +1,8 @@
 os: linux
 dist: xenial
 
+cache: bundler
+
 before_install:
   - sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/download/v0.5.2/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'
   - rm -f Gemfile Gemfile.lock
