@@ -398,9 +398,19 @@ module NoBrainer::Criteria::Where
 
       get_usable_indexes(:kind => :compound, :geo => false, :multi => false).each do |index|
         indexed_clauses = index.what.map { |field| clauses[[field]] }
-        next unless indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
+        if indexed_clauses.all? { |c| c.try(:compatible_with_index?, index) }
+          return IndexStrategy.new(self, ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
+        end
 
-        return IndexStrategy.new(self, ast, indexed_clauses, index, :get_all, [indexed_clauses.map(&:value)])
+        # use partial compound index if possible
+        partial_clauses = indexed_clauses.dup
+        partial_clauses.pop  while partial_clauses.last.nil?
+        if partial_clauses.all? { |c| c.try(:compatible_with_index?, index) }
+          pad = indexed_clauses.length - partial_clauses.length
+          left_bound  = partial_clauses.map(&:value) + Array.new(pad, RethinkDB::RQL.new.minval)
+          right_bound = partial_clauses.map(&:value) + Array.new(pad, RethinkDB::RQL.new.maxval)
+          return IndexStrategy.new(self, ast, partial_clauses, index, :between, [left_bound, right_bound], { left_bound: :open, right_bound: :open })
+        end
       end
       return nil
     end
