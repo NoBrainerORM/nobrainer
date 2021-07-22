@@ -9,7 +9,8 @@ module NoBrainer::Document::AtomicOps
       type ||= value.class unless value.nil?
 
       case
-      when type == Array then PendingAtomicArray
+      when type.nil?     then self
+      when type <= Array then PendingAtomicArray
       when type == Set   then PendingAtomicSet
       else self
       end.new(instance, field, value, is_user_value, type)
@@ -26,7 +27,8 @@ module NoBrainer::Document::AtomicOps
 
     def default_value
       case
-      when @type == Array   then []
+      when @type.nil?       then nil
+      when @type <= Array   then []
       when @type == Set     then []
       when @type == Integer then 0
       when @type == Float   then 0.0
