@@ -430,7 +430,7 @@ module NoBrainer::Criteria::Where
           end
           left_bound.append *Array.new(pad, RethinkDB::RQL.new.minval)
           right_bound.append *Array.new(pad, RethinkDB::RQL.new.maxval)
-          return IndexStrategy.new(self, ast, partial_clauses, index, :between, [left_bound, right_bound], :right_bound => :closed)
+          return IndexStrategy.new(self, ast, partial_clauses, index, :between, [left_bound, right_bound], :left_bound => :closed, :right_bound => :closed)
         end
       end
       nil
@@ -485,7 +485,7 @@ module NoBrainer::Criteria::Where
     def find_strategy
       return nil unless ast.try(:clauses).present? && !criteria.without_index?
       case ast.op
-      when :and then find_strategy_compound || find_strategy_canonical || find_strategy_hidden_between || find_strategy_compound_partial
+      when :and then find_strategy_compound || find_strategy_compound_partial || find_strategy_canonical || find_strategy_hidden_between
       when :or  then find_strategy_union
       end
     end
