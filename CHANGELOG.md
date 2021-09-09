@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+## [0.35.0] - 2021-08-08
 ### Added
 - Dockerfile, docker-compose and Earthfile
 - Test Ruby 3 + Rails 6 on Travis CI
@@ -97,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locks: bug fix: allow small timeouts in lock()
 - Fix reentrant lock counter on steals
 
-[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.1...HEAD
+[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.35.0...HEAD
+[0.35.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.1...v0.35.0
 [0.34.1]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.0...v0.34.1
 [0.34.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.33.0...v0.34.0
 [0.33.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.32.0...v0.33.0
