@@ -54,7 +54,8 @@ rspec:
 
     COPY docker-compose*.yml ./
 
-    WITH DOCKER --load nobrainerorm/nobrainer:latest=+dev
+    WITH DOCKER --load nobrainerorm/nobrainer:latest=+dev \
+                --pull rethinkdb:2.4
         RUN docker-compose -f docker-compose-earthly.yml run --rm gem
     END
 
