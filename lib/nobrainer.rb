@@ -37,6 +37,10 @@ module NoBrainer
       RUBY_PLATFORM == 'java'
     end
 
+    def rails4?
+      Gem.loaded_specs['activesupport'].version >= Gem::Version.new('4.0.0')
+    end
+
     def rails5?
       Gem.loaded_specs['activesupport'].version >= Gem::Version.new('5.0.0.beta')
     end
