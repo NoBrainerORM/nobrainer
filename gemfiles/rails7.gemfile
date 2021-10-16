@@ -4,11 +4,11 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'eventmachine' if ENV['EM']
-gem 'rspec', '~> 3.0'
+gem 'rspec', '~> 3.10'
 gem 'timecop'
 
-gem 'activemodel', '~> 7'
-gem 'activesupport', '~> 7'
+gem 'activemodel', '~> 7.0.0.alpha2'
+gem 'activesupport', '~> 7.0.0.alpha2'
 
 group :development do
   gem 'awesome_print', require: false

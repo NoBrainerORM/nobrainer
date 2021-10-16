@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'eventmachine' if ENV['EM']
-gem 'rspec', '~> 3.0'
+gem 'rspec', '~> 3.10'
 gem 'timecop'
 
 gem 'activemodel', '~> 4'
