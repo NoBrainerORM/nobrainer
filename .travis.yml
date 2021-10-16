@@ -10,7 +10,7 @@ notifications:
     on_success: never
     on_failure: change
 
-script: earthly --build-arg EARTHLY_RUBY_VERSION=$EARTHLY_RUBY_VERSION --build-arg EARTHLY_RAILS_VERSION=$EARTHLY_RAILS_VERSION --allow-privileged +rspec
+script: earthly --ci --build-arg EARTHLY_RUBY_VERSION=$EARTHLY_RUBY_VERSION --build-arg EARTHLY_RAILS_VERSION=$EARTHLY_RAILS_VERSION --allow-privileged +rspec
 
 jobs:
   include:
