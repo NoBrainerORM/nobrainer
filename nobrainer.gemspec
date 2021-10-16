@@ -13,12 +13,12 @@ Gem::Specification.new do |s|
   s.description = 'The goal of NoBrainer is to provide a similar interface ' \
                   'compared to ActiveRecord and Mongoid to build data models ' \
                   'on top of RethinkDB while providing precise semantics.'
-  s.license     = 'LGPLv3'
+  s.license     = 'LGPL-3.0-only'
 
-  s.add_dependency 'activemodel', '>= 4.1.0'
-  s.add_dependency 'activesupport', '>= 4.1.0'
+  s.add_dependency 'activemodel', '>= 4.1.0', '< 6.2'
+  s.add_dependency 'activesupport', '>= 4.1.0', '< 6.2'
   s.add_dependency 'middleware', '~> 0.1.0'
-  s.add_dependency 'rethinkdb', '>= 2.3.0'
+  s.add_dependency 'rethinkdb', '>= 2.3.0', '< 2.5'
   s.add_dependency 'symbol_decoration', '~> 1.1'
 
   s.files        = Dir['lib/**/*'] + ['README.md'] + ['LICENSE'] + ['CHANGELOG.md']
