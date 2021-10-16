@@ -74,7 +74,7 @@ module NoBrainer::Document::Validation::Uniqueness
       criteria = self.model.unscoped.where(attr => value)
       criteria = apply_scopes(criteria, doc)
       criteria = exclude_doc(criteria, doc) if doc.persisted?
-      doc.errors.add(attr, :taken, options.except(:scope).merge(:value => value)) unless criteria.empty?
+      doc.errors.add(attr, :taken, **options.except(:scope).merge(:value => value)) unless criteria.empty?
     rescue NoBrainer::Error::InvalidType
       # We can't run the uniqueness validator: where() won't accept bad types
       # and we have some values that don't have the right type.

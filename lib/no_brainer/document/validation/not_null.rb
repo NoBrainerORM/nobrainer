@@ -9,7 +9,7 @@ module NoBrainer::Document::Validation::NotNull
 
   class NotNullValidator < ActiveModel::EachValidator
     def validate_each(doc, attr, value)
-      doc.errors.add(attr, :undefined, options) if value.nil?
+      doc.errors.add(attr, :undefined, **options) if value.nil?
     end
   end
 end
