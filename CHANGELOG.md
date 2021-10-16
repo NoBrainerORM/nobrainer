@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.40.0] - 2021-10-16
 ### Fixed
 - Ruby 3 compatibility
 - Test Ruby 3 + Rails 7 alpha2 on Travis CI
@@ -107,7 +108,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locks: bug fix: allow small timeouts in lock()
 - Fix reentrant lock counter on steals
 
-[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.36.0...HEAD
+[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.40.0...HEAD
+[0.40.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.36.0...v0.40.0
 [0.36.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.35.0...v0.36.0
 [0.35.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.1...v0.35.0
 [0.34.1]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.0...v0.34.1
