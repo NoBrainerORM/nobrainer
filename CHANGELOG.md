@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Ruby 3 compatibility
+- Test Ruby 3 + Rails 7 alpha2 on Travis CI
 
 ## [0.36.0] - 2021-08-08
 ### Added
