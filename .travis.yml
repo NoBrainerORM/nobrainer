@@ -43,8 +43,5 @@ jobs:
       - EARTHLY_RUBY_VERSION=3
   allow_failures:
     - env:
-      - EARTHLY_RAILS_VERSION=6
-      - EARTHLY_RUBY_VERSION=3
-    - env:
       - EARTHLY_RAILS_VERSION=7
       - EARTHLY_RUBY_VERSION=3
