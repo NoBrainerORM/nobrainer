@@ -9,7 +9,7 @@ module NoBrainer::Document::Types
   def add_type_errors
     return unless @pending_type_errors
     @pending_type_errors.each do |name, error|
-      errors.add(name, :invalid_type, error.error)
+      errors.add(name, :invalid_type, **error.error)
     end
   end
 

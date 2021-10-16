@@ -51,7 +51,7 @@ module NoBrainer::Error
       value = self.value
       mock = model.allocate
       mock.singleton_class.send(:define_method, :read_attribute_for_validation) { |_| value }
-      mock.errors.add(attr_name, :invalid_type, error)
+      mock.errors.add(attr_name, :invalid_type, **error)
       mock.errors.full_messages.first
     end
   end
