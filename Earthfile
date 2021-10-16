@@ -63,7 +63,7 @@ rspec:
 # This target is used to publish this gem to rubygems.org.
 #
 # Prerequiries
-# You should have login again the Rubygems.org so that it has created
+# You should have login against Rubygems.org so that it has created
 # the `~/.gem` folder and stored your API key.
 #
 # Then use the following command:
