@@ -15,8 +15,8 @@ Gem::Specification.new do |s|
                   'on top of RethinkDB while providing precise semantics.'
   s.license     = 'LGPL-3.0-only'
 
-  s.add_dependency 'activemodel', '>= 4.1.0', '< 6.2'
-  s.add_dependency 'activesupport', '>= 4.1.0', '< 6.2'
+  s.add_dependency 'activemodel', '>= 4.1.0', '< 8'
+  s.add_dependency 'activesupport', '>= 4.1.0', '< 8'
   s.add_dependency 'middleware', '~> 0.1.0'
   s.add_dependency 'rethinkdb', '>= 2.3.0', '< 2.5'
   s.add_dependency 'symbol_decoration', '~> 1.1'
