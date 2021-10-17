@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+## [0.41.0] - 2021-10-17
 ### Added
 - ActiveRecord `store_accessor` helper method
+
+### Fixed
+- gemspec dependencies on activemodel and activesupport
 
 ## [0.40.0] - 2021-10-16
 ### Fixed
@@ -110,7 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Locks: bug fix: allow small timeouts in lock()
 - Fix reentrant lock counter on steals
 
-[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.40.0...HEAD
+[Unreleased]: https://github.com/nobrainerorm/nobrainer/compare/v0.41.0...HEAD
+[0.41.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.40.0...v0.41.0
 [0.40.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.36.0...v0.40.0
 [0.36.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.35.0...v0.36.0
 [0.35.0]: https://github.com/nobrainerorm/nobrainer/compare/v0.34.1...v0.35.0
