@@ -29,9 +29,13 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
     env[:last_auto_create_table] = [db_name, table_name]
 
     create_options = model.table_create_options
-
-    NoBrainer.run(:db => db_name) do |r|
-      r.table_create(table_name, create_options.reject { |k,_| k.in? [:name, :write_acks] })
+    begin
+      NoBrainer.run(:db => db_name) do |r|
+        r.table_create(table_name, create_options.reject { |k,_| k.in? [:name, :write_acks] })
+      end
+    rescue RuntimeError => e
+      # We might have raced with another table create
+      raise unless e.message =~ /Table `#{db_name}\.#{table_name}` already exists/
     end
 
     # Prevent duplicate table errors on a cluster.
@@ -49,8 +53,5 @@ class NoBrainer::QueryRunner::TableOnDemand < NoBrainer::QueryRunner::Middleware
         r.table(table_name).config().update(:write_acks => create_options[:write_acks])
       end
     end
-  rescue RuntimeError => e
-    # We might have raced with another table create
-    raise unless e.message =~ /Table `#{db_name}\.#{table_name}` already exists/
   end
 end
