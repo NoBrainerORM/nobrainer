@@ -3,6 +3,7 @@ version: '3'
 services:
   rethinkdb:
     image: rethinkdb:2.4
+
   gem:
     build: .
     image: nobrainerorm/nobrainer:latest

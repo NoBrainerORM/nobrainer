@@ -17,3 +17,4 @@ services:
       # (see spec/spec_helper.rb), that's why we aren't setting the RDB_HOST env
       # variable here.
       - DB_HOST=rethinkdb
+      - EM=${EM}
