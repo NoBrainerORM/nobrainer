@@ -6,6 +6,8 @@ ARG EARTHLY_RUBY_VERSION=2.7
 #
 # `earthly --build-arg EARTHLY_RAILS_VERSION=5 --allow-privileged +rspec`
 ARG EARTHLY_RAILS_VERSION=6
+# This allows one to run tests including the eventmachine gem or not
+ARG EM
 
 FROM ruby:$EARTHLY_RUBY_VERSION
 WORKDIR /gem
