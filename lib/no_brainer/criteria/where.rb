@@ -428,8 +428,10 @@ module NoBrainer::Criteria::Where
             left_bound[-1] = clause.value.min
             right_bound[-1] = clause.value.max
           end
-          left_bound.append *Array.new(pad, RethinkDB::RQL.new.minval)
-          right_bound.append *Array.new(pad, RethinkDB::RQL.new.maxval)
+          if pad > 0
+            left_bound.append *Array.new(pad, RethinkDB::RQL.new.minval)
+            right_bound.append *Array.new(pad, RethinkDB::RQL.new.maxval)
+          end
           return IndexStrategy.new(self, ast, partial_clauses, index, :between, [left_bound, right_bound], :left_bound => :closed, :right_bound => :closed)
         end
       end
