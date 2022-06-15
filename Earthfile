@@ -69,7 +69,7 @@ rspec:
 # the `~/.gem` folder and stored your API key.
 #
 # Then use the following command:
-# earthly --build-arg GEM_CREDENTIALS="$(cat ~/.gem/credentials)" +gem
+# earthly +gem --GEM_CREDENTIALS="$(cat ~/.gem/credentials)"
 gem:
     FROM +dev
 
