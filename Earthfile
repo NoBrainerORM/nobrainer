@@ -69,11 +69,12 @@ rspec:
 # the `~/.gem` folder and stored your API key.
 #
 # Then use the following command:
-# earthly +gem --GEM_CREDENTIALS="$(cat ~/.gem/credentials)"
+# earthly +gem --GEM_CREDENTIALS="$(cat ~/.gem/credentials)" --RUBYGEMS_OTP=123456
 gem:
     FROM +dev
 
     ARG GEM_CREDENTIALS
+    ARG RUBYGEMS_OTP
 
     COPY .git/ /gem/
     COPY CHANGELOG.md /gem/
@@ -85,6 +86,6 @@ gem:
         && echo "$GEM_CREDENTIALS" > ~/.gem/credentials \
         && cat ~/.gem/credentials \
         && chmod 600 ~/.gem/credentials \
-        && gem push nobrainer-*.gem
+        && gem push --otp $RUBYGEMS_OTP nobrainer-*.gem
 
     SAVE ARTIFACT nobrainer-*.gem AS LOCAL nobrainer.gem
