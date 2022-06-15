@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NoBrainer::Document::Association::EagerLoader
   extend self
 
@@ -5,11 +7,22 @@ module NoBrainer::Document::Association::EagerLoader
     # Used in associations to declare generic eager loading capabilities
     # The association should implement loaded?, preload,
     # eager_load_owner_key and eager_load_target_key.
-    def eager_load(docs, additional_criteria=nil)
+    def eager_load(docs, additional_criteria = nil)
       owner_key  = eager_load_owner_key
+      owner_type = eager_load_owner_type
       target_key = eager_load_target_key
 
-      criteria = base_criteria
+      if is_a?(NoBrainer::Document::Association::BelongsTo::Metadata) && owner_type
+        target_class = docs.first.__send__(owner_type)
+
+        if docs.detect { |doc| doc.__send__(owner_type) != target_class }
+          raise NoBrainer::Error::PolymorphicAssociationWithDifferentTypes,
+                "The documents to be eager loaded doesn't have the same " \
+                'type, which is not supported'
+        end
+      end
+
+      criteria = target_class ? base_criteria(target_class) : base_criteria
       criteria = criteria.merge(additional_criteria) if additional_criteria
 
       unloaded_docs = docs.reject { |doc| doc.associations[self].loaded? }
