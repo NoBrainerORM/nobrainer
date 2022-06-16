@@ -88,4 +88,4 @@ gem:
         && chmod 600 ~/.gem/credentials \
         && gem push --otp $RUBYGEMS_OTP nobrainer-*.gem
 
-    SAVE ARTIFACT nobrainer-*.gem AS LOCAL nobrainer.gem
+    SAVE ARTIFACT nobrainer-*.gem AS LOCAL ./nobrainer.gem
