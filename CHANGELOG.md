@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- `first_or_create` with a polymorphic association #288
+- `first_or_create` with a polymorphic association [#288](https://github.com/NoBrainerORM/nobrainer/issues/288)
 
 ## [0.43.0] - 2022-06-16
 ### Added
