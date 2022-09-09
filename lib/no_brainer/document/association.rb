@@ -21,11 +21,12 @@ module NoBrainer::Document::Association
       super
     end
 
-    def association_user_to_model_cast(k,v)
-      association = association_metadata[k]
+    def association_user_to_model_cast(key, value, target_class = nil)
+      association = association_metadata[key]
       case association
-      when NoBrainer::Document::Association::BelongsTo::Metadata then association.cast_attr(k,v)
-      else [k,v]
+      when NoBrainer::Document::Association::BelongsTo::Metadata
+        association.cast_attr(key, value, target_class)
+      else [key, value]
       end
     end
 

@@ -14,7 +14,7 @@ describe 'belongs_to polymorphic' do
   end
   let(:restaurant) { Restaurant.create }
 
-  context 'setting polymorphic: true and class_name' do
+  context 'when setting polymorphic: true and class_name' do
     it 'raises an error' do
       expect do
         Picture.belongs_to(:picturable, polymorphic: true, class_name: 'Test')
@@ -22,7 +22,7 @@ describe 'belongs_to polymorphic' do
     end
   end
 
-  context 'setting polymorphic: true and required but not assigning document' do
+  context 'when setting polymorphic: true and required but not assigning document' do
     it 'raises an error' do
       Picture.belongs_to(:picturable, polymorphic: true, required: true)
 
