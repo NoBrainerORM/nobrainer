@@ -7,5 +7,9 @@ AllCops:
 Metrics/BlockLength:
   IgnoredMethods: ['describe', 'context']
 
+Naming/RescuedExceptionsVariableName:
+  Enabled: Yes
+  PreferredName: error
+
 Style/Documentation:
   Enabled: No

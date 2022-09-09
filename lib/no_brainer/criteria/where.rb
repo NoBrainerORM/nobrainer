@@ -107,7 +107,22 @@ module NoBrainer::Criteria::Where
         when :during then [key_modifier, op, [cast_value(value.first), cast_value(value.last)]]
         else [key_modifier, op, cast_value(value)]
       end
-      BinaryOperator.new(new_key_path, new_key_modifier, new_op, new_value, model, true)
+
+      # When key_path relates to a polymorphic associatoin, the new_key_path is
+      # an Array containing the foreign_type and then the foreign_key.
+      if new_key_path.first.is_a?(Array)
+        foreign_type, foreign_key = new_key_path.first
+
+        MultiOperator.new(
+          :and,
+          [
+            BinaryOperator.new([foreign_type], new_key_modifier, new_op, value.class.to_s, model, true),
+            BinaryOperator.new([foreign_key], new_key_modifier, new_op, value.__send__(value.class.pk_name), model, true)
+          ]
+        )
+      else
+        BinaryOperator.new(new_key_path, new_key_modifier, new_op, new_value, model, true)
+      end
     end
 
     def to_rql(doc)
@@ -185,7 +200,7 @@ module NoBrainer::Criteria::Where
         box_value = key_modifier.in?([:any, :all]) || op == :include
         value = [value] if box_value
         k_v = key_path.reverse.reduce(value) { |v,k| {k => v} }.first
-        k_v = model.association_user_to_model_cast(*k_v)
+        k_v = model.association_user_to_model_cast(*k_v, value.class)
         value = model.cast_user_to_db_for(*k_v)
         value = key_path[1..-1].reduce(value) { |h,k| h[k] }
         value = value.first if box_value
@@ -193,15 +208,43 @@ module NoBrainer::Criteria::Where
       end
     end
 
+    #
+    # This method is used in order to transform association from the passed
+    # `key_path` in to model's field(s).
+    #
+    # When `key_path` contains a field, this method just ensures the given field
+    # is well defined in the owner model.
+    # When `key_path` contains the name of an association, this method updates
+    # the `key_path` in order to replace the association name with the field(s)
+    # behind that association.
+    #
+    # In the case of :
+    # * a polymorphic association name passed as `key_path`, the association
+    #   name will be replaced by the 2 fields representing it (foreign_key and
+    #   foreign_type)
+    # * all other association the association name is replaced by
+    #   the primary_key or the foreign_key depending on the association type
     def cast_key_path(key_path)
       return key_path if casted_values
 
+      # key_path is an Array of symbols representing the path to the key being
+      # queried.
+      #
+      # The Array size can be greater that 1 when quering from a field with,
+      # the type `Hash` and the query is targetting a nested key from the Hash.
+      #
+      # The first Array element is always the field name.
       if key_path.size == 1
-        k, _v = model.association_user_to_model_cast(key_path.first, nil)
-        key_path = [k]
+        # With fields and non-polymorphic associations `keys` will be a symbol
+        # while with a polymorphic association it will be an Array of symbols
+        # being the two fields used by the association.
+        keys, _v = model.association_user_to_model_cast(key_path.first, nil, value.class)
+        key_path = [keys]
       end
 
+      # Ensures fields exist on the model
       model.ensure_valid_key!(key_path.first)
+
       key_path
     end
   end

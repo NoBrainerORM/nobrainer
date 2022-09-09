@@ -154,9 +154,17 @@ module NoBrainer::Document::Attributes
       !!fields[attr.to_sym]
     end
 
-    def ensure_valid_key!(key)
-      return if has_field?(key) || has_index?(key)
-      raise NoBrainer::Error::UnknownAttribute, "`#{key}' is not a valid attribute of #{self}"
+    def ensure_valid_key!(keys)
+      missings = Array(keys).select do |key|
+        has_field?(key) == false && has_index?(key) == false
+      end
+
+      return if missings.empty?
+
+      raise NoBrainer::Error::UnknownAttribute,
+            "`#{missings.join('\', `')}' #{missings.size > 1 ? 'are' : 'is'} " \
+            "not #{'a' if missings.size == 1} valid attribute" \
+            "#{'s' if missings.size > 1} of #{self}"
     end
   end
 end

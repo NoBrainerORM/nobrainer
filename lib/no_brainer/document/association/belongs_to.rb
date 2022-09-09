@@ -70,8 +70,16 @@ class NoBrainer::Document::Association::BelongsTo
         raise 'You cannot set class_name on a polymorphic belongs_to'
       end
 
-      owner_model.field(foreign_type) if options[:polymorphic]
-      owner_model.field(foreign_key, :store_as => options[:foreign_key_store_as], :index => options[:index])
+      if options[:polymorphic]
+        if options[:uniq] || options[:unique]
+          owner_model.field(foreign_type, uniq: { scope: foreign_key })
+          owner_model.index([foreign_type, foreign_key])
+        else
+          owner_model.field(foreign_type)
+        end
+      end
+
+      owner_model.field(foreign_key, store_as: options[:foreign_key_store_as], index: options[:index])
 
       unless options[:validates] == false
         owner_model.validates(target_name, options[:validates]) if options[:validates]
@@ -98,13 +106,20 @@ class NoBrainer::Document::Association::BelongsTo
       add_callback_for(:after_validation)
     end
 
-    def cast_attr(k, v)
-      case v
-      when target_model then [foreign_key, v.__send__(primary_key)]
-      when nil          then [foreign_key, nil]
+    def cast_attr(key, value, target_class = nil)
+      case value
+      when target_model(target_class)
+        [foreign_key, value.__send__(primary_key)]
+      when nil
+        if options[:polymorphic]
+          [[foreign_type, foreign_key], nil]
+        else
+          [foreign_key, nil]
+        end
       else
-        opts = { :model => owner_model, :attr_name => k, :type => target_model, :value => v }
-        raise NoBrainer::Error::InvalidType.new(opts)
+        raise NoBrainer::Error::InvalidType.new(
+          model: owner_model, attr_name: key, type: target_model, value: value
+        )
       end
     end
 
