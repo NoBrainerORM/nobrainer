@@ -1,9 +1,12 @@
 require 'spec_helper'
 
-describe 'types' do
-  before { load_simple_document }
-  before { SimpleDocument.field :field1, field_options }
-  let(:field_options) { { :type => type } }
+describe NoBrainer::Document::Types do
+  before do
+    load_simple_document
+    SimpleDocument.field :field1, field_options
+  end
+
+  let(:field_options) { { type: type } }
   let(:doc) { SimpleDocument.new }
 
   context 'when using String type' do
@@ -34,6 +37,16 @@ describe 'types' do
       end
     end
 
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document' do
+        expect do
+          document.update(field1: 'Hello')
+        end.to change(document, :field1).from(nil).to('Hello')
+      end
+    end
+
     it 'type checks and casts on length' do
       doc.field1 = "x" * NoBrainer::Config.max_string_length
       doc.field1.should == "x" * NoBrainer::Config.max_string_length
@@ -50,12 +63,12 @@ describe 'types' do
     let(:type) { SimpleDocument::Text }
 
     it 'type checks and casts' do
-        doc.field1 = 'ohai'
-        doc.field1.should == 'ohai'
-        doc.valid?.should == true
-        doc.field1 = :ohai
-        doc.field1.should == :ohai
-        doc.valid?.should == false
+      doc.field1 = 'ohai'
+      doc.field1.should == 'ohai'
+      doc.valid?.should == true
+      doc.field1 = :ohai
+      doc.field1.should == :ohai
+      doc.valid?.should == false
     end
 
     it 'type does not checks length' do
@@ -67,6 +80,22 @@ describe 'types' do
 
   context 'when using Integer type' do
     let(:type) { Integer }
+
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a number' do
+        expect do
+          document.update(field1: 1)
+        end.to change(document, :field1).from(nil).to(1)
+      end
+
+      it 'updates the document when passing a number as a String' do
+        expect do
+          document.update(field1: '2')
+        end.to change(document, :field1).from(nil).to(2)
+      end
+    end
 
     it 'type checks and casts' do
       doc.field1 = 1
@@ -165,6 +194,22 @@ describe 'types' do
   context 'when using Boolean type' do
     let(:type) { SimpleDocument::Boolean }
 
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a boolean' do
+        expect do
+          document.update(field1: true)
+        end.to change(document, :field1).from(nil).to(true)
+      end
+
+      it 'updates the document when passing a boolean as a String' do
+        expect do
+          document.update(field1: 'false')
+        end.to change(document, :field1).from(nil).to(false)
+      end
+    end
+
     it 'provides a ? method' do
       doc.field1 = true
       doc.field1?.should == true
@@ -232,7 +277,17 @@ describe 'types' do
 
   context 'when using Binary type' do
     let(:type) { SimpleDocument::Binary }
-    let(:data) { 255.times.map { |i| i.chr }.join }
+    let(:data) { 255.times.map(&:chr).join }
+
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a binary' do
+        expect do
+          document.update(field1: data)
+        end.to change(document, :field1).from(nil).to(data)
+      end
+    end
 
     it 'type checks and casts' do
       doc.field1 = 'hello'
@@ -256,6 +311,16 @@ describe 'types' do
 
   context 'when using Symbol type' do
     let(:type) { Symbol }
+
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a Symbol' do
+        expect do
+          document.update(field1: :value)
+        end.to change(document, :field1).from(nil).to(:value)
+      end
+    end
 
     it 'type checks and casts' do
       doc.field1 = :ohai
@@ -294,10 +359,25 @@ describe 'types' do
 
   context 'when using Time type' do
     let(:type) { Time }
+    let(:now) { Time.at(Time.now.to_i) }
+
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a Time' do
+        expect do
+          document.update(field1: now)
+        end.to change(document, :field1).from(nil).to(now)
+      end
+
+      it 'updates the document when passing a Time as a String' do
+        expect do
+          document.update(field1: now.iso8601)
+        end.to change(document, :field1).from(nil).to(now)
+      end
+    end
 
     it 'type checks and casts' do
-      now = Time.at(Time.now.to_i)
-
       doc.field1 = now
       doc.field1.should == now
       doc.valid?.should == true
@@ -426,9 +506,8 @@ describe 'types' do
         let(:user_timezone) { :unchanged }
         let(:db_timezone)   { :unchanged }
 
-
         it 'db reads timezone does not change' do
-          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          NoBrainer.run { SimpleDocument.rql_table.insert(field1: time) }
           SimpleDocument.first.field1.utc_offset.should == time.utc_offset
         end
       end
@@ -438,7 +517,7 @@ describe 'types' do
         let(:db_timezone)   { :unchanged }
 
         it 'db reads timezone changes to local' do
-          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          NoBrainer.run { SimpleDocument.rql_table.insert(field1: time) }
           SimpleDocument.first.field1.utc_offset.should == time.utc.getlocal.utc_offset
         end
       end
@@ -448,7 +527,7 @@ describe 'types' do
         let(:db_timezone)   { :unchanged }
 
         it 'db reads timezone changes to utc' do
-          NoBrainer.run { SimpleDocument.rql_table.insert(:field1 => time) }
+          NoBrainer.run { SimpleDocument.rql_table.insert(field1: time) }
           SimpleDocument.first.field1.utc_offset.should == time.utc.utc_offset
         end
       end
@@ -457,24 +536,46 @@ describe 'types' do
 
   context 'when using Date type' do
     let(:type) { Date }
+    let(:today) { Date.today }
+
+    context 'with mass assignment' do
+      let!(:document) { SimpleDocument.create! }
+
+      it 'updates the document when passing a Date' do
+        expect do
+          document.update(field1: today)
+        end.to change(document, :field1).from(nil).to(today)
+      end
+
+      it 'updates the document when passing a Date as a String' do
+        expect do
+          document.update(field1: today.strftime('%F'))
+        end.to change(document, :field1).from(nil).to(today)
+      end
+
+      it 'updates the document when passing a Date as a String' do
+        expect do
+          document.update(field1: '2022-10-20')
+        end.to change(document, :field1).from(nil).to(Date.new(2022, 10, 20))
+      end
+    end
 
     it 'type checks and casts' do
-      today = Date.today
-
       doc.field1 = today
       doc.field1.should == today
       doc.valid?.should == true
 
       doc.field1 = "2014-06-26T15:34:12-02:00"
       doc.field1.should == "2014-06-26T15:34:12-02:00"
+      # ERROR: Field1 should be a date
       doc.valid?.should == false
 
       doc.field1 = 123
       doc.field1.should == 123
       doc.valid?.should == false
 
-      doc.field1 = "2014-06-26"
-      doc.field1.should == Date.parse("2014-06-26")
+      doc.field1 = '2014-06-26'
+      doc.field1.should == Date.parse('2014-06-26')
       doc.valid?.should == true
 
       doc.field1 = nil
@@ -482,31 +583,35 @@ describe 'types' do
       doc.reload
       doc.field1.should == nil
 
-      doc.field1 = "2014-06-26"
+      doc.field1 = '2014-06-26'
       doc.save
       doc.reload
-      doc.field1.should == Date.parse("2014-06-26")
+      doc.field1.should == Date.parse('2014-06-26')
 
-      SimpleDocument.where(:field1 => Date.parse("2014-06-26")).count.should == 1
+      SimpleDocument.where(field1: Date.parse('2014-06-26')).count.should == 1
     end
   end
 
   context 'when using a non implemented type' do
     let(:type) { nil }
-    before { define_class(:CustomType) { } }
-    before { SimpleDocument.field :field1, :type => CustomType }
+
+    before do
+      define_class(:CustomType) { }
+      SimpleDocument.field :field1, type: CustomType
+    end
 
     it 'type checks' do
       doc.field1 = CustomType.new
       doc.valid?.should == true
       doc.field1 = 123
       doc.valid?.should == false
-      doc.errors.full_messages.first.should == "Field1 should be a custom type"
+      doc.errors.full_messages.first.should == 'Field1 should be a custom type'
     end
   end
 
   context 'when using a custom type' do
     let(:type) { nil }
+
     before do
       define_class :Point, Struct.new(:x, :y) do
         def self.nobrainer_cast_user_to_model(value)
@@ -522,11 +627,12 @@ describe 'types' do
         end
 
         def self.nobrainer_cast_model_to_db(value)
-          {'x' => value.x, 'y' => value.y}
+          { 'x' => value.x, 'y' => value.y }
         end
       end
+
+      SimpleDocument.field :field1, type: Point
     end
-    before { SimpleDocument.field :field1, :type => Point }
 
     it 'type checks' do
       doc.field1 = Point.new
@@ -535,9 +641,9 @@ describe 'types' do
       doc.field1 = 123
       doc.field1.should == 123
       doc.valid?.should == false
-      doc.errors.full_messages.first.should == "Field1 should be a point"
+      doc.errors.full_messages.first.should == 'Field1 should be a point'
 
-      doc.field1 = {:x => 123, :y => 456}
+      doc.field1 = { x: 123, y: 456 }
       doc.field1.should == Point.new(123, 456)
       doc.valid?.should == true
 
@@ -548,11 +654,12 @@ describe 'types' do
 
   context 'when coming from the database with a cast that cannot be perfomred' do
     let(:type) { nil }
+
     it 'does not type check/cast' do
       doc.field1 = '1'
       doc.save
       SimpleDocument.first.field1.should == '1'
-      SimpleDocument.field :field1, :type => Integer
+      SimpleDocument.field :field1, type: Integer
       SimpleDocument.first.field1.should == '1'
     end
   end
@@ -600,16 +707,16 @@ describe 'types' do
       doc.field1 = []
       doc.valid?.should == false
 
-      doc.field1 = [1,2]
+      doc.field1 = [1, 2]
       doc.valid?.should == true
-      doc.field1.should == type.new(1,2)
+      doc.field1.should == type.new(1, 2)
 
-      doc.field1 = [1,2,3]
+      doc.field1 = [1, 2, 3]
       doc.valid?.should == false
 
       doc.field1 = ['1.2', '-2']
       doc.valid?.should == true
-      doc.field1.should == type.new(1.2,-2)
+      doc.field1.should == type.new(1.2, -2)
       doc.field1.inspect.should == [1.2, -2.0].inspect
 
       doc.field1 = ['1.2x', '-2']
@@ -633,32 +740,32 @@ describe 'types' do
       doc.field1 = [0, -91]
       doc.valid?.should == false
 
-      doc.field1 = {:longitude => 1, :latitude => 2}
+      doc.field1 = { longitude: 1, latitude: 2 }
       doc.valid?.should == true
       doc.field1.should == type.new(1, 2)
 
-      doc.field1 = {:long => 1, :lat => 2}
+      doc.field1 = { long: 1, lat: 2 }
       doc.valid?.should == true
       doc.field1.should == type.new(1, 2)
 
-      doc.field1 = {:longi => 1, :lat => 2}
+      doc.field1 = { longi: 1, lat: 2 }
       doc.valid?.should == false
 
-      doc.field1 = type.new(1,2)
+      doc.field1 = type.new(1, 2)
       doc.valid?.should == true
-      doc.field1.should == type.new(1,2)
+      doc.field1.should == type.new(1, 2)
     end
 
     it 'reads back a set from the db' do
-      doc.field1 = [1,2]
+      doc.field1 = [1, 2]
       doc.save
       doc.reload
-      doc.field1.should == type.new(1,2)
+      doc.field1.should == type.new(1, 2)
     end
   end
 
   context 'when using Enum type' do
-    let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b] } }
+    let(:field_options) { { type: SimpleDocument::Enum, in: %i[a b] } }
 
     it 'type checks' do
       doc.field1 = :invalid
@@ -689,7 +796,7 @@ describe 'types' do
 
     context 'when using a prefix/suffix' do
       context 'with custom names' do
-        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :prefix => :p, :suffix => :s } }
+        let(:field_options) { { type: SimpleDocument::Enum, in: %i[a b], prefix: :p, suffix: :s } }
 
         it 'names the methods properly' do
           doc.field1 = :a
@@ -702,7 +809,7 @@ describe 'types' do
       end
 
       context 'with default prefix' do
-        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :prefix => true } }
+        let(:field_options) { { type: SimpleDocument::Enum, in: %i[a b], prefix: true } }
 
         it 'names the methods properly' do
           doc.field1 = :a
@@ -715,7 +822,7 @@ describe 'types' do
       end
 
       context 'with default suffix' do
-        let(:field_options) { { :type => SimpleDocument::Enum, :in => [:a, :b], :suffix => true } }
+        let(:field_options) { { type: SimpleDocument::Enum, in: %i[a b], suffix: true } }
 
         it 'names the methods properly' do
           doc.field1 = :a
@@ -730,18 +837,18 @@ describe 'types' do
 
     context 'when not specifying :in properly' do
       it 'fails' do
-        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum }
+        expect { SimpleDocument.field :field2, type: SimpleDocument::Enum }
           .to raise_error(/provide.*:in/)
-        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [] }
+        expect { SimpleDocument.field :field2, type: SimpleDocument::Enum, in: [] }
           .to raise_error(/provide.*:in/)
-        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [123] }
+        expect { SimpleDocument.field :field2, type: SimpleDocument::Enum, in: [123] }
           .to raise_error(/symbol values/)
       end
     end
 
     context 'when specifying overlapping values' do
       it 'fails' do
-        expect { SimpleDocument.field :field2, :type => SimpleDocument::Enum, :in => [:a] }
+        expect { SimpleDocument.field :field2, type: SimpleDocument::Enum, in: [:a] }
           .to raise_error(/already taken/)
       end
     end
@@ -765,8 +872,8 @@ describe 'types' do
     let(:type) { NoBrainer::TypedArray.of(Date) }
 
     it 'type checks and casts array elements' do
-      date_strs = %w(2020-09-21 2020-09-22 2020-09-23)
-      dates = date_strs.map { |s|  Date.parse(s) }
+      date_strs = %w[2020-09-21 2020-09-22 2020-09-23]
+      dates = date_strs.map { |s| Date.parse(s) }
 
       doc.field1 = dates
       doc.field1.should == dates
@@ -785,7 +892,7 @@ describe 'types' do
       doc.reload
       doc.field1.should == dates
 
-      SimpleDocument.where(:field1 => dates).count.should == 1
+      SimpleDocument.where(field1: dates).count.should == 1
       SimpleDocument.where(:field1.any.eq => dates.first).count.should == 1
     end
   end
@@ -794,7 +901,7 @@ describe 'types' do
     let(:type) { NoBrainer::TypedArray.of(Date, allow_nil: true) }
 
     it 'type checks array elmeents' do
-      dates = %w(2020-09-21 2020-09-22 2020-09-23).map { |s|  Date.parse(s) }
+      dates = %w(2020-09-21 2020-09-22 2020-09-23).map { |s| Date.parse(s) }
 
       doc.field1 = dates
       doc.valid?.should == true
@@ -809,10 +916,10 @@ describe 'types' do
   before { load_simple_document }
 
   it 'raises with Geo::Circle' do
-    expect { SimpleDocument.field :field1, :type => NoBrainer::Geo::Circle }.to raise_error(/Cannot store circles/)
+    expect { SimpleDocument.field :field1, type: NoBrainer::Geo::Circle }.to raise_error(/Cannot store circles/)
   end
 
   it 'raises with bad types' do
-    expect { SimpleDocument.field :field1, :type => "asdasd" }.to raise_error(/type option/)
+    expect { SimpleDocument.field :field1, type: 'asdasd' }.to raise_error(/type option/)
   end
 end
