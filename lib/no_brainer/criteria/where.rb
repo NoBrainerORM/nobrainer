@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NoBrainer::Criteria::Where
   extend ActiveSupport::Concern
   include ActiveModel::ForbiddenAttributesProtection
@@ -342,8 +344,8 @@ module NoBrainer::Criteria::Where
     # Ruby's /m modifier means that . matches \n and corresponds to RE2's "s" flag.
 
     flags = "m"
-    flags << "s" if value.options & Regexp::MULTILINE != 0
-    flags << "i" if value.options & Regexp::IGNORECASE != 0
+    flags += "s" if value.options & Regexp::MULTILINE != 0
+    flags += "i" if value.options & Regexp::IGNORECASE != 0
 
     "(?#{flags})#{value.source}"
   end

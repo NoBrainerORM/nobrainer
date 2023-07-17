@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe 'NoBrainer index' do
-  before { load_simple_document }
-  before { NoBrainer.drop! }
-  after  { NoBrainer.drop! }
+  before do
+    load_simple_document
+    NoBrainer.drop!
+  end
+
+  after { NoBrainer.drop! }
 
   context 'when creating/removing indexes' do
     it 'keeps indexes in sync' do
@@ -205,6 +210,130 @@ describe 'NoBrainer index' do
         SimpleDocument.where(:field1.in => ['hello', 'world']).where_indexed?.should == true
         SimpleDocument.where(:field1.in => ['hello', 'world']).count.should == 2
         SimpleDocument.where(:field1.in => []).count.should == 0
+      end
+    end
+  end
+
+  context 'when indexing a defined single field index' do
+    before do
+      SimpleDocument.field :field13, index: { defined: true }
+      SimpleDocument.field :field14, index: { defined: true }
+
+      NoBrainer.sync_indexes
+
+      SimpleDocument.create(field13: 'hello', field14: 'yay')
+      SimpleDocument.create(field13: 'world', field14: 'yay')
+      SimpleDocument.create(field13: 'ohai')
+      SimpleDocument.create(field13: 'ohai')
+      SimpleDocument.create(field14: 'London')
+      SimpleDocument.create(field14: 'Paris')
+    end
+
+    let(:field1_query) { SimpleDocument.where(:field1.defined => true) }
+    let(:field13_query) { SimpleDocument.where(:field13.defined => true) }
+    let(:field14_query) { SimpleDocument.where(:field14.defined => true) }
+
+    let(:model_index_status) { NoBrainer.run(SimpleDocument.rql_table.index_status) }
+    let(:field13_index) { model_index_status.detect { |index| index['index'] == 'field13' } }
+    let(:field14_index) { model_index_status.detect { |index| index['index'] == 'field14' } }
+
+    it 'uses an index on the first field' do
+      expect(field13_query).to be_where_indexed
+    end
+
+    it "uses the first field's index" do
+      expect(field13_query.used_index).to eq(:field13)
+    end
+
+    it 'creates an index with a function `doc.has_fields(:field13)`' do
+      expect(field13_index['query']).to eq(
+        "indexCreate('field13', function(var1) { return var1.hasFields(\"field13\"); })"
+      )
+    end
+
+    it 'counts 4 documents for the first field' do
+      # Failure/Error: expect(field13_query.count).to eq 4
+      #
+      #   expected: 4
+      #        got: 6
+      #
+      #   (compared using ==)
+      expect(field13_query.count).to eq 4
+    end
+
+    it 'uses an index on the second field' do
+      expect(field14_query).to be_where_indexed
+    end
+
+    it "uses the second field's index" do
+      expect(field14_query.used_index).to eq(:field14)
+    end
+
+    it 'creates an index with a function `doc.has_fields(:field14)`' do
+      expect(field14_index['query']).to eq(
+        "indexCreate('field14', function(var1) { return var1.hasFields(\"field14\"); })"
+      )
+    end
+
+    it 'counts 2 documents for the second field' do
+      # 1) NoBrainer index when indexing a defined single field index counts 2 documents for the second field
+      #    Failure/Error: expect(field14_query.count).to eq 4
+      #
+      #      expected: 4
+      #           got: 6
+      expect(field14_query.count).to eq 4
+    end
+
+    it "doesn't use the index on other fields" do
+      expect(field1_query).not_to be_where_indexed
+    end
+
+    it 'counts 0 documents for other fields' do
+      expect(field1_query.count).to eq 0
+    end
+
+    context 'when using a without_index where' do
+      it "doesn't use an index on the first field" do
+        expect(field13_query.without_index).not_to be_where_indexed
+      end
+
+      it 'counts 4 documents for the first field' do
+        expect(field13_query.without_index.count).to eq 4
+      end
+
+      it "doesn't use an index on the second field" do
+        expect(field14_query.without_index).not_to be_where_indexed
+      end
+
+      it 'counts 4 documents for the second field' do
+        expect(field14_query.without_index.count).to eq 4
+      end
+    end
+
+    context 'when using multiple where' do
+      let(:query) { SimpleDocument.where(:field13.defined => true, :field14.defined => true) }
+
+      it 'uses an index' do
+        expect(query).to be_where_indexed
+      end
+
+      it 'uses the index from the first field' do
+        expect(query.used_index).to eq(:field13)
+      end
+
+      it 'counts 2 documents' do
+        expect(query.count).to eq 2
+      end
+
+      context 'when using without_index where' do
+        it 'counts 2 documents' do
+          # 3) NoBrainer index when indexing a defined single field index when using multiple where counts 2 documents
+          #    Failure/Error:
+          #
+          #      expected: 2
+          #           got: 4
+          expect(query.without_index.count).to eq 2
+        end
       end
     end
   end

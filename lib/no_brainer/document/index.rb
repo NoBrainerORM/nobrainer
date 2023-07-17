@@ -1,22 +1,23 @@
+# frozen_string_literal: true
+
 module NoBrainer::Document::Index
-  VALID_INDEX_OPTIONS = [:external, :geo, :multi, :store_as]
+  VALID_INDEX_OPTIONS = %i[external geo multi store_as defined].freeze
   extend ActiveSupport::Concern
   extend NoBrainer::Autoload
 
   autoload :Index, :Synchronizer, :MetaStore
 
   included do
-    cattr_accessor :indexes, :instance_accessor => false
+    cattr_accessor :indexes, instance_accessor: false
     self.indexes = {}
   end
 
   module ClassMethods
     def index(name, *args)
-      name = case name
-        when String then name.to_sym
-        when Symbol then name
-        when Array  then args.unshift(name); name.map(&:to_s).join('_').to_sym
-        else raise ArgumentError, "Incorrect index specification"
+      name = index_name_from(name, args)
+
+      if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
+        raise "The index name `:#{name}' is reserved. Please use another one."
       end
 
       options = args.extract_options!
@@ -25,22 +26,24 @@ module NoBrainer::Document::Index
       raise "Too many arguments: #{args}" if args.size > 1
 
       kind, what = case args.first
-        when nil    then [:single,   name.to_sym]
-        when Array  then [:compound, args.first.map(&:to_sym)]
-        when Proc   then [:proc,     args.first]
-        else raise "Index argument must be a lambda or a list of fields"
-      end
-
-      if name.in?(NoBrainer::Document::Attributes::RESERVED_FIELD_NAMES)
-        raise "The index name `:#{name}' is reserved. Please use another one."
-      end
+                   when nil    then [:single,   name.to_sym]
+                   when Array  then [:compound, args.first.map(&:to_sym)]
+                   when Proc   then [:proc,     args.first]
+                   else
+                     raise 'Index argument must be a lambda or a list of fields'
+                   end
 
       if has_field?(name) && kind != :single
-        raise "The field `#{name}' is already declared. Please remove its definition first."
+        raise "The field `#{name}' is already declared. Please remove its " \
+              'definition first.'
       end
 
-      if kind == :compound && what.size < 2
-        raise "Compound indexes only make sense with 2 or more fields"
+      kind == :compound && what.size < 2 &&
+        raise('Compound indexes only make sense with 2 or more fields')
+
+      if options.delete(:defined)
+        kind = :proc
+        what = ->(doc) { doc.has_fields(name) }
       end
 
       store_as = options.delete(:store_as)
@@ -48,8 +51,28 @@ module NoBrainer::Document::Index
       store_as ||= name
       store_as = store_as.to_sym
 
-      indexes[name] = NoBrainer::Document::Index::Index.new(self.root_class, name, store_as,
-        kind, what, options[:external], options[:geo], options[:multi], nil)
+      indexes[name] = NoBrainer::Document::Index::Index.new(
+        root_class,
+        name,
+        store_as,
+        kind,
+        what,
+        options[:external],
+        options[:geo],
+        options[:multi],
+        nil
+      )
+    end
+
+    def index_name_from(name, args)
+      case name
+      when String then name.to_sym
+      when Symbol then name
+      when Array
+        args.unshift(name)
+        name.map(&:to_s).join('_').to_sym
+      else raise ArgumentError, 'Incorrect index specification'
+      end
     end
 
     def remove_index(name)
