@@ -1,29 +1,36 @@
+# frozen_string_literal: true
+
 require 'logger'
 
 module NoBrainer::Config
   SETTINGS = {
-    :app_name               => { :default => ->{ default_app_name } },
-    :environment            => { :default => ->{ default_environment } },
-    :rethinkdb_urls         => { :default => ->{ [default_rethinkdb_url] } },
-    :ssl_options            => { :default => ->{ nil } },
-    :driver                 => { :default => ->{ :regular }, :valid_values => [:regular, :em] },
-    :logger                 => { :default => ->{ default_logger } },
-    :colorize_logger        => { :default => ->{ true }, :valid_values => [true, false] },
-    :warn_on_active_record  => { :default => ->{ true }, :valid_values => [true, false] },
-    :durability             => { :default => ->{ nil } }, # legacy
-    :table_options          => { :default => ->{ {:shards => 1, :replicas => 1, :write_acks => :majority} },
-                                 :valid_keys => [:durability, :shards, :replicas, :primary_replica_tag, :nonvoting_replica_tags, :write_acks] },
-    :run_options            => { :default => ->{ {:durability => default_durability} } },
-    :max_string_length      => { :default => ->{ 255 } },
-    :user_timezone          => { :default => ->{ :local }, :valid_values => [:unchanged, :utc, :local] },
-    :db_timezone            => { :default => ->{ :utc }, :valid_values => [:unchanged, :utc, :local] },
-    :geo_options            => { :default => ->{ {:geo_system => 'WGS84', :unit => 'm'} } },
-    :distributed_lock_class => { :default => ->{ "NoBrainer::Lock" } },
-    :lock_options           => { :default => ->{ { :expire => 60, :timeout => 10 } }, :valid_keys => [:expire, :timeout] },
-    :per_thread_connection  => { :default => ->{ false }, :valid_values => [true, false] },
-    :machine_id             => { :default => ->{ default_machine_id } },
-    :criteria_cache_max_entries => { :default => -> { 10_000 } },
-  }
+    app_name: { default: -> { default_app_name } },
+    colorize_logger: { default: -> { true }, valid_values: [true, false] },
+    criteria_cache_max_entries: { default: -> { 10_000 } },
+    db_timezone: { default: -> { :utc }, valid_values: %i[unchanged utc local] },
+    distributed_lock_class: { default: -> { 'NoBrainer::Lock' } },
+    driver: { default: -> { :regular }, valid_values: %i[regular em] },
+    durability: { default: -> {} }, # legacy
+    environment: { default: -> { default_environment } },
+    geo_options: { default: -> { { geo_system: 'WGS84', unit: 'm' } } },
+    lock_options: { default: -> { { expire: 60, timeout: 10 } }, valid_keys: %i[expire timeout] },
+    log_slow_queries: { default: -> { false } },
+    logger: { default: -> { default_logger } },
+    long_query_time: { default: -> { 10 } },
+    machine_id: { default: -> { default_machine_id } },
+    max_string_length: { default: -> { 255 } },
+    per_thread_connection: { default: -> { false }, valid_values: [true, false] },
+    rethinkdb_urls: { default: -> { [default_rethinkdb_url] } },
+    run_options: { default: -> { { durability: default_durability } } },
+    slow_query_log_file: { default: -> { File.join('/', 'var', 'log', 'rethinkdb', 'slow_queries.log') } },
+    ssl_options: { default: -> {} },
+    table_options: {
+      default: -> { { shards: 1, replicas: 1, write_acks: :majority } },
+      valid_keys: %i[durability shards replicas primary_replica_tag nonvoting_replica_tags write_acks]
+    },
+    user_timezone: { default: -> { :local }, valid_values: %i[unchanged utc local] },
+    warn_on_active_record: { default: -> { true }, valid_values: [true, false] }
+  }.freeze
 
   class << self
     attr_accessor(*SETTINGS.keys)

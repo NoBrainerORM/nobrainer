@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 NoBrainer.configure do |config|
   # app_name is the name of your application in lowercase.
   # When using Rails, the application name is automatically inferred.
@@ -94,4 +96,16 @@ NoBrainer.configure do |config|
   # is cached. The per criteria cache is disabled if it grows too big to avoid
   # out of memory issues.
   # config.criteria_cache_max_entries = 10_000
+
+  # Write queries running longer than config.long_query_time seconds.
+  # The slow query log can be used to find queries that take a long time to
+  # execute and are therefore candidates for optimization.
+  # config.log_slow_queries = true
+
+  # Queries running longer than the bellow value will be logged in a log file if
+  # the above `config.log_slow_queries` is `true`.
+  # config.long_query_time = 10 # seconds
+
+  # Path of the slow queries log file
+  # config.slow_query_log_file = File.join('/', 'var', 'log', 'rethinkdb', 'slow_queries.log')
 end
