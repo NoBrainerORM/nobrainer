@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Slow Queries Logger feature logging slow queries in a dedicated log file
 
 ### Fixed
 - `first_or_create` with a polymorphic association [#288](https://github.com/NoBrainerORM/nobrainer/issues/288)

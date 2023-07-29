@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NoBrainer::QueryRunner::Profiler < NoBrainer::QueryRunner::Middleware
   def call(env)
     profiler_start(env)
@@ -10,12 +12,13 @@ class NoBrainer::QueryRunner::Profiler < NoBrainer::QueryRunner::Middleware
   private
 
   require 'no_brainer/profiler/logger'
+  require 'no_brainer/profiler/slow_queries'
 
   def profiler_start(env)
     env[:start_time] = Time.now
   end
 
-  def profiler_end(env, exception=nil)
+  def profiler_end(env, exception = nil)
     return if handle_on_demand_exception?(env, exception)
 
     env[:end_time] = Time.now
@@ -26,10 +29,11 @@ class NoBrainer::QueryRunner::Profiler < NoBrainer::QueryRunner::Middleware
     env[:query_type] = NoBrainer::RQL.type_of(env[:query])
 
     NoBrainer::Profiler.registered_profilers.each do |profiler|
-      begin
+      begin # rubocop:disable Style/RedundantBegin
         profiler.on_query(env)
-      rescue Exception => e
-        STDERR.puts "[NoBrainer] Profiling error: #{e.class} #{e.message}"
+      rescue StandardError => error
+        STDERR.puts "[NoBrainer] #{profiler.class.name} profiler error: " \
+                    "#{error.class} #{error.message}\n#{error.backtrace.join('\n')}"
       end
     end
   end
