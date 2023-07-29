@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe 'changes' do
   before { load_simple_document }
   before { SimpleDocument.count } # ensure the table is created
-  before { NoBrainer.configure { |c| c.per_thread_connection = true } } unless ENV['EM']
+  before { NoBrainer.configure { |c| c.per_thread_connection = true } } unless ENV['EM'] == 'true'
 
   let!(:recorded_changes) { [] }
   after { @thread.try(:kill) } # FIXME leaking connections :)
 
   def record_changes
-    return em_record_changes if ENV['EM']
+    return em_record_changes if ENV['EM'] == 'true'
 
     @thread = Thread.new do
       begin

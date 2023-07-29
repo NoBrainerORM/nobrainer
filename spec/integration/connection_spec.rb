@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 # FIXME We are not really testing that many connections are gettings used, but
 # at least it will exercice the code.
 
-unless ENV['EM']
+unless ENV['EM'] == 'true'
   describe 'connection' do
     before { load_simple_document }
     before { SimpleDocument.count } # ensure the table is created

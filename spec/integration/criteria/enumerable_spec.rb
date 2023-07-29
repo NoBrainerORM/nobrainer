@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe "each" do
@@ -119,7 +121,7 @@ describe "each" do
       it_behaves_like 'streams'
     end
 
-    if ENV['EM']
+    if ENV['EM'] == 'true'
       context 'when using raw changes' do
         let(:criteria) { SimpleDocument.raw.changes(:include_states => true) }
         it_behaves_like 'streams'

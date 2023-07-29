@@ -1,3 +1,5 @@
+VERSION 0.6
+
 # This allows one to change the running Ruby version with:
 #
 # `earthly --build-arg EARTHLY_RUBY_VERSION=3 --allow-privileged +rspec`
@@ -16,6 +18,12 @@ deps:
     COPY gemfiles/rails$EARTHLY_RAILS_VERSION.gemfile /gem/Gemfile
     COPY *.gemspec /gem
 
+    IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
+        RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+    ELSE
+        RUN echo "No need to archive repo yet."
+    END
+
     RUN apt update \
         && apt install --yes \
                        --no-install-recommends \
@@ -28,6 +36,12 @@ deps:
     SAVE ARTIFACT /gem/Gemfile.lock Gemfile.lock
 
 dev:
+    IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
+        RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+    ELSE
+        RUN echo "No need to archive repo yet."
+    END
+
     RUN apt update \
         && apt install --yes \
                        --no-install-recommends \

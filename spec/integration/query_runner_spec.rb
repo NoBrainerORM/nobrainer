@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe "NoBrainer query runner" do
@@ -14,7 +16,7 @@ describe "NoBrainer query runner" do
     end
   end
 
-  unless ENV['EM'] # see https://github.com/rethinkdb/rethinkdb/issues/5929
+  unless ENV['EM'] == 'true' # see https://github.com/rethinkdb/rethinkdb/issues/5929
     describe 'run_with' do
       it 'passes down options to r.run()' do
         NoBrainer.run_with(:profile => true) do
