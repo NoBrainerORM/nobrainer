@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 load './spec/support/_coverage.rb' if ENV['COVERAGE']
 require 'rubygems'
 require 'bundler'
@@ -37,10 +39,10 @@ nobrainer_conf = proc do |c|
   c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
   c.environment = :test
   c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
-  c.driver = :em if ENV['EM']
+  c.driver = :em if ENV['EM'] == 'true'
 end
 
-if ENV['EM']
+if ENV['EM'] == 'true'
   require 'fiber'
   class RSpec::Core:: Runner
     alias_method :orig_run_specs, :run_specs

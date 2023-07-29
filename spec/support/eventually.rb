@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EventuallyHelper
   extend self
 
@@ -12,7 +14,7 @@ module EventuallyHelper
       end
       return if error.nil?
       raise error if Time.now >= time_limit
-      if ENV['EM']
+      if ENV['EM'] == 'true'
         f = Fiber.current
         EM::Timer.new(interval) { f.resume }
         Fiber.yield

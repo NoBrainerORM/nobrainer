@@ -3,7 +3,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'eventmachine' if ENV['EM']
+gem 'eventmachine' if ENV['EM'] == 'true'
 gem 'rspec', '~> 3.10'
 gem 'timecop'
 
