@@ -4,7 +4,7 @@ $LOAD_PATH.unshift File.expand_path('lib', __dir__)
 
 Gem::Specification.new do |s|
   s.name        = 'nobrainer'
-  s.version     = '0.44.0'
+  s.version     = '0.44.1'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Nicolas Viennot']
   s.email       = ['nicolas@viennot.biz']
