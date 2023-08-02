@@ -97,15 +97,26 @@ NoBrainer.configure do |config|
   # out of memory issues.
   # config.criteria_cache_max_entries = 10_000
 
-  # Write queries running longer than config.long_query_time seconds.
-  # The slow query log can be used to find queries that take a long time to
-  # execute and are therefore candidates for optimization.
-  # config.log_slow_queries = true
+  #
+  # Slow queries
+  #
 
   # Queries running longer than the bellow value will be logged in a log file if
   # the above `config.log_slow_queries` is `true`.
   # config.long_query_time = 10 # seconds
 
-  # Path of the slow queries log file
-  # config.slow_query_log_file = File.join('/', 'var', 'log', 'rethinkdb', 'slow_queries.log')
+  # Uncomment the following block in order to do something with slow query log
+  # message.
+  # The example writes the log message in a log file, but you could of course
+  # change it to do something else with that log message.
+  # Nothing happens when `config.on_slow_query` is commented and a slow query is
+  # detected.
+  # config.on_slow_query = lambda do |message|
+  #   # Write the log message to /var/log/rethinkdb/slow_queries.log file
+  #   File.write(
+  #     File.join('/', 'var', 'log', 'rethinkdb', 'slow_queries.log'),
+  #     message,
+  #     mode: 'a'
+  #   )
+  # end
 end

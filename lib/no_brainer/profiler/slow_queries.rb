@@ -4,17 +4,14 @@ module NoBrainer
   module Profiler
     class SlowQueries < Logger
       def on_query(env)
-        return unless NoBrainer::Config.log_slow_queries
+        return unless NoBrainer::Config.on_slow_query
 
         query_duration = (env[:duration] * 1000.0).round(1)
 
         return unless query_duration > NoBrainer::Config.long_query_time
 
-        File.write(
-          NoBrainer::Config.slow_query_log_file,
-          build_message(env),
-          mode: 'a'
-        )
+        message = build_message(env)
+        NoBrainer::Config.on_slow_query.call(message)
       end
 
       NoBrainer::Profiler.register(new)
