@@ -22,7 +22,7 @@ module NoBrainer::Config
     per_thread_connection: { default: -> { false }, valid_values: [true, false] },
     rethinkdb_urls: { default: -> { [default_rethinkdb_url] } },
     run_options: { default: -> { { durability: default_durability } } },
-    slow_query_log_file: { default: -> { File.join('/', 'var', 'log', 'rethinkdb', 'slow_queries.log') } },
+    on_slow_query: { default: -> { nil } },
     ssl_options: { default: -> {} },
     table_options: {
       default: -> { { shards: 1, replicas: 1, write_acks: :majority } },
@@ -53,6 +53,10 @@ module NoBrainer::Config
     def apply_defaults
       @applied_defaults_for = SETTINGS.keys.reject { |k| instance_variable_defined?("@#{k}") }
       @applied_defaults_for.each { |k| __send__("#{k}=", SETTINGS[k][:default].call) }
+    end
+
+    def on_slow_query=(callback)
+      @on_slow_query = callback
     end
 
     def geo_options=(value)
