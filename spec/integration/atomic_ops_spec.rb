@@ -167,6 +167,11 @@ describe 'atomic ops' do
       before { doc.field1 = [] }
       it_behaves_like 'arrays'
     end
+
+    context 'when using a typed array' do
+      before { SimpleDocument.field :field1, :type => NoBrainer::TypedArray.of(String), :default => [] }
+      it_behaves_like 'arrays'
+    end
   end
 
   context 'when using sets' do
