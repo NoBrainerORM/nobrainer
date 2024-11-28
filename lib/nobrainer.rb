@@ -56,6 +56,10 @@ module NoBrainer
       Gem.loaded_specs['activesupport'].version >= Gem::Version.new('6.0.0')
     end
 
+    def rails71?
+      Gem.loaded_specs['activesupport'].version >= Gem::Version.new('7.1.0')
+    end
+
     def eager_load!
       # XXX This forces all the NoBrainer code to be loaded in memory.
       # Not to be confused with eager_load() that operates on documents.
