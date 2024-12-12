@@ -1,5 +1,7 @@
 version: '3'
 
+name: nobrainer
+
 services:
   rethinkdb:
     extends:
