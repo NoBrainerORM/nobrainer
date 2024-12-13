@@ -1,4 +1,6 @@
 module NoBrainer::Document::PrimaryKey::Generator
+  extend self
+
   class Retry < RuntimeError; end
 
   BASE_TABLE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".freeze
@@ -42,10 +44,10 @@ module NoBrainer::Document::PrimaryKey::Generator
   SEQUENCE_SHIFT   = MACHINE_ID_SHIFT + MACHINE_ID_BITS
   TIMESTAMP_SHIFT  = SEQUENCE_SHIFT + SEQUENCE_BITS
 
-  def self._generate
-    timestamp = (Time.now.to_i - TIME_OFFSET) & TIMESTAMP_MASK
-
-    unless @last_timestamp == timestamp
+  def _generate
+    time = Time.now
+    timestamp = time.to_i
+    if @last_timestamp != timestamp
       # more noise is better in the ID, but we prefer to avoid
       # wrapping the sequences so that Model.last on a single
       # machine returns the latest created document.
@@ -56,19 +58,14 @@ module NoBrainer::Document::PrimaryKey::Generator
       raise Retry if @first_sequence == sequence
     end
     @sequence = sequence
+    pack(time: time, sequence: @sequence)
 
-    machine_id = NoBrainer::Config.machine_id & MACHINE_ID_MASK
-
-    pid = Process.pid & PID_MASK
-
-    (timestamp << TIMESTAMP_SHIFT) | (sequence << SEQUENCE_SHIFT) |
-      (machine_id << MACHINE_ID_SHIFT) | (pid << PID_SHIFT)
   rescue Retry
     sleep 0.1
     retry
   end
 
-  def self.convert_to_alphanum(id)
+  def packed_to_alphanum(id)
     result = []
     until id.zero?
       id, r = id.divmod(BASE_TABLE.size)
@@ -77,9 +74,41 @@ module NoBrainer::Document::PrimaryKey::Generator
     result.reverse.join.rjust(ID_STR_LENGTH, BASE_TABLE[0])
   end
 
+  def alphanum_to_packed(string)
+    string.split('').reduce(0) do |packed, ch|
+      (packed * BASE_TABLE.size) + BASE_TABLE.index(ch)
+    end
+  end
+
   @lock = Mutex.new
-  def self.generate
-    convert_to_alphanum(@lock.synchronize { _generate })
+  def generate
+    packed_to_alphanum(@lock.synchronize { _generate })
+  end
+
+  def pack(time:, sequence:, machine_id: nil, pid: nil)
+    machine_id ||= NoBrainer::Config.machine_id
+    pid ||= Process.pid
+    timestamp = (time.to_i - TIME_OFFSET)
+    packed = ((timestamp  &  TIMESTAMP_MASK) <<  TIMESTAMP_SHIFT) |
+             ((sequence   &   SEQUENCE_MASK) <<   SEQUENCE_SHIFT) |
+             ((machine_id & MACHINE_ID_MASK) << MACHINE_ID_SHIFT) |
+             ((pid        &        PID_MASK) <<        PID_SHIFT)
+  end
+
+  def unpack(id)
+    time =       (id >>  TIMESTAMP_SHIFT) &  TIMESTAMP_MASK
+    sequence =   (id >>   SEQUENCE_SHIFT) &   SEQUENCE_MASK
+    machine_id = (id >> MACHINE_ID_SHIFT) & MACHINE_ID_MASK
+    pid =        (id >>        PID_SHIFT) &        PID_MASK
+    { time: Time.at(time + TIME_OFFSET), sequence: sequence, machine_id: machine_id, pid: pid }
+  end
+
+  def pack_alphanum(time:, sequence:, machine_id: nil, pid: nil)
+    packed_to_alphanum(pack(time: time, sequence: sequence, machine_id: machine_id, pid: pid))
+  end
+
+  def unpack_alphanum(string)
+    unpack(alphanum_to_packed(string))
   end
 
   def self.field_type
