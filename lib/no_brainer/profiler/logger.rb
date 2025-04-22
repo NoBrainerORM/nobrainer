@@ -3,6 +3,12 @@
 module NoBrainer
   module Profiler
     class Logger
+      BLUE = "\e[0;34m"
+      GREEN = "\e[1;32m"
+      GREY = "\e[0;39m"
+      RED = "\e[0;31m"
+      YELLOW = "\e[1;33m"
+
       def on_query(env)
         level = ::Logger::ERROR if env[:exception]
         level ||= not_indexed(env) ? ::Logger::INFO : ::Logger::DEBUG
@@ -30,12 +36,12 @@ module NoBrainer
 
         if NoBrainer::Config.colorize_logger
           msg_duration = [query_color(env[:query_type]), msg_duration].join
-          msg_db = ["\e[0;34m", msg_db, query_color(env[:query_type])].join if msg_db
+          msg_db = [BLUE, msg_db, query_color(env[:query_type])].join if msg_db
           if msg_exception
-            exception_color = "\e[0;31m" if level == Logger::ERROR
-            msg_exception = ["\e[0;39m", ' -- ', exception_color, msg_exception].compact.join
+            exception_color = RED if env[:exception]
+            msg_exception = [GREY, ' -- ', exception_color, msg_exception].compact.join
           end
-          msg_last = "\e[0m"
+          msg_last = "\e[0m" # reset
         end
 
         [msg_duration, msg_db, msg_query, msg_exception, msg_last].join
@@ -50,9 +56,9 @@ module NoBrainer
 
       def query_color(query_type)
         {
-          write: "\e[1;31m", # red
-          read: "\e[1;32m", # green
-          management: "\e[1;33m" # yellow
+          write: RED,
+          read: GREEN,
+          management: YELLOW
         }[query_type]
       end
 

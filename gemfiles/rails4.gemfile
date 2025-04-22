@@ -3,15 +3,8 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'eventmachine' if ENV['EM'] == 'true'
-gem 'rspec', '~> 3.10'
-gem 'timecop'
+eval_gemfile 'Gemfile.ci_tools'
+eval_gemfile 'Gemfile.dev'
 
 gem 'activemodel', '~> 4'
 gem 'activesupport', '~> 4'
-
-group :development do
-  gem 'pry'
-  gem 'rake'
-  gem 'simplecov', require: false
-end

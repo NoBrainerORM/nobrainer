@@ -9,14 +9,16 @@ services:
       service: rethinkdb
 
   gem:
-    build: .
+    command: bash -c 'bundle exec rspec spec/ --order rand:$RSPEC_SEED'
     image: nobrainerorm/nobrainer:latest
     depends_on:
       - rethinkdb
     environment:
-      - RUBY_ENV=test
       # The nobrainer Rspec config expects the DB_HOST variable
       # (see spec/spec_helper.rb), that's why we aren't setting the RDB_HOST env
       # variable here.
       - DB_HOST=rethinkdb
+      - DEBUG=${DEBUG}
       - EM=${EM}
+      - RSPEC_SEED=${RSPEC_SEED}
+      - RUBY_ENV=test

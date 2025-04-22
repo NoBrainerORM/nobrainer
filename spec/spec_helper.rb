@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 load './spec/support/_coverage.rb' if ENV['COVERAGE']
+
 require 'rubygems'
 require 'bundler'
 Bundler.require(:default, ENV['CI'] ? :ci : :development)
+
+# Retry failed flaky tests
+# See https://github.com/windmotion-io/rspec-rebound
+require 'rspec/rebound'
 
 SPEC_ROOT = File.expand_path File.dirname(__FILE__)
 Dir["#{SPEC_ROOT}/support/**/*.rb"].each { |f| require f unless File.basename(f) =~ /^_/ }
@@ -13,12 +18,12 @@ db_name       = ENV['DB_NAME'] || 'nobrainer_test'
 
 if ENV['TEST_ENV_NUMBER']
   DB_SUFFIX = "_N#{ENV['TEST_ENV_NUMBER']}"
-  db_name = db_name + DB_SUFFIX
+  db_name += DB_SUFFIX
 
   class NoBrainer::QueryRunner::RunOptions < NoBrainer::QueryRunner::Middleware
     class << self
       alias_method :run_with_orig, :run_with
-      def run_with(options={}, &block)
+      def run_with(options = {}, &block)
         if options[:db]
           options = options.dup
           options[:db] = options[:db] + DB_SUFFIX unless options[:db] =~ /#{DB_SUFFIX}$/
@@ -38,10 +43,11 @@ nobrainer_conf = proc do |c|
   c.reset!
   c.rethinkdb_url = "rethinkdb://#{database_host}/#{db_name}"
   c.environment = :test
-  c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::WARN }
+  c.logger = Logger.new(STDERR).tap { |l| l.level = ENV['DEBUG'].presence ? Logger::DEBUG : Logger::WARN }
   c.driver = :em if ENV['EM'] == 'true'
 end
 
+# TODO : Move this in a support/ file
 if ENV['EM'] == 'true'
   require 'fiber'
   class RSpec::Core:: Runner
@@ -67,6 +73,12 @@ RSpec.configure do |config|
     c.syntax = [:should, :expect]
   end
 
+  # rspec-retry
+  # show retry status in spec process
+  config.verbose_retry = true
+  # show exception that triggers a retry if verbose_retry is set to true
+  config.display_try_failure_messages = true
+
   if ENV['TRACE']
     config.before do
       $trace_file = File.open(ENV['TRACE'], 'w')
@@ -81,7 +93,7 @@ RSpec.configure do |config|
     NoBrainer.drop!
   end
 
-  config.before(:each) do
+  config.before do
     NoBrainer.configure(&nobrainer_conf)
     NoBrainer.purge!
     NoBrainer::Loader.cleanup

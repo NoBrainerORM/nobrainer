@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+gem 'base64', '~> 0.2.0'
+gem 'bigdecimal', '~> 3.1.9'
+gem 'logger', '~> 1.7.0'
+gem 'mutex_m', '~> 0.3.0'

@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+group :development do
+  gem 'awesome_print', require: false
+  gem 'pry'
+  gem 'rake'
+  gem 'simplecov', require: false
+end

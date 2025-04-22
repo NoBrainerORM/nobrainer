@@ -2,12 +2,12 @@ VERSION 0.6
 
 # This allows one to change the running Ruby version with:
 #
-# `earthly --build-arg EARTHLY_RUBY_VERSION=3 --allow-privileged +rspec`
-ARG EARTHLY_RUBY_VERSION=2.7
+# `earthly --build-arg EARTHLY_RUBY_VERSION=2.2 --allow-privileged +rspec`
+ARG EARTHLY_RUBY_VERSION=3.4
 # This allows one to change the imported Gemfile from the `gemfiles` folder:
 #
 # `earthly --build-arg EARTHLY_RAILS_VERSION=5 --allow-privileged +rspec`
-ARG EARTHLY_RAILS_VERSION=6
+ARG EARTHLY_RAILS_VERSION=8
 # This allows one to run tests including the eventmachine gem or not
 ARG EM
 
@@ -16,6 +16,7 @@ WORKDIR /gem
 
 deps:
     COPY gemfiles/rails$EARTHLY_RAILS_VERSION.gemfile /gem/Gemfile
+    COPY Gemfile.* /gem
     COPY *.gemspec /gem
 
     IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
@@ -32,8 +33,8 @@ deps:
         && bundle install --jobs $(nproc)
 
     SAVE ARTIFACT /usr/local/bundle bundler
-    SAVE ARTIFACT /gem/Gemfile Gemfile
-    SAVE ARTIFACT /gem/Gemfile.lock Gemfile.lock
+    SAVE ARTIFACT /gem/Gemfile
+    SAVE ARTIFACT /gem/Gemfile.lock
 
 dev:
     IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
@@ -48,10 +49,12 @@ dev:
                        git
 
     COPY +deps/bundler /usr/local/bundle
-    COPY +deps/Gemfile /gem/Gemfile
-    COPY +deps/Gemfile.lock /gem/Gemfile.lock
+    COPY +deps/Gemfile /gem
+    COPY +deps/Gemfile.lock /gem
 
+    COPY Gemfile.* /gem
     COPY *.gemspec /gem
+    COPY .rspec /gem
     COPY Rakefile /gem
 
     COPY lib/ /gem/lib/
@@ -60,15 +63,23 @@ dev:
     ENTRYPOINT ["bundle", "exec"]
     CMD ["rake"]
 
+    SAVE IMAGE nobrainerorm/nobrainer:latest
+
 #
 # This target runs the test suite.
 #
 # Use the following command in order to run the tests suite:
 # earthly --allow-privileged +rspec
+#
+# To replay an Rspec seed:
+# earthly --allow-privileged +rspec --DEBUG=true --RSPEC_SEED=17880
 rspec:
     FROM earthly/dind:alpine
 
     COPY docker-compose*.yml ./
+
+    ARG DEBUG
+    ARG RSPEC_SEED
 
     WITH DOCKER --load nobrainerorm/nobrainer:latest=+dev \
                 --pull rethinkdb:2.4

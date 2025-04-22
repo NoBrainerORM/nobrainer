@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'nobrainer'
 
 class NoBrainer::Railtie < Rails::Railtie

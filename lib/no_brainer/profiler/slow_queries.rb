@@ -5,13 +5,20 @@ module NoBrainer
     class SlowQueries < Logger
       def on_query(env)
         return unless NoBrainer::Config.on_slow_query
+        puts " ->> slow_query?(env): #{slow_query?(env).inspect}"
+        return unless slow_query?(env)
 
-        query_duration = (env[:duration] * 1000.0).round(1)
+        NoBrainer::Config.on_slow_query.call(build_message(env))
+      end
 
-        return unless query_duration > NoBrainer::Config.long_query_time
+      private
 
-        message = build_message(env)
-        NoBrainer::Config.on_slow_query.call(message)
+      def query_duration(env)
+        (env[:duration] * 1000.0).round(1)
+      end
+
+      def slow_query?(env)
+        query_duration(env) > NoBrainer::Config.long_query_time
       end
 
       NoBrainer::Profiler.register(new)
