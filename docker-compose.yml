@@ -6,7 +6,6 @@ services:
 
   # docker-compose run --rm gem [rspec [path to spec file]]
   gem:
-    build: .
     image: nobrainerorm/nobrainer:latest
     depends_on:
       - rethinkdb

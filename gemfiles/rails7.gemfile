@@ -3,16 +3,9 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'eventmachine' if ENV['EM'] == 'true'
-gem 'rspec', '~> 3.10'
-gem 'timecop'
+eval_gemfile 'Gemfile.ci_tools'
+eval_gemfile 'Gemfile.dev'
+eval_gemfile 'Gemfile.ruby3'
 
-gem 'activemodel', '~> 7.0.0.alpha2'
-gem 'activesupport', '~> 7.0.0.alpha2'
-
-group :development do
-  gem 'awesome_print', require: false
-  gem 'pry'
-  gem 'rake'
-  gem 'simplecov', require: false
-end
+gem 'activemodel', '~> 7'
+gem 'activesupport', '~> 7'

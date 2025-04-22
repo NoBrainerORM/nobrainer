@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+gem 'eventmachine' if ENV['EM'] == 'true'
+gem 'rspec', '~> 3.10'
+gem 'rspec-instafail'
+gem 'rspec-rebound'
+gem 'timecop'

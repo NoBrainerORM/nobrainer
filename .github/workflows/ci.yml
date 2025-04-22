@@ -43,6 +43,12 @@ jobs:
           - ruby: 3
             rails: 7
             eventmachine: false
+          - ruby: 3
+            rails: 8
+            eventmachine: false
+          - ruby: 3
+            rails: 8
+            eventmachine: true
     runs-on: ubuntu-latest
     name: RSpec suite (Ruby ${{ matrix.ruby }}/Rails ${{ matrix.rails }}/EM ${{ matrix.eventmachine }})
     env:

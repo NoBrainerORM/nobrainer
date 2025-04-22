@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'digest/sha1'
 
 class NoBrainer::Lock
@@ -18,7 +20,7 @@ class NoBrainer::Lock
     super(Digest::SHA1.base64digest(key.to_s))
   end
 
-  def initialize(key, options={})
+  def initialize(key, options = {})
     if options[:from_db]
       super
       # We reset our instance_token to allow recoveries.
@@ -37,7 +39,7 @@ class NoBrainer::Lock
     NoBrainer::Document::PrimaryKey::Generator.generate
   end
 
-  def synchronize(options={}, &block)
+  def synchronize(options = {}, &block)
     lock(options)
     begin
       block.call
@@ -46,7 +48,7 @@ class NoBrainer::Lock
     end
   end
 
-  def lock(options={})
+  def lock(options = {})
     options.assert_valid_keys(:expire, :timeout)
     timeout = get_option_value(options, :timeout)
     sleep_amount = 0.1
@@ -54,13 +56,14 @@ class NoBrainer::Lock
     start_at = Time.now
     loop do
       return if try_lock(options.slice(:expire))
+
       raise_lock_unavailable! if Time.now - start_at + sleep_amount > timeout
       sleep(sleep_amount)
       sleep_amount = [1, sleep_amount * 2].min
     end
   end
 
-  def try_lock(options={})
+  def try_lock(options = {})
     options.assert_valid_keys(:expire)
     raise_if_locked!
 
@@ -69,11 +72,11 @@ class NoBrainer::Lock
     result = NoBrainer.run do |r|
       selector.replace do |doc|
         r.branch(doc.eq(nil).or(doc[:expires_at] < r.now),
-                 self.attributes, doc)
+                 attributes, doc)
       end
     end
 
-    return @locked = (result['inserted'] + result['replaced']) == 1
+    @locked = (result['inserted'] + result['replaced']) == 1
   end
 
   def unlock
@@ -81,7 +84,7 @@ class NoBrainer::Lock
 
     result = NoBrainer.run do |r|
       selector.replace do |doc|
-        r.branch(doc[:instance_token].default(nil).eq(self.instance_token),
+        r.branch(doc[:instance_token].default(nil).eq(instance_token),
                  nil, doc)
       end
     end
@@ -90,7 +93,7 @@ class NoBrainer::Lock
     raise_lost_lock! unless result['deleted'] == 1
   end
 
-  def refresh(options={})
+  def refresh(options = {})
     options.assert_valid_keys(:expire)
     raise_unless_locked!
 
@@ -98,18 +101,18 @@ class NoBrainer::Lock
 
     result = NoBrainer.run do |r|
       selector.update do |doc|
-        r.branch(doc[:instance_token].eq(self.instance_token),
-                 { :expires_at => self.expires_at }, nil)
+        r.branch(doc[:instance_token].eq(instance_token),
+                 { :expires_at => expires_at }, nil)
       end
     end
 
-    # Note: If we are too quick, expires_at may not change, and the returned
+    # NOTE : If we are too quick, expires_at may not change, and the returned
     # 'replaced' won't be 1. We'll generate a spurious error. This is very
     # unlikely to happen and should not harmful.
-    unless result['replaced'] == 1
-      @locked = false
-      raise_lost_lock!
-    end
+    return if result['replaced'] == 1
+
+    @locked = false
+    raise_lost_lock!
   end
 
   def save?(*);  raise NotImplementedError; end

@@ -1,12 +1,18 @@
+# frozen_string_literal: true
+
 require 'set'
+require 'logger'
 require 'active_support'
 require 'active_model'
 require 'thread'
-%w(module/delegation module/attribute_accessors module/introspection
+
+%w[module/delegation module/attribute_accessors module/introspection
    class/attribute object/blank object/inclusion object/deep_dup
    object/try hash/keys hash/indifferent_access hash/reverse_merge
-   hash/deep_merge hash/slice array/extract_options)
-    .each { |dep| require "active_support/core_ext/#{dep}" }
+   hash/deep_merge hash/slice
+   array/extract_options].each do |dep|
+  require "active_support/core_ext/#{dep}"
+end
 
 module NoBrainer
   require 'no_brainer/autoload'

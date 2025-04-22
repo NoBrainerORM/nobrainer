@@ -22,8 +22,8 @@ Gem::Specification.new do |s|
   s.metadata['source_code_uri'] = 'https://github.com/NoBrainerORM/nobrainer'
   s.metadata['changelog_uri'] = 'https://github.com/NoBrainerORM/nobrainer/blob/master/CHANGELOG.md'
 
-  s.add_dependency 'activemodel', '>= 4.1.0', '< 8'
-  s.add_dependency 'activesupport', '>= 4.1.0', '< 8'
+  s.add_dependency 'activemodel', '>= 4.1.0', '< 8.1'
+  s.add_dependency 'activesupport', '>= 4.1.0', '< 8.1'
   s.add_dependency 'middleware', '~> 0.1.0'
   s.add_dependency 'rethinkdb', '>= 2.3.0', '< 2.5'
   s.add_dependency 'symbol_decoration', '~> 1.1'
