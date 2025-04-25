@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
                   'on top of RethinkDB while providing precise semantics.'
   s.license     = 'LGPL-3.0-only'
 
-  s.required_ruby_version = ">= #{ENV.fetch('EARTHLY_RUBY_VERSION', '1.9.0')}"
+  s.required_ruby_version = ">= #{ENV.fetch('EARTHLY_RUBY_VERSION', '2.2.0')}"
 
   s.metadata['allowed_push_host'] = 'https://rubygems.org'
   s.metadata['homepage_uri'] = s.homepage

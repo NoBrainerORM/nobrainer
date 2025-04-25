@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe NoBrainer::Lock do
+describe NoBrainer::Lock do # rubocop:disable RSpec/SpecFilePathFormat
   let(:lock1) { described_class.new(:some_key) }
   let(:lock2) { described_class.new(:some_key) }
 
