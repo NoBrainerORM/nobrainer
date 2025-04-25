@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Ruby 3 support
 - RSPEC_SEED earthly ARG to replay an Rspec seed
+- Ruby 1.9.0 deprecation
 
 ### Changed
 - docker compose file for Earthly in order to give a project name

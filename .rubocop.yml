@@ -3,6 +3,7 @@ require:
 
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 2.2
 
 Metrics/BlockLength:
   IgnoredMethods: ['describe', 'context']
