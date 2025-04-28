@@ -16,7 +16,7 @@ WORKDIR /gem
 
 deps:
     COPY gemfiles/rails$EARTHLY_RAILS_VERSION.gemfile /gem/Gemfile
-    COPY Gemfile.* /gem
+    COPY gemfiles/Gemfile.* /gem
     COPY *.gemspec /gem
 
     IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
@@ -33,8 +33,8 @@ deps:
         && bundle install --jobs $(nproc)
 
     SAVE ARTIFACT /usr/local/bundle bundler
-    SAVE ARTIFACT /gem/Gemfile
-    SAVE ARTIFACT /gem/Gemfile.lock
+    # Saves Gemfile, Gemfile.ci_tools, Gemfile.dev, and so on
+    SAVE ARTIFACT /gem/Gemfile* Gemfiles/
 
 dev:
     IF ruby -e "exit 0 if $EARTHLY_RUBY_VERSION < 2.4; exit 1"
@@ -49,10 +49,9 @@ dev:
                        git
 
     COPY +deps/bundler /usr/local/bundle
-    COPY +deps/Gemfile /gem
-    COPY +deps/Gemfile.lock /gem
+    # Imports all saved Gemfile* from +deps target
+    COPY +deps/Gemfiles/* /gem
 
-    COPY Gemfile.* /gem
     COPY *.gemspec /gem
     COPY .rspec /gem
     COPY Rakefile /gem
